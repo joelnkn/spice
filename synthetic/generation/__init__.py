@@ -1,0 +1,3 @@
+"""
+Synthetic language generation module
+"""
