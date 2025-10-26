@@ -1,0 +1,3 @@
+# Core dependencies for synthetic language generation
+# TODO: Add specific packages as needed
+
