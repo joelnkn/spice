@@ -20,8 +20,10 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Environment Files
+.env
 venv/
+.venv/
 env/
 ENV/
 
@@ -38,6 +40,7 @@ synthetic/data/raw/*
 synthetic/data/processed/*
 !synthetic/data/processed/.gitkeep
 synthetic/outputs/
+/third_party/conglanger/output/
 *.csv
 *.json
 *.pkl
