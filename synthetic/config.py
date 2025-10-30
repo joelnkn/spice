@@ -13,7 +13,7 @@ CONGLANGER_PATH = os.path.join(CONGLANGER_DIR, "src", "run_pipeline.py")
 
 # 🔹 Default data and prompt directories
 DATA_DIR = os.path.join(PROJECT_ROOT, "synthetic", "data")
-OUTPUT_DIR = DATA_DIR  # base output dir
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "synthetic", "outputs")
 PROMPT_DIR = os.path.join(CONGLANGER_DIR, "prompts")
 
 # 🔹 Ensure directories exist
