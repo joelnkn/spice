@@ -4,7 +4,7 @@ from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
 from synthetic.utils.logger import setup_logger
 
 
-def generate_language(
+def run_conglanger(
     run_name=None,
     model="gemini-2.5-pro",
     steps=("phonology", "grammar", "lexicon", "translation"),
