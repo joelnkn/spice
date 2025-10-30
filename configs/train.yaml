@@ -1,0 +1,32 @@
+model_name: google/mt5-base        # or bigscience/bloom-560m, etc.
+task_type: seq2seq                 # "seq2seq" or "causal"
+use_qlora: true
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q, k, v, o, up, down, gate]  # mapped internally per-arch
+optim:
+  name: paged_adamw_8bit
+  lr: 1.0e-4
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+train:
+  max_steps: 2000
+  grad_accum: 8
+  max_src_len: 512
+  max_tgt_len: 128
+  per_device_batch_size: 1
+  gradient_checkpointing: true
+  logging_steps: 25
+  eval_steps: 200
+  save_steps: 200
+seed: 17
+io:
+  train_path: data/train.jsonl
+  eval_path: data/val.jsonl
+  out_dir: outputs/run1
+  push_to_hub: false
+wandb:
+  enabled: false
+  project: spice-ft

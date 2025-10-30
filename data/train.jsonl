@@ -1,0 +1,2 @@
+{"input":"translate to en: bonjour", "target":"hello", "task_id":"trans", "lang":"fr"}
+{"input":"translate to en: guten tag", "target":"hello", "task_id":"trans", "lang":"de"}
