@@ -25,3 +25,11 @@ python synthetic/generation/api.py
 ```
 Outputs are saved to `synthetic/outputs/`
 
+## Translation
+Update args in main() in translate_dataset.py
+Run
+```
+python synthetic/translation/translate_dataset.py
+```
+Translated dataset is saved to `synthetic/data/`
+
