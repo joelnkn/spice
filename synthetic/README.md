@@ -18,7 +18,10 @@ synthetic/
 └── README.md           # This file
 ```
 
-## Usage
-
-See the main project README for usage instructions.
+## Generating Synthetic Languages
+```
+python -m synthetic.generation.api
+python synthetic/generation/api.py
+```
+Outputs are saved to `synthetic/outputs/`
 

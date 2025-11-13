@@ -1,0 +1,57 @@
+You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
+
+A hypothetical language has the following phonology:
+
+=== START ===
+{phonology}
+=== END ===
+
+It has the following grammar:
+
+=== START ===
+{grammar}
+=== END ===
+
+{lexicon_section}
+
+Your task is to translate the following English sentences into this constructed language:
+
+{sentences}
+
+Instructions:
+1. Use the vocabulary provided in the language specification (if available)
+2. Follow the grammatical rules and patterns described
+3. Apply the phonological conventions
+4. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
+5. If a grammatical construction is needed but not specified, invent a new grammar rule that is consistent with the existing language patterns
+6. Ensure the translation follows the word order and morphological patterns specified
+
+If you create new words, ensure they:
+- Follow the phonological constraints of the language
+- Have appropriate semantic scope for the meaning needed
+- Use appropriate derivational processes if applicable
+
+If you create new grammar rules, ensure they:
+- Are consistent with existing grammatical patterns
+- Follow the language's morphological and syntactic tendencies
+- Are plausible extensions of the existing system
+
+Return the result as a JSON object with the following structure:
+{{
+  "translated_sentences": ["translated sentence 1", "translated sentence 2", ...],
+  "new_words": [
+    {{
+      "word": "new_word",
+      "meaning": "English meaning",
+      "reason": "explanation for why this word was created"
+    }}
+  ],
+  "new_grammar_rules": [
+    {{
+      "rule": "description of the new grammar rule",
+      "reason": "explanation for why this rule was created and how it fits the language"
+    }}
+  ]
+}}
+
+Ensure the output is valid JSON. If no new words or grammar rules were created, use empty lists for those fields.
