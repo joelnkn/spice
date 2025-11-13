@@ -1,0 +1,32 @@
+Here is a translation result for a constructed language:
+=== START ===
+{content}
+=== END ===
+
+For context, here is the language specification:
+=== START ===
+{context}
+=== END ===
+
+Evaluate the quality and accuracy of this translation. Return a JSON with keys:
+* "overall_score": Integer from 1 (completely incorrect) to 10 (excellent translation), scoring the translation overall. Consider:
+  - Adherence to phonological rules (10: fully consistent, 8-9: minor violations, 5-7: some violations, 1-4: major violations)
+  - Adherence to grammatical rules (10: fully consistent, 8-9: minor violations, 5-7: some violations, 1-4: major violations)
+  - Appropriate use of lexicon (10: excellent use, 8-9: mostly appropriate, 5-7: some issues, 1-4: poor lexical choices)
+  - Quality of glossing (10: accurate and complete, 8-9: mostly accurate, 5-7: some errors, 1-4: poor glossing)
+  - Semantic accuracy (10: meaning preserved, 8-9: mostly preserved, 5-7: some meaning lost, 1-4: meaning significantly altered)
+* "issues": List of problems found (if any). Each item should be an object with:
+  * "issue": String describing the problem
+  * "type": One of "phonological_violation"/"grammatical_violation"/"lexical_error"/"glossing_error"/"semantic_error"/"consistency_error"
+  * "correction": String describing how the translation should be corrected
+  * "priority": 1 (high -- major error affecting meaning or violating core rules), 2 (medium -- noticeable error), or 3 (low -- minor issue or style preference)
+
+Be thorough in checking:
+1. Phonological consistency: Do invented words follow the sound patterns and constraints?
+2. Grammatical consistency: Are word order, morphology, and syntax rules followed?
+3. Lexical appropriateness: Are existing words used correctly? Are new words justified and well-formed?
+4. Glossing accuracy: Does the gloss correctly break down morphemes and grammatical functions?
+5. Semantic preservation: Does the translation convey the intended meaning?
+6. Internal consistency: Are new rules and words consistent with each other?
+
+Output only this JSON object. Give no additional explanation or discussion.

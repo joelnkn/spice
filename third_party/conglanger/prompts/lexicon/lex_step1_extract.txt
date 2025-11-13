@@ -1,0 +1,21 @@
+A hypothetical language has the following phonology and grammar:
+
+=== START ===
+{phonology}
+
+{grammar}
+=== END ===
+
+Output a CSV with a lexicon of the language, including all lexical items that appear in the language's information above.
+
+The CSV column names and their contents should be:
+* "ipa": Lexical item as IPA (without brackets)
+* "pos": Part of speech
+* "translation": Translation of item into English
+* "grammar": Any grammar points or information specific to that lexical item (e.g. inflectional or conjugational classes, irregularities, ...)
+* "derivation": If the item is derived, note its derivation here
+* "notes": Any additional notes
+
+Provide translations for all lexical items, even those whose translations are not explicitly specified in the provided background above (i.e. don't list any translations as "unknown").
+
+Do not provide any further explanation or text, only the CSV.

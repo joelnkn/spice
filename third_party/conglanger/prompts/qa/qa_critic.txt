@@ -1,0 +1,14 @@
+Here is a hypothetical language's {content_type}:
+=== START ===
+{content}
+=== END ===
+
+Is the description of the language's {content_type} consistent? Return a JSON with keys:
+* "overall_score": Integer from 1 (completely inconsistent) to 10 (completely consistent), scoring the {content_type} overall. If there are not issues that are strictly contradictions or errors (for example, if the only issues are ambiguities/unclear points), the score should be 9 (consistent but somewhat unclear). If there are only minor contradictions or errors, the score should be 8 (very minor inconsistencies).
+* "issues": List of errors and inconsistencies found (if any) and their corrections. Each item in this list should be an object with the following keys and values:
+  * "issue": String describing issue
+  * "type": One of "inconsistency"/"error"/"ambiguity", indicating if the issue is an inconsistency (contradiction), error (other mistake), or ambiguity (not strictly a mistake but unclear)
+  * "correction": String describing how it should be corrected
+  * "priority": 1 (high -- severe issue), 2 (medium), or 3 (low -- minor or very minor issue)
+Be as exhaustive as possible in your search for issues.
+Output only this JSON object. Give no additional explanation or discussion.

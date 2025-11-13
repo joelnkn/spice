@@ -1,0 +1,52 @@
+You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
+
+A hypothetical language has the following phonology:
+
+=== START ===
+{phonology}
+=== END ===
+
+It has the following grammar:
+
+=== START ===
+{grammar}
+=== END ===
+
+{lexicon_section}
+
+Your task is to translate the following English sentence into this constructed language:
+
+English sentence: {input_sentence}
+
+Instructions:
+1. Use the vocabulary provided in the language specification (if available)
+2. Follow the grammatical rules and patterns described
+3. Apply the phonological conventions
+4. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
+5. If a grammatical construction is needed but not specified, invent a new grammar rule that is consistent with the existing language patterns
+6. Ensure the translation follows the word order and morphological patterns specified
+
+If you create new words, ensure they:
+- Follow the phonological constraints of the language
+- Have appropriate semantic scope for the meaning needed
+- Use appropriate derivational processes if applicable
+
+If you create new grammar rules, ensure they:
+- Are consistent with existing grammatical patterns
+- Follow the language's morphological and syntactic tendencies
+- Are plausible extensions of the existing system
+
+Provide a gloss line: break down the conlang sentence word by word, showing morphemes and their grammatical functions using standard linguistic abbreviations (e.g., FUT, SBJ, OBJ, ACC, etc.). The gloss should use English abbreviations and morpheme breakdowns, NOT the conlang words.
+
+Return the result in JSON format only:
+
+{{
+    "sentences": [
+        {{
+            "conlang_sentence": "<sentence in the constructed language>",
+            "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
+            "new_words": [{{"<new_word>": "<english_translation>"}}],
+            "new_grammar_rules": [{{"rule": "<description_of_new_rule>", "justification": "<explanation_of_why_needed_and_consistency>"}}]
+        }}
+    ]
+}}

@@ -1,0 +1,13 @@
+Expand the following grammar description with more detail:
+
+{grammar}
+
+A hypothetical language has the following phonology:
+=== START ===
+{phonology}
+=== END ===
+
+It should also obey the following constraint(s):
+{custom}
+
+Add more specific details about morphological processes, syntactic constructions, and example paradigms. Include concrete examples using plausible words that follow the phonological constraints. Make the grammar more complete and detailed while maintaining consistency with the original description.

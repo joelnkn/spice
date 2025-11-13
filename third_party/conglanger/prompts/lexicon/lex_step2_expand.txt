@@ -1,0 +1,24 @@
+A hypothetical language has the following phonology and grammar:
+
+=== START ===
+{phonology}
+
+{grammar}
+=== END ===
+
+It currently has the following partial lexicon:
+
+=== START LEXICON ===
+{lexicon}
+=== END LEXICON ===
+
+Add {n} new entries to this lexicon. Create new words that:
+1. Follow the phonological constraints of the language
+2. Are morphologically consistent with the grammar
+3. Cover basic vocabulary areas (body parts, family, nature, actions, etc.)
+4. Use appropriate derivational processes if specified in the grammar
+
+Output only the new entries in the same CSV format:
+ipa,pos,translation,grammar,derivation,notes
+
+Do not include the existing entries, only the new ones. Provide no additional explanation.

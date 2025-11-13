@@ -1,0 +1,42 @@
+I am designing a hypothetical language's grammar.
+
+Consider the following checklist:
+== START CHECKLIST ==
+{checklist}
+== END CHECKLIST ==
+
+Use values {values} for those respectively.
+
+A hypothetical language has the following phonology:
+=== START ===
+{phonology}
+=== END ===
+
+It should also obey the following constraint(s); if these contradict the above, these take priority:
+{custom}
+
+Now write a summary of its grammar (morphology and syntax).
+Make sure there are a couple of aspects that are unusual, creative, interesting, or surprising, while still obeying the constraints from above.
+Format your output as follows. Give no additional explanation or discussion.
+
+# Grammar
+
+## Morphology
+
+(Description of morphological processes)
+
+## Word Order
+
+(Description of basic word order and variations)
+
+## Case System
+
+(Description of case marking, if any)
+
+## Verb System
+
+(Description of tense, aspect, mood, agreement)
+
+## Other Features
+
+(Any other notable grammatical features)

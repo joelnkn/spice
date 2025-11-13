@@ -1,0 +1,12 @@
+Merge and consolidate the following grammar summaries into a single, coherent description:
+
+{summaries}
+
+Create a unified grammar description that:
+1. Combines all information from both summaries
+2. Resolves any contradictions by choosing the most detailed version
+3. Maintains consistency throughout
+4. Organizes information clearly with appropriate headings
+5. Removes redundancy while preserving all unique information
+
+Format the output with clear section headers and provide no additional explanation.

@@ -1,0 +1,65 @@
+You are a skilled linguist typologist analyzing a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
+
+The hypothetical language has the following phonology:
+
+=== START ===
+{phonology}
+=== END ===
+
+It has the following grammar:
+
+=== START ===
+{grammar}
+=== END ===
+
+{lexicon_section}
+
+Your goal is to determine which typological features best describe this language.
+Evaluate the language’s typological profile using the following 18 features from the World Atlas of Language Structures (WALS):
+
+1. Consonant inventory — Small (≤20) vs. Large (>20)
+2. Vowel inventory — Small (<9) vs. Large (≥9)
+3. Tone — Tonal vs. non-tonal
+4. Morphological fusion — one of: isolating, agglutinating, fusional, polysynthetic
+5. Affixation balance — Prefixing vs. suffixing
+6. Gender inventory — none (0), few (1-2), moderate (3-5), or many (≥6)
+7. Case inventory — Minimal, moderate, or extensive case systems
+8. Numeral classifiers — Classifier vs. non-classifier
+9. Basic word order — one of: SVO, SOV, VSO, VOS, OVS, OSV
+10. Adposition type — Prepositions vs. postpositions
+11. Genitive–noun order — Genitive before vs. after noun
+12. Adjective–noun order — Adjectives before vs. after noun
+13. Relative-clause order — Head-initial vs. head-final
+14. Alignment typology — Nominative–accusative vs. active–stative
+15. Causative morphology — present vs. absent
+16. Passive morphology — present vs. absent
+17. Applicative morphology — present vs. absent
+18. Question-marking strategy — Interrogative particle vs. inversion
+
+Rules:
+- If more than one strategy is present for a feature (e.g. both prefixing and suffixing), choose the one that is most dominant in the description.
+- If a feature cannot be determined from the language description, set it to "null".
+- Use the exact key names below.
+
+Return the result in JSON format only:
+
+{{
+  "consonant_inventory": "<small|large|null>",
+  "vowel_inventory": "<small|large|null>",
+  "tone": "<tonal|non-tonal|null>",
+  "morphological_fusion": "<isolating|agglutinating|fusional|polysynthetic|null>",
+  "affixation_balance": "<prefixing|suffixing|null>",
+  "gender_inventory": "<none|few|moderate|many|null>",
+  "case_inventory": "<minimal|moderate|extensive|null>",
+  "numeral_classifiers": "<classifier|non-classifier|null>",
+  "basic_word_order": "<SVO|SOV|VSO|VOS|OVS|OSV|null>",
+  "adposition_type": "<prepositions|postpositions|null>",
+  "genitive_noun_order": "<genitive-before-noun|genitive-after-noun|null>",
+  "adjective_noun_order": "<adjective-before-noun|adjective-after-noun|null>",
+  "relative_clause_order": "<head-initial|head-final|null>",
+  "alignment_typology": "<nominative–accusative|active–stative|null>",
+  "causative_morphology": "<present|absent|null>",
+  "passive_morphology": "<present|absent|null>",
+  "applicative_morphology": "<present|absent|null>",
+  "question_marking_strategy": "<interrogative-particle|inversion|null>"
+}}

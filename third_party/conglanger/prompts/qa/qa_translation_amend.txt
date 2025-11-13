@@ -1,0 +1,33 @@
+Here is a translation result for a constructed language that might need improvement:
+=== START ===
+{content}
+=== END ===
+
+Based on this quality assessment:
+=== START ===
+{judgement}
+=== END ===
+
+Please provide an improved version of the translation that addresses the identified issues. Make sure to:
+
+1. Fix any phonological violations by adjusting words to follow the sound patterns
+2. Correct grammatical errors to match the specified rules
+3. Improve lexical choices and justify any new words created
+4. Ensure accurate glossing with proper morpheme breakdown
+5. Preserve semantic meaning while fixing technical issues
+6. Maintain consistency across all elements
+
+Return the corrected translation in the same JSON format as the original:
+
+{{
+    "sentences": [
+        {{
+            "conlang_sentence": "<corrected sentence in the constructed language only - no glosses, morpheme breaks, or explanations>",
+            "gloss": "<corrected word-by-word breakdown with morphemes and grammatical functions>",
+            "new_words": [{{"<new_word>": "<english_translation>"}}],
+            "new_grammar_rules": [{{"rule": "<description_of_new_rule>", "justification": "<explanation_of_why_needed_and_consistency>"}}]
+        }}
+    ]
+}}
+
+Output only this JSON object. Give no additional explanation or discussion.
