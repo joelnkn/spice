@@ -328,11 +328,11 @@ def save_feature_files(language_dir: str, feature_dict: Dict[str, Any]) -> Dict[
 
 
 def extract_and_save_from_analysis(language_dir: str) -> Optional[Dict[str, str]]:
-    """Read `memory/analysis/analysis.txt` or `analysis.json`, parse and save features.
+    """Read `memory/analysis/features.txt` or `analysis.json`, parse and save features.
 
     Returns dict of saved file path on success, else None.
     """
-    analysis_txt_path = os.path.join(language_dir, 'memory', 'analysis', 'analysis.txt')
+    analysis_txt_path = os.path.join(language_dir, 'memory', 'analysis', 'features.txt')
     analysis_json_path = os.path.join(language_dir, 'memory', 'analysis', 'analysis.json')
     raw = None
     if os.path.exists(analysis_json_path):

@@ -21,24 +21,31 @@ class LanguageComparison:
     similarity: float      # matching / comparable
     valid_features: int    # comparable features
 
+def get_synthetic_feature_path(language_id: str, run_name: Optional[str] = None) -> str:
+    """Get the path to the synthetic feature_analysis.json file for a language."""
+    base_dir = "synthetic_data" if not run_name else os.path.join("synthetic_data", run_name)
+    base_dir = os.path.join(base_dir, "languages", language_id)
 
-def load_feature_dict(language_dir: str) -> Dict[str, str]:
+    feature_path = os.path.join(base_dir, 'memory', 'analysis', 'feature_analysis.json')
+    return feature_path
+
+def load_feature_dict(feature_path: str) -> Dict[str, str]:
     """Load feature dictionary from feature_analysis.json.
     
     Args:
-        language_dir: Path to language directory
-        
+        feature_path: Path to feature_analysis.json file
     Returns:
         Dictionary mapping feature names to their values
     """
-    feature_path = os.path.join(language_dir, 'memory', 'analysis', 'feature_analysis.json')
     with open(feature_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
-def compare_languages(lang1_dir: str, lang2_dir: str) -> LanguageComparison:
-    features1 = load_feature_dict(lang1_dir)
-    features2 = load_feature_dict(lang2_dir)
+def compare_languages(lang1_feature_path: str, lang2_feature_path: str) -> LanguageComparison:
+    """Compare two languages based on their feature vectors."""
+    
+    features1 = load_feature_dict(lang1_feature_path)
+    features2 = load_feature_dict(lang2_feature_path)
 
     valid_features = 0
     matching_features = 0
@@ -69,10 +76,13 @@ def compare_languages(lang1_dir: str, lang2_dir: str) -> LanguageComparison:
 
 from typing import List, Tuple, Optional
 
-def average_pairwise_distance(lang_dirs: List[str]) -> Tuple[float, int]:
+def average_pairwise_distance(path_to_languages: str) -> Tuple[float, int]:
     """
-    Compute the average *normalized* pairwise distance over a list of languages.
+    Compute the average *normalized* pairwise distance over all languages in <path_to_languages>.
     """
+    lang_dirs = [os.path.join(path_to_languages, d) for d in os.listdir(path_to_languages)
+                 if os.path.isdir(os.path.join(path_to_languages, d))]
+    
     n = len(lang_dirs)
     if n < 2:
         return 0.0, 0
@@ -80,7 +90,9 @@ def average_pairwise_distance(lang_dirs: List[str]) -> Tuple[float, int]:
     pair_dists = []
     for i in range(n):
         for j in range(i + 1, n):
-            comp = compare_languages(lang_dirs[i], lang_dirs[j])
+            path_1 = os.path.join(lang_dirs[i], 'memory', 'analysis', 'feature_analysis.json')
+            path_2 = os.path.join(lang_dirs[j], 'memory', 'analysis', 'feature_analysis.json')
+            comp = compare_languages(path_1, path_2)
             # skip pairs that had no overlapping features
             if comp.valid_features == 0:
                 continue
