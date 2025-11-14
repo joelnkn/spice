@@ -1,3 +1,59 @@
+"""
+Fine-tune language models using LoRA/QLoRA for multi-task learning.
+
+This script supports fine-tuning on multiple NLP tasks including:
+- NLI (Natural Language Inference)
+- Sentiment Analysis
+- Paraphrase Detection
+- Translation
+
+Usage Examples:
+    # Basic training with default config
+    python3 -m ft.train configs/train.yaml
+    
+    # Specify training dataset via command line (overrides config)
+    python3 -m ft.train configs/train.yaml --train-path data/train_nli.jsonl
+    
+    # Train on XNLI data
+    python3 -m ft.train configs/train.yaml --train-path data/xnli_train_16.jsonl
+    
+    # Train on multiple datasets (comma-separated)
+    python3 -m ft.train configs/train.yaml --train-path data/train.jsonl,data/train_nli.jsonl
+    
+    # Using a custom config file
+    python3 -m ft.train my_custom_config.yaml
+    
+    # Or specify dataset in config file (configs/train.yaml):
+    #   train_path: data/train_nli.jsonl
+    #   or
+    #   train_path: [data/train.jsonl, data/train_nli.jsonl]
+
+Configuration File (configs/train.yaml):
+    The config file specifies:
+    - model_name: Model to fine-tune (e.g., "google/mt5-base")
+    - task_type: "seq2seq" or "causal"
+    - use_qlora: true/false (requires CUDA if true)
+    - train_path: Single file (str) or list of files for multi-task
+    - eval_path: Validation/test file
+    - Training hyperparameters (learning rate, batch size, etc.)
+
+Data Format:
+    Each line in your JSONL files should be:
+    {
+        "input": "Your input text here",
+        "target": "Expected output",
+        "task_id": "nli" | "sentiment" | "paraphrase" | "trans"
+    }
+    
+    For NLI tasks, input format: "Premise: ... Hypothesis: ..."
+    For other tasks, the input format is flexible and will be auto-formatted.
+
+Output:
+    Trained LoRA adapters are saved in the output directory:
+    - outputs/run1/best_step{N}/ - Best checkpoint during training
+    - outputs/run1/step{N}/ - Periodic checkpoints
+    - outputs/run1/final/ - Final checkpoint after training
+"""
 import json, os, math, random
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -183,8 +239,22 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml"):
+def main(cfg_path="configs/train.yaml", train_path=None):
+    """
+    Main training function.
+    
+    Args:
+        cfg_path: Path to config YAML file
+        train_path: Optional path to training data file(s). Overrides config if provided.
+                    Can be a single file (str) or list of files.
+    """
     cfg = OmegaConf.load(cfg_path)
+    
+    # Override train_path if provided as argument
+    if train_path is not None:
+        cfg.io.train_path = train_path
+        print(f"Using training data from command line: {train_path}")
+    
     set_seed(cfg.seed)
 
     accelerator = Accelerator(gradient_accumulation_steps=cfg.train.grad_accum)
@@ -308,5 +378,21 @@ def save_adapters(model, tokenizer, out_dir, tag):
 
 if __name__ == "__main__":
     import sys
-
-    main(sys.argv[1] if len(sys.argv) > 1 else "configs/train.yaml")
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Fine-tune language models with LoRA/QLoRA")
+    parser.add_argument("config", nargs="?", default="configs/train.yaml",
+                       help="Path to config YAML file (default: configs/train.yaml)")
+    parser.add_argument("--train-path", type=str, default=None,
+                       help="Path to training data file(s). Can be a single file or comma-separated list. "
+                            "Overrides config file if provided. Example: --train-path data/train_nli.jsonl "
+                            "or --train-path data/train.jsonl,data/train_nli.jsonl")
+    
+    args = parser.parse_args()
+    
+    # Parse train_path if it's a comma-separated list
+    train_path = args.train_path
+    if train_path and ',' in train_path:
+        train_path = [p.strip() for p in train_path.split(',')]
+    
+    main(cfg_path=args.config, train_path=train_path)
