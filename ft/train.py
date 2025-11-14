@@ -96,7 +96,41 @@ def attach_lora(model, task_type, cfg):
 
 def load_jsonl_dataset(path):
     # streamable local JSONL via datasets
-    return load_dataset("json", data_files=path, split="train")
+    # Support both single file (str) and multiple files (list)
+    # Handle OmegaConf ListConfig by converting to list
+    if isinstance(path, str):
+        return load_dataset("json", data_files=path, split="train")
+    else:
+        # Multiple files: concatenate them
+        # Convert OmegaConf ListConfig or other iterables to Python list
+        path_list = OmegaConf.to_container(path, resolve=True) if hasattr(path, '__iter__') and not isinstance(path, str) else path
+        if not isinstance(path_list, list):
+            path_list = [path_list]
+        datasets = [load_dataset("json", data_files=p, split="train") for p in path_list]
+        from datasets import concatenate_datasets
+        return concatenate_datasets(datasets)
+
+
+def format_input_for_task(example: Dict) -> str:
+    """Format input text based on task type."""
+    task_id = example.get("task_id", "").lower()
+    input_text = example.get("input", "")
+    
+    if task_id == "nli":
+        # NLI: already formatted as "Premise: ... Hypothesis: ..."
+        return input_text
+    elif task_id == "sentiment":
+        # Sentiment: format as "Sentiment analysis: <text>"
+        return f"Sentiment analysis: {input_text}"
+    elif task_id == "paraphrase":
+        # Paraphrase: format as "Paraphrase detection: <sentence1> | <sentence2>"
+        return f"Paraphrase detection: {input_text}"
+    elif task_id == "trans":
+        # Translation: keep as is
+        return input_text
+    else:
+        # Default: use input as is
+        return input_text
 
 
 @dataclass
@@ -107,7 +141,9 @@ class Collator:
     max_tgt: int
 
     def __call__(self, batch: List[Dict]):
-        inputs = [ex["input"] for ex in batch]
+        # Format inputs based on task
+        inputs = [format_input_for_task(ex) for ex in batch]
+        
         if self.task_type == "seq2seq":
             targets = [ex.get("target", "") for ex in batch]
             enc = self.tokenizer(

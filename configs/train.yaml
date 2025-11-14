@@ -1,13 +1,13 @@
 model_name: google/mt5-base        # or bigscience/bloom-560m, etc.
 task_type: seq2seq                 # "seq2seq" or "causal"
-use_qlora: true
+use_qlora: false                   # Set to false on macOS (no CUDA). QLoRA requires CUDA or bitsandbytes>=0.43.1
 lora:
   r: 16
   alpha: 32
   dropout: 0.05
   target_modules: [q, k, v, o, up, down, gate]  # mapped internally per-arch
 optim:
-  name: paged_adamw_8bit
+  name: adamw                    # Use "adamw" on macOS (no CUDA). "paged_adamw_8bit" requires CUDA
   lr: 1.0e-4
   weight_decay: 0.01
   warmup_ratio: 0.05
@@ -23,7 +23,8 @@ train:
   save_steps: 200
 seed: 17
 io:
-  train_path: data/train.jsonl
+  # Can be a single file (str) or list of files for multi-task training
+  train_path: data/train_nli.jsonl  # or [data/train.jsonl, data/train_nli.jsonl] for multiple tasks
   eval_path: data/val.jsonl
   out_dir: outputs/run1
   push_to_hub: false
