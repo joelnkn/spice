@@ -7,7 +7,6 @@ It supports phonology, grammar, lexicon generation, and translation.
 """
 
 import os
-import sys
 import time
 import logging
 import uuid
@@ -18,9 +17,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from llm_client import LLMClientGemini, LLMClientDeepseek, LLMClientOpenAI, PromptManager
+from llm_client import LLMClientGemini, LLMClientDeepseek, LLMClientOpenAI
 from pipeline_steps import run_phonology_step, run_grammar_step, run_lexicon_step, run_translation_step
-from utils import load_required_files
+from post_generation_steps import run_analysis_step
 
 logger = logging.getLogger(__name__)
 
@@ -78,55 +77,6 @@ def save_metadata(lang_dir, language_id, args):
         json.dump(metadata, f, indent=2)
     
     return metadata_file
-
-
-def run_analysis_step(args, llm_client):
-    """Run final analysis on the complete language."""
-    logger.info("Starting final language analysis")
-    
-    files = load_required_files(args.memory_dir, {
-        'phonology': 'phonology.txt',
-        'grammar': 'grammar.txt',
-        'lexicon': 'lexicon.csv'
-    })
-    if files is None:
-        logger.error("Could not load required files for analysis")
-        return
-        
-    prompt_dir = os.path.join(args.prompt_dir, 'analysis')
-    try:
-        prompt = PromptManager.load_prompt(os.path.join(prompt_dir, 'feature_analysis.txt'))
-    except Exception as e:
-        logger.error(f"Could not load analysis prompt: {e}")
-        return False
-    
-    lex_section = f"""It has the following lexicon:\n\n=== START ===\n{files['lexicon']}\n=== END ==="""
-    
-    kwargs = {
-        'phonology': files['phonology'],
-        'grammar': files['grammar'],
-        'lexicon_section': lex_section,
-    }
-    
-    logger.info("Generating final language analysis")
-    _, analysis = llm_client.generate_and_extract(
-        PromptManager.format_prompt(prompt, **kwargs),
-        do_sleep=False
-    )
-    
-    if analysis is None:
-        logger.error("Failed to generate analysis")
-        return
-        
-    # Save analysis
-    analysis_dir = os.path.join(args.memory_dir, 'analysis')
-    os.makedirs(analysis_dir, exist_ok=True)
-    
-    with open(os.path.join(analysis_dir, 'features.txt'), 'w', encoding='utf-8') as f:
-        f.write(analysis)
-    
-    logger.info("Final analysis completed and saved")
-
 
 def get_args():
     """Parse command line arguments."""
