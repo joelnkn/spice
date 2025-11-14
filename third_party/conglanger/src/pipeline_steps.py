@@ -307,35 +307,55 @@ def _csv_to_text_for_qa(csv_data: str) -> str:
 
 def _text_to_csv_for_qa(text_content: str) -> str:
     lines = text_content.strip().split('\n')
-    csv_lines = []
-    header_added = False
+    header = None
+    entries = []
+
     for line in lines:
         l = line.strip()
         if not l:
             continue
-        if '.' in l and ',' in l:
-            parts = l.split('.', 1)
-            if len(parts) > 1:
-                csv_entry = parts[1].strip()
-                if not header_added:
-                    cols = len(csv_entry.split(','))
-                    if cols == 2:
-                        csv_lines.append('word,translation')
-                    elif cols == 3:
-                        csv_lines.append('word,translation,pos')
-                    else:
-                        csv_lines.append('word,translation,pos,notes')
-                    header_added = True
-                csv_lines.append(csv_entry)
-        elif ',' in l and not l.startswith('Lexicon') and not l.startswith('format:'):
-            if not header_added:
-                csv_lines.append(l)
-                header_added = True
-            else:
-                csv_lines.append(l)
-    if csv_lines and not header_added:
-        csv_lines.insert(0, 'word,translation')
+
+        # 1) Extract header from the "format:" line if present
+        if l.lower().startswith('lexicon entries (format:'):
+            # e.g. "Lexicon entries (format: ipa,pos,translation,grammar,derivation,notes):"
+            try:
+                fmt_part = l.split('format:', 1)[1]
+                fmt_part = fmt_part.rstrip('):').strip()
+                header = fmt_part
+            except Exception:
+                pass
+            continue
+
+        # 2) Strip leading numbering like "1. " if present
+        if '.' in l and l.split('.', 1)[0].isdigit():
+            l = l.split('.', 1)[1].strip()
+
+        # 3) Treat any remaining comma-containing lines as CSV rows
+        if ',' in l and not l.lower().startswith('format:') and not l.lower().startswith('lexicon entries'):
+            entries.append(l)
+
+    # 4) Fallback header if QA somehow removed the format line
+    if header is None and entries:
+        # Keep the column *count* but don't force generic names;
+        # just reuse the original first row's column structure as-is
+        # (or you could synthesize names if you really want to).
+        # Here we assume QA didn't change the header, so we just use the same fields.
+        col_count = len(entries[0].split(','))
+        if col_count == 2:
+            header = 'word,translation'
+        elif col_count == 3:
+            header = 'word,translation,pos'
+        else:
+            # if you know your expected header, hardcode it here instead:
+            header = 'ipa,pos,translation,grammar,derivation,notes'
+
+    if header is not None:
+        csv_lines = [header] + entries
+    else:
+        csv_lines = entries
+
     return '\n'.join(csv_lines)
+
 
 
 def run_lexicon_step(args, llm_client):

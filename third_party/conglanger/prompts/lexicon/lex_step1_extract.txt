@@ -18,4 +18,22 @@ The CSV column names and their contents should be:
 
 Provide translations for all lexical items, even those whose translations are not explicitly specified in the provided background above (i.e. don't list any translations as "unknown").
 
+You MUST follow these strict CSV formatting rules:
+
+1. The first line of your output MUST be exactly:
+ipa,pos,translation,grammar,derivation,notes
+
+2. Every lexicon entry must follow this exact structure:
+ipa,pos,translation,grammar,derivation,notes
+
+3. Each entry MUST contain exactly six comma-separated fields.
+   - If a field is empty, leave it blank but KEEP the comma.
+   - Example of correct empty fields:
+    taka,noun,stone,gender: neuter,,
+
+4. The only valid output format is:
+   - the exact header line
+   - followed by CSV rows with six fields each
+   - nothing else
+    
 Do not provide any further explanation or text, only the CSV.
