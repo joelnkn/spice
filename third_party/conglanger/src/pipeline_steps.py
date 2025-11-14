@@ -322,9 +322,9 @@ def _text_to_csv_for_qa(text_content: str) -> str:
                     if cols == 2:
                         csv_lines.append('word,translation')
                     elif cols == 3:
-                        csv_lines.append('word,translation,pos')
+                        csv_lines.append('word,pos,translation')
                     else:
-                        csv_lines.append('word,translation,pos,notes')
+                        csv_lines.append('word,pos,translation,notes')
                     header_added = True
                 csv_lines.append(csv_entry)
         elif ',' in l and not l.startswith('Lexicon') and not l.startswith('format:'):
