@@ -18,7 +18,18 @@ synthetic/
 └── README.md           # This file
 ```
 
-## Usage
+## Generating Synthetic Languages
+```
+python -m synthetic.generation.api
+python synthetic/generation/api.py
+```
+Outputs are saved to `synthetic/outputs/`
 
-See the main project README for usage instructions.
+## Translation
+Update args in main() in translate_dataset.py
+Run
+```
+python synthetic/translation/translate_dataset.py
+```
+Translated dataset is saved to `synthetic/data/`
 
