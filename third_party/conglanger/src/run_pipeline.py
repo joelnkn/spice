@@ -163,6 +163,8 @@ def get_args():
                        help='Directory containing prompt templates')
     parser.add_argument('--output-dir', default='output',
                        help='Output directory for generated languages')
+    parser.add_argument('--lang-id', default=None,
+                        help='ID for already created language during stabilization')
     
     # Debug mode
     parser.add_argument('--debug', action='store_true',
@@ -176,7 +178,7 @@ def main():
     args = get_args()
     
     # Generate language ID
-    language_id = generate_language_id()
+    language_id = generate_language_id() if args.lang_id is None else args.lang_id
     print(f"Generating language with ID: {language_id}")
     
     # Set up directories

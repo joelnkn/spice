@@ -23,18 +23,21 @@ def run_conglanger(
     qa_thresholds_per_step=None,
     prompt_dir=PROMPT_DIR,
     output_dir=OUTPUT_DIR,
+    lang_id=None,
     debug=False,
     run_analysis=True,
     extra_args=None,
 ):
     """Wrapper for running Conglanger's run_pipeline.py from within your repo."""
-    
+
     # Logger setup
     logger = setup_logger("generate_language")
 
     # Resolve paths
     if not os.path.exists(CONGLANGER_PATH):
-        raise FileNotFoundError(f"Conglanger entry point not found at: {CONGLANGER_PATH}")
+        raise FileNotFoundError(
+            f"Conglanger entry point not found at: {CONGLANGER_PATH}"
+        )
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -44,14 +47,22 @@ def run_conglanger(
 
     # Build base command
     cmd = [
-        "python", CONGLANGER_PATH,
-        "--model", model,
-        "--steps", ",".join(steps),
-        "--output-dir", output_dir,
-        "--max-tokens", str(max_tokens),
-        "--temperature", str(temperature),
-        "--sleep-between-calls", str(sleep_between_calls),
-        "--prompt-dir", prompt_dir,
+        "python",
+        CONGLANGER_PATH,
+        "--model",
+        model,
+        "--steps",
+        ",".join(steps),
+        "--output-dir",
+        output_dir,
+        "--max-tokens",
+        str(max_tokens),
+        "--temperature",
+        str(temperature),
+        "--sleep-between-calls",
+        str(sleep_between_calls),
+        "--prompt-dir",
+        prompt_dir,
     ]
 
     if custom_constraints:
@@ -62,6 +73,8 @@ def run_conglanger(
         cmd += ["--reasoning-effort", reasoning_effort]
     if thinking_budget:
         cmd += ["--thinking-budget", str(thinking_budget)]
+    if lang_id:
+        cmd += ["--lang-id", str(lang_id)]
 
     # QA loop configuration
     if qa_enabled:
@@ -78,7 +91,7 @@ def run_conglanger(
     # Debug mode
     if debug:
         cmd.append("--debug")
-        
+
     # Analysis
     if run_analysis:
         cmd.append("--run-analysis")
@@ -98,15 +111,15 @@ def run_conglanger(
         # If run_analysis was requested, run feature extraction on produced languages
         if run_analysis:
             # Only run feature extraction for the language produced by this run.
-            languages_dir = os.path.join(output_dir, 'languages')
+            languages_dir = os.path.join(output_dir, "languages")
             target_lang = None
 
-            last_id_file = os.path.join(output_dir, 'LAST_LANGUAGE_ID')
+            last_id_file = os.path.join(output_dir, "LAST_LANGUAGE_ID")
             if os.path.exists(last_id_file):
                 try:
-                    with open(last_id_file, 'r', encoding='utf-8') as f:
+                    with open(last_id_file, "r", encoding="utf-8") as f:
                         lid_val = f.read().strip()
-                    candidate = os.path.join(output_dir, 'languages', lid_val)
+                    candidate = os.path.join(output_dir, "languages", lid_val)
                     if os.path.exists(candidate):
                         target_lang = candidate
                 except Exception:
@@ -115,16 +128,22 @@ def run_conglanger(
             if target_lang:
                 lid = os.path.basename(target_lang)
                 try:
-                    logger.info(f"Running feature extraction for generated language: {lid}")
+                    logger.info(
+                        f"Running feature extraction for generated language: {lid}"
+                    )
                     res = extract_and_save_from_analysis(target_lang)
                     if res:
                         logger.info(f"Feature extraction saved: {res}")
                     else:
-                        logger.warning(f"No analysis found for language {lid}; skipping feature extraction")
+                        logger.warning(
+                            f"No analysis found for language {lid}; skipping feature extraction"
+                        )
                 except Exception as e:
                     logger.error(f"Feature extraction failed for {lid}: {e}")
             else:
-                logger.warning(f"Could not locate generated language folder under {output_dir}; skipping feature extraction")
+                logger.warning(
+                    f"Could not locate generated language folder under {output_dir}; skipping feature extraction"
+                )
     except subprocess.CalledProcessError as e:
         logger.error(f"Conglanger pipeline failed (exit code {e.returncode})")
         raise
