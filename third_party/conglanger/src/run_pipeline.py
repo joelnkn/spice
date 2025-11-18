@@ -19,7 +19,8 @@ load_dotenv()
 
 from llm_client import LLMClientGemini, LLMClientDeepseek, LLMClientOpenAI
 from pipeline_steps import run_phonology_step, run_grammar_step, run_lexicon_step, run_translation_step
-from post_generation_steps import run_analysis_step
+from utils import copy_folders, find_last_created_folder
+from cleanup import extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +109,6 @@ def get_args():
                         help='Enable QA self-refine (critic/amend) loop for supported steps')
     parser.add_argument('--self-refine-steps', type=int, default=3,
                         help='Number of QA self-refine (critic/amend) cycles')
-    parser.add_argument('--run-analysis', action='store_true',
-                        help='Run final analysis on the complete language')
     parser.add_argument('--qa-threshold', type=float, default=None,
                         help='Global passing score threshold (1–10 scale) overriding all per-step thresholds if set')
     parser.add_argument('--qa-threshold-phonology', type=float, default=8.0,
@@ -163,6 +162,8 @@ def get_args():
                        help='Directory containing prompt templates')
     parser.add_argument('--output-dir', default='output',
                        help='Output directory for generated languages')
+    parser.add_argument('--iteration', type=int,
+                       help='Optional iteration number (0+) to use as language ID')
     parser.add_argument('--lang-id', default=None,
                         help='ID for already created language during stabilization')
     
@@ -178,21 +179,67 @@ def main():
     args = get_args()
     
     # Generate language ID
-    language_id = generate_language_id() if args.lang_id is None else args.lang_id
+    if args.iteration is not None:
+        if args.iteration < 0:
+            raise ValueError("Iteration must be 0 or greater")
+        # Validate steps based on iteration
+        steps = [step.strip() for step in args.steps.split(',')]
+        if args.iteration == 0:
+            # iter_0 should have all steps except translation
+            expected_steps = {'phonology', 'grammar', 'lexicon'}
+            actual_steps = set(steps)
+            if 'translation' in actual_steps:
+                raise ValueError("When using --iteration 0, 'translation' step should not be included")
+            if not expected_steps.issubset(actual_steps):
+                raise ValueError(f"When using --iteration 0, steps should include at least: {', '.join(expected_steps)}")
+        elif args.iteration > 0:
+            # iter_1+ should only have translation
+            if steps != ['translation']:
+                raise ValueError("When using --iteration > 0, only 'translation' step is allowed")
+        language_id = f"iter_{args.iteration}"
+    else:
+        # final_iteration case
+        language_id = "final_iteration"
+        steps = [step.strip() for step in args.steps.split(',')]
+        if steps != ['translation']:
+            raise ValueError("When using final_iteration (no --iteration flag), only 'translation' step is allowed")
+    
+#     language_id = generate_language_id() if args.lang_id is None else args.lang_id
     print(f"Generating language with ID: {language_id}")
     
     # Set up directories
     lang_dir, memory_dir, logs_dir = setup_directories(args.output_dir, language_id)
     args.memory_dir = memory_dir
-
-    # Write the generated language id to a file so external callers can find it
-    try:
-        last_id_file = os.path.join(args.output_dir, 'LAST_LANGUAGE_ID')
-        with open(last_id_file, 'w', encoding='utf-8') as f:
-            f.write(language_id)
-        logger.debug(f"Wrote LAST_LANGUAGE_ID to {last_id_file}")
-    except Exception as e:
-        logger.warning(f"Could not write LAST_LANGUAGE_ID file: {e}")
+    
+    # Track if this is appending to existing final_iteration
+    is_appending = False
+    
+    # If iteration > 0, copy files from previous iteration
+    if args.iteration is not None and args.iteration > 0:
+        prev_iter = args.iteration - 1
+        prev_lang_dir = os.path.join(args.output_dir, 'languages', f'iter_{prev_iter}')
+        prev_memory_dir = os.path.join(prev_lang_dir, 'memory')
+        
+        logger.info(f"Copying language files from iteration {prev_iter}")
+        copy_folders(prev_memory_dir, memory_dir, ['grammar', 'lexicon', 'phonology'])
+    
+    # If final_iteration and directories don't exist yet, copy from last numbered iteration
+    elif language_id == "final_iteration":
+        # Check if directories exist
+        exists = os.path.exists(os.path.join(memory_dir, 'grammar'))
+        
+        if not exists:
+            languages_dir = os.path.join(args.output_dir, 'languages')
+            prev_lang_dir = find_last_created_folder(languages_dir)
+            prev_memory_dir = os.path.join(prev_lang_dir, 'memory')
+            logger.info(f"Copying language files to final_iteration from last iteration")
+            copy_folders(prev_memory_dir, memory_dir, ['grammar', 'lexicon', 'phonology'])
+        else:
+            # Directories exist, we'll append to translation.json
+            is_appending = True
+            logger.info("final_iteration directories exist, will append to existing translation.json")
+    
+    args.is_appending = is_appending
     
     # Set up logging
     log_file = os.path.join(logs_dir, 'pipeline.log')
@@ -279,17 +326,39 @@ def main():
     print(f"Results saved in: {lang_dir}")
     logger.info(f"Language generation completed for ID: {language_id}")
     
-    # Run final analysis if enabled
-    if args.run_analysis:
-        logger.info("Running final language analysis...")
-        try:
-            run_analysis_step(args, llm_client)
-            print("Final analysis completed successfully.")
-            logger.info("Final analysis completed successfully.")
-        except Exception as e:
-            print(f"Error during analysis: {e}")
-            logger.error(f"Error during analysis: {e}")
-
+    # Post-processing: Extract and update language files with translation-derived content
+    if 'translation' in steps:
+        logger.info("Processing translation outputs...")
+        
+        # Always extract and append new words to lexicon
+        new_words = extract_new_vocabulary(args)
+        if new_words:
+            append_new_words_to_lexicon(new_words, args)
+            logger.info(f"Added {len(new_words)} new words to lexicon")
+        
+        # Only integrate grammar rules if iteration is defined (not for final_iteration appending)
+        if args.iteration is not None:
+            new_rules = extract_new_grammar_rules(args)
+            if new_rules:
+                logger.info(f"Integrating {len(new_rules)} new grammar rules...")
+                result = add_new_rules_to_grammar(new_rules, args, llm_client)
+                if result:
+                    logger.info(f"Successfully integrated grammar rules")
+                else:
+                    logger.warning("Failed to integrate grammar rules")
+        elif not is_appending:
+            # First time final_iteration (not appending), integrate grammar rules
+            new_rules = extract_new_grammar_rules(args)
+            if new_rules:
+                logger.info(f"Integrating {len(new_rules)} new grammar rules...")
+                result = add_new_rules_to_grammar(new_rules, args, llm_client)
+                if result:
+                    logger.info(f"Successfully integrated grammar rules")
+                else:
+                    logger.warning("Failed to integrate grammar rules")
+        else:
+            logger.info("Appending mode: skipping grammar rule integration")
+    
 
 if __name__ == '__main__':
     main()

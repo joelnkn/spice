@@ -9,11 +9,9 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Optional, Dict, Any, NamedTuple
+from typing import Optional, Dict, Tuple
 from dataclasses import dataclass
-
-import numpy as np
-
+from synthetic.config import OUTPUT_DIR
 
 @dataclass
 class LanguageComparison:
@@ -21,12 +19,12 @@ class LanguageComparison:
     similarity: float      # matching / comparable
     valid_features: int    # comparable features
 
-def get_synthetic_feature_path(language_id: str, run_name: Optional[str] = None) -> str:
-    """Get the path to the synthetic feature_analysis.json file for a language."""
-    base_dir = "synthetic_data" if not run_name else os.path.join("synthetic_data", run_name)
-    base_dir = os.path.join(base_dir, "languages", language_id)
+def get_synthetic_feature_path(run_name: Optional[str] = None) -> str:
+    """Get the path to the synthetic feature_analysis.json file for a language.
+    """
+    base_dir = OUTPUT_DIR if not run_name else os.path.join(OUTPUT_DIR, run_name)
 
-    feature_path = os.path.join(base_dir, 'memory', 'analysis', 'feature_analysis.json')
+    feature_path = os.path.join(base_dir, 'analysis', 'feature_analysis.json')
     return feature_path
 
 def load_feature_dict(feature_path: str) -> Dict[str, str]:
@@ -73,26 +71,24 @@ def compare_languages(lang1_feature_path: str, lang2_feature_path: str) -> Langu
         valid_features=valid_features
     )
 
-
-from typing import List, Tuple, Optional
-
-def average_pairwise_distance(path_to_languages: str) -> Tuple[float, int]:
+def average_pairwise_distance(feature_paths: list[str]) -> Tuple[float, int]:
     """
-    Compute the average *normalized* pairwise distance over all languages in <path_to_languages>.
-    """
-    lang_dirs = [os.path.join(path_to_languages, d) for d in os.listdir(path_to_languages)
-                 if os.path.isdir(os.path.join(path_to_languages, d))]
+    Compute the average *normalized* pairwise distance over all languages.
     
-    n = len(lang_dirs)
+    Args:
+        feature_paths: List of paths to feature_analysis.json files
+    
+    Returns:
+        Tuple of (mean_distance, num_pairs)
+    """
+    n = len(feature_paths)
     if n < 2:
         return 0.0, 0
 
     pair_dists = []
     for i in range(n):
         for j in range(i + 1, n):
-            path_1 = os.path.join(lang_dirs[i], 'memory', 'analysis', 'feature_analysis.json')
-            path_2 = os.path.join(lang_dirs[j], 'memory', 'analysis', 'feature_analysis.json')
-            comp = compare_languages(path_1, path_2)
+            comp = compare_languages(feature_paths[i], feature_paths[j])
             # skip pairs that had no overlapping features
             if comp.valid_features == 0:
                 continue

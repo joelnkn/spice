@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import re
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -127,3 +128,69 @@ def save_individual_metadata(metadata: dict, memory_dir: str, filename: str):
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     logger.info(f"Saved individual metadata {filename} to {memory_dir}")
+
+
+def copy_folders(src_dir: str, dst_dir: str, folder_names: list) -> None:
+    """Copy specified folders from source directory to destination directory.
+    
+    Args:
+        src_dir: Source directory path
+        dst_dir: Destination directory path
+        folder_names: List of folder names to copy
+    
+    Raises:
+        FileNotFoundError: If source directory doesn't exist
+    """
+    if not os.path.exists(src_dir):
+        raise FileNotFoundError(f"Source directory not found: {src_dir}")
+    
+    os.makedirs(dst_dir, exist_ok=True)
+    
+    for folder in folder_names:
+        src = os.path.join(src_dir, folder)
+        dst = os.path.join(dst_dir, folder)
+        
+        if os.path.exists(src):
+            if os.path.exists(dst):
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
+            logger.info(f"Copied folder '{folder}' from {src_dir} to {dst_dir}")
+        else:
+            logger.warning(f"Folder '{folder}' not found in source directory: {src}")
+
+
+def find_last_created_folder(parent_dir: str) -> str:
+    """Find the folder with the maximum iteration number in a directory.
+    
+    Args:
+        parent_dir: Directory to search in
+    
+    Returns:
+        Path to the folder with the highest iter_N number
+    """
+    if not os.path.exists(parent_dir):
+        raise FileNotFoundError(f"Directory not found: {parent_dir}")
+    
+    # Get all directories starting with 'iter_'
+    entries = [e for e in os.listdir(parent_dir) 
+               if os.path.isdir(os.path.join(parent_dir, e)) and e.startswith('iter_')]
+    
+    if not entries:
+        raise FileNotFoundError(f"No iter_ folders found in {parent_dir}")
+    
+    # Extract iteration numbers and find the maximum
+    iter_nums = []
+    for entry in entries:
+        parts = entry.split('_')
+        if len(parts) == 2 and parts[1].isdigit():
+            iter_nums.append((int(parts[1]), entry))
+    
+    if not iter_nums:
+        raise FileNotFoundError(f"No valid iter_ folders found in {parent_dir}")
+    
+    # Get the folder with the max iteration number
+    _, max_folder_name = max(iter_nums, key=lambda x: x[0])
+    max_folder_path = os.path.join(parent_dir, max_folder_name)
+    
+    logger.info(f"Found folder with max iteration: {max_folder_name}")
+    return max_folder_path
