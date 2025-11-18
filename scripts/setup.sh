@@ -39,7 +39,7 @@ fi
 echo "==> Setting up directories..."
 mkdir -p synthetic/data/raw
 mkdir -p synthetic/data/processed
-mkdir -p synthetic/outputs
+mkdir -p synthetic/output
 
 # 6) .env scaffold ------------------------------------------------------------
 if [ -f ".env.example" ] && [ ! -f ".env" ]; then

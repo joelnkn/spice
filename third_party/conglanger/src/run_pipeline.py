@@ -164,6 +164,8 @@ def get_args():
                        help='Output directory for generated languages')
     parser.add_argument('--iteration', type=int,
                        help='Optional iteration number (0+) to use as language ID')
+    parser.add_argument('--lang-id', default=None,
+                        help='ID for already created language during stabilization')
     
     # Debug mode
     parser.add_argument('--debug', action='store_true',
@@ -202,6 +204,7 @@ def main():
         if steps != ['translation']:
             raise ValueError("When using final_iteration (no --iteration flag), only 'translation' step is allowed")
     
+#     language_id = generate_language_id() if args.lang_id is None else args.lang_id
     print(f"Generating language with ID: {language_id}")
     
     # Set up directories
