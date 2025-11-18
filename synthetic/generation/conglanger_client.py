@@ -1,6 +1,8 @@
 import os
+import subprocess
 from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
 from synthetic.utils.logger import setup_logger
+from synthetic.analysis.features import extract_and_save_from_analysis
 
 
 # Uses same defaults as Conlanger
@@ -19,21 +21,18 @@ def run_conglanger(
     self_refine_steps=3,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,
-    iteration=None,
+    iteration=False,
     prompt_dir=PROMPT_DIR,
     output_dir=OUTPUT_DIR,
     lang_id=None,
     debug=False,
+    run_analysis=True,
     extra_args=None,
 ):
     """Wrapper for running Conglanger's run_pipeline.py from within your repo."""
 
     # Logger setup
     logger = setup_logger("generate_language")
-    
-    # Validate iteration usage
-    if iteration is not None and steps != ("translation",):
-        raise ValueError("When using iteration, only 'translation' step is allowed")
 
     # Resolve paths
     if not os.path.exists(CONGLANGER_PATH):
@@ -66,7 +65,7 @@ def run_conglanger(
         "--prompt-dir",
         prompt_dir,
     ]
-    
+
     if custom_constraints:
         cmd += ["--custom-constraints", custom_constraints]
     if translation_sentence:
@@ -75,8 +74,8 @@ def run_conglanger(
         cmd += ["--reasoning-effort", reasoning_effort]
     if thinking_budget:
         cmd += ["--thinking-budget", str(thinking_budget)]
-    if iteration is not None:
-        cmd += ["--iteration", str(iteration)]
+    if iteration:
+        cmd += ["--iteration"]
     if lang_id:
         cmd += ["--lang-id", str(lang_id)]
 
@@ -97,8 +96,8 @@ def run_conglanger(
         cmd.append("--debug")
 
     # Analysis
-    if run_analysis:
-        cmd.append("--run-analysis")
+    # if run_analysis:
+    #     cmd.append("--run-analysis")
 
     # Add extra args
     if extra_args:
@@ -108,7 +107,7 @@ def run_conglanger(
     logger.info(f"Running Conglanger pipeline for run: {run_name}")
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info(f"Output directory: {output_dir}")
-    
+
     logger.info("Conglanger pipeline completed successfully.")
 
     try:
