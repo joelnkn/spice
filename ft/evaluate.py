@@ -1,3 +1,33 @@
+"""
+Evaluate fine-tuned models on test datasets.
+
+This script loads a trained model checkpoint and evaluates it on test data,
+computing task-specific metrics like accuracy, per-class accuracy, etc.
+
+Usage Examples:
+    # Evaluate using default config (automatically finds latest checkpoint)
+    python -m ft.evaluate
+    
+    # Evaluate specific checkpoint
+    python -m ft.evaluate outputs/run1/best_step1000
+    
+    # Evaluate specific checkpoint on custom test file
+    python -m ft.evaluate outputs/run1/final data/xnli_test.jsonl
+    
+    # The script will:
+    # 1. Load the trained LoRA adapters from the checkpoint
+    # 2. Run predictions on all test examples
+    # 3. Compute metrics by task (NLI, sentiment, paraphrase, translation)
+    # 4. Print results and save to evaluation_results.json
+
+Arguments:
+    checkpoint_path: Path to checkpoint directory (optional, auto-detects if not provided)
+    test_path: Path to test JSONL file (optional, uses eval_path from config if not provided)
+
+Output:
+    - Prints accuracy metrics to console
+    - Saves detailed results to outputs/evaluation_results.json
+"""
 import json
 import os
 from typing import Dict, List
