@@ -5,6 +5,9 @@ XNLI is a cross-lingual natural language inference dataset.
 Usage Examples:
     # Extract 16 random English examples and save to file
     python3 -m ft.extract_xnli --k 16 --language en --split train --output data/xnli_train_16.jsonl
+
+    # Extract 16 random examples from each language and save to file
+    python3 -m ft.extract_xnli --k 16 --language all --split train --output data/xnli_train_16.jsonl
     
     # Extract 32 examples with a fixed seed (reproducible)
     python3 -m ft.extract_xnli --k 32 --seed 42 --output data/xnli_train_32.jsonl
@@ -30,8 +33,9 @@ import json
 import argparse
 import random
 
+XNLI_LANGUAGES = ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"]
 
-def extract_xnli_examples(k=16, language="en", split="train", output_path=None, seed=None):
+def extract_xnli_examples(k=16, language="en", split="train", seed=None):
     """
     Extract k random examples from XNLI dataset.
     
@@ -86,14 +90,6 @@ def extract_xnli_examples(k=16, language="en", split="train", output_path=None, 
     
     print(f"Extracted {len(examples)} random examples")
     
-    # Save to file if output_path is provided
-    if output_path:
-        print(f"Saving to {output_path}...")
-        with open(output_path, "w", encoding="utf-8") as f:
-            for example in examples:
-                f.write(json.dumps(example, ensure_ascii=False) + "\n")
-        print(f"Saved {len(examples)} examples to {output_path}")
-    
     return examples
 
 
@@ -109,14 +105,25 @@ def main():
                        help="Random seed for reproducibility")
     
     args = parser.parse_args()
-    
-    examples = extract_xnli_examples(
+
+    languages = XNLI_LANGUAGES if args.language == "all" else [args.language]
+
+    examples = []
+    for language in languages:
+        examples.extend(extract_xnli_examples(
         k=args.k,
-        language=args.language,
+        language=language,
         split=args.split,
-        output_path=args.output,
-        seed=args.seed
+        seed=args.seed)
     )
+
+    # Save to file if output_path is provided
+    if args.output:
+        print(f"Saving to {args.output}...")
+        with open(args.output, "w", encoding="utf-8") as f:
+            for example in examples:
+                f.write(json.dumps(example, ensure_ascii=False) + "\n")
+        print(f"Saved {len(examples)} examples to {args.output}")
     
     if not args.output:
         # Print examples
