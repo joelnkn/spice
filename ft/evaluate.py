@@ -68,6 +68,10 @@ def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq", u
     
     # Load LoRA adapters
     model = base_model if use_base_only else PeftModel.from_pretrained(base_model, model_path)
+    
+    # Move model to GPU if available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     model.eval()
     
     return model, tokenizer
@@ -94,10 +98,14 @@ def predict(model, tokenizer, input_text, task_type="seq2seq", max_length=128):
     """Generate prediction from model."""
     inputs = tokenizer(input_text, return_tensors="pt", truncation=True, max_length=512)
     
+    # Move inputs to same device as model
+    device = next(model.parameters()).device
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
     with torch.no_grad():
         outputs = model.generate(
-            inputs.input_ids,
-            attention_mask=inputs.attention_mask,
+            inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
             max_length=max_length,
             num_beams=3,
             early_stopping=True
