@@ -92,7 +92,7 @@ def extract_xnli_examples(k=None, language="all", split="train", seed=None):
 
 def main():
     parser = argparse.ArgumentParser(description="Extract random examples from XNLI dataset")
-    parser.add_argument("--k", type=int, default=16, help="Number of examples to extract")
+    parser.add_argument("--k", type=int, default=None, help="Number of examples to extract")
     parser.add_argument("--language", type=str, default="all", help="Language code (default: 'all' for all languages, or specify e.g., 'en', 'de', 'fr')")
     parser.add_argument("--split", type=str, default="train", choices=["train", "validation", "test"], 
                        help="Dataset split")
