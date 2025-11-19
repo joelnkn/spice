@@ -15,7 +15,7 @@ train:
   max_steps: 2000
   grad_accum: 8
   max_src_len: 512
-  max_tgt_len: 4
+  max_tgt_len: 128
   per_device_batch_size: 1
   gradient_checkpointing: true
   logging_steps: 25
@@ -24,8 +24,8 @@ train:
 seed: 17
 io:
   # Can be a single file (str) or list of files for multi-task training
-  train_path: data/xnli_train_16_all.jsonl  # or [data/train.jsonl, data/train_nli.jsonl] for multiple tasks
-  eval_path: data/xnli_test.jsonl
+  train_path: data/xnli_en_train.jsonl  # or [data/train.jsonl, data/train_nli.jsonl] for multiple tasks
+  eval_path: data/xnli_eval.jsonl
   out_dir: outputs/run1
   push_to_hub: false
 wandb:
