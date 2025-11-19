@@ -239,7 +239,7 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml", train_path=None):
+def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
     """
     Main training function.
     
@@ -247,6 +247,8 @@ def main(cfg_path="configs/train.yaml", train_path=None):
         cfg_path: Path to config YAML file
         train_path: Optional path to training data file(s). Overrides config if provided.
                     Can be a single file (str) or list of files.
+        resume_from: Optional path to existing checkpoint to resume training from.
+                     If provided, loads existing LoRA adapters instead of creating new ones.
     """
     cfg = OmegaConf.load(cfg_path)
     
@@ -274,7 +276,13 @@ def main(cfg_path="configs/train.yaml", train_path=None):
     if cfg.train.gradient_checkpointing:
         model.gradient_checkpointing_enable()
 
-    model = attach_lora(model, cfg.task_type, cfg)
+    # Load existing LoRA adapters or create new ones
+    if resume_from is not None:
+        if is_main:
+            accelerator.print(f"Resuming training from checkpoint: {resume_from}")
+        model = PeftModel.from_pretrained(model, resume_from, is_trainable=True)
+    else:
+        model = attach_lora(model, cfg.task_type, cfg)
 
     train_ds = load_jsonl_dataset(cfg.io.train_path)
     eval_ds = load_jsonl_dataset(cfg.io.eval_path)
@@ -387,6 +395,10 @@ if __name__ == "__main__":
                        help="Path to training data file(s). Can be a single file or comma-separated list. "
                             "Overrides config file if provided. Example: --train-path data/train_nli.jsonl "
                             "or --train-path data/train.jsonl,data/train_nli.jsonl")
+    parser.add_argument("--resume-from", type=str, default=None,
+                       help="Path to existing checkpoint to resume training from. "
+                            "Loads existing LoRA adapters instead of creating new ones. "
+                            "Example: --resume-from outputs/run1/best_step1000")
     
     args = parser.parse_args()
     
@@ -395,4 +407,4 @@ if __name__ == "__main__":
     if train_path and ',' in train_path:
         train_path = [p.strip() for p in train_path.split(',')]
     
-    main(cfg_path=args.config, train_path=train_path)
+    main(cfg_path=args.config, train_path=train_path, resume_from=args.resume_from)
