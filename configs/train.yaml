@@ -8,14 +8,14 @@ lora:
   target_modules: [q, k, v, o, up, down, gate]  # mapped internally per-arch
 optim:
   name: adamw                    # Use "adamw" on macOS (no CUDA). "paged_adamw_8bit" requires CUDA
-  lr: 1.0e-4
+  lr: 3.0e-4
   weight_decay: 0.01
   warmup_ratio: 0.05
 train:
   max_steps: 2000
   grad_accum: 8
   max_src_len: 512
-  max_tgt_len: 128
+  max_tgt_len: 4
   per_device_batch_size: 1
   gradient_checkpointing: true
   logging_steps: 25

@@ -240,12 +240,18 @@ def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, us
     task_ids = []
     
     print("Running predictions...")
-    for example in tqdm(test_ds):
+    for i, example in enumerate(tqdm(test_ds)):
         input_text = format_input_for_task(example)
         prediction = predict(model, tokenizer, input_text, cfg.task_type, cfg.train.max_tgt_len)
         predictions.append(prediction)
         labels.append(example.get("target", ""))
         task_ids.append(example.get("task_id", ""))
+        
+        # Debug
+        if i % 20 == 0:
+          match = "✓" if predictions[i].lower() == labels[i].lower() else "✗"
+          print(f"{i+1}. {match} Predicted: '{predictions[i]}' | Expected: '{labels[i]}'")
+    
     
     # Evaluate by task
     results = {}
