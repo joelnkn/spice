@@ -1,8 +1,3 @@
-# TODO: Change so  
-1: it can take in numerous lines
-2: we ask another question that allows us to determine if language is stabilized
-
-
 You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
 
 A hypothetical language has the following phonology:

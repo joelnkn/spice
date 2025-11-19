@@ -22,8 +22,6 @@ import re
 import logging
 from typing import Dict, List, Tuple, Any, Optional
 
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -311,11 +309,11 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
 # ---------------------------------------------------------------------------
 
 def save_feature_files(language_dir: str, feature_dict: Dict[str, Any]) -> Dict[str, str]:
-    """Save canonical feature JSON into language memory.
+    """Save canonical feature JSON into language analysis directory.
 
     Returns a dict with the saved file path.
     """
-    analysis_dir = os.path.join(language_dir, 'memory', 'analysis')
+    analysis_dir = os.path.join(language_dir, 'analysis')
     os.makedirs(analysis_dir, exist_ok=True)
 
     feature_json_path = os.path.join(analysis_dir, 'feature_analysis.json')
@@ -325,30 +323,3 @@ def save_feature_files(language_dir: str, feature_dict: Dict[str, Any]) -> Dict[
 
     logger.info(f"Saved features to {feature_json_path}")
     return {'feature_json': feature_json_path}
-
-
-def extract_and_save_from_analysis(language_dir: str) -> Optional[Dict[str, str]]:
-    """Read `memory/analysis/features.txt` or `analysis.json`, parse and save features.
-
-    Returns dict of saved file path on success, else None.
-    """
-    analysis_txt_path = os.path.join(language_dir, 'memory', 'analysis', 'features.txt')
-    analysis_json_path = os.path.join(language_dir, 'memory', 'analysis', 'analysis.json')
-    raw = None
-    if os.path.exists(analysis_json_path):
-        try:
-            with open(analysis_json_path, 'r', encoding='utf-8') as f:
-                raw = f.read()
-        except Exception:
-            raw = None
-    if raw is None and os.path.exists(analysis_txt_path):
-        with open(analysis_txt_path, 'r', encoding='utf-8') as f:
-            raw = f.read()
-    if not raw:
-        logger.warning(f"No analysis text found in {language_dir}/memory/analysis")
-        return None
-
-    # Parse
-    feature_dict = parse_analysis_text_to_feature_dict(raw)
-    saved = save_feature_files(language_dir, feature_dict)
-    return saved

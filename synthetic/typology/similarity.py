@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Optional, Dict, Tuple
+from typing import Dict, Tuple
 from dataclasses import dataclass
 from synthetic.config import OUTPUT_DIR
 
@@ -19,12 +19,17 @@ class LanguageComparison:
     similarity: float      # matching / comparable
     valid_features: int    # comparable features
 
-def get_synthetic_feature_path(run_name: Optional[str] = None) -> str:
-    """Get the path to the synthetic feature_analysis.json file for a language.
+def get_synthetic_feature_path(run_name: str, language_id: str) -> str:
+    """Get the path to the feature_analysis.json file for a language.
+    
+    Args:
+        run_name: Name of the run
+        language_id: Unique ID of the language
+        
+    Returns:
+        Path to feature_analysis.json file
     """
-    base_dir = OUTPUT_DIR if not run_name else os.path.join(OUTPUT_DIR, run_name)
-
-    feature_path = os.path.join(base_dir, 'analysis', 'feature_analysis.json')
+    feature_path = os.path.join(OUTPUT_DIR, run_name, 'languages', language_id, 'analysis', 'feature_analysis.json')
     return feature_path
 
 def load_feature_dict(feature_path: str) -> Dict[str, str]:

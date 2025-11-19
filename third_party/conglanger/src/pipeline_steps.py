@@ -407,8 +407,6 @@ def run_translation_step(args, llm_client):
             save_with_qa(args, llm_client, content, 'translation', 'translation.json', {'continue_qa': True, 'input_sentence': args.translation_input_sentence}, context=context, context_type='language_spec')
             return True
     
-    # Check if we're in appending mode (final_iteration with existing translation.json)
-    is_appending = getattr(args, 'is_appending', False)
     existing_translation_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
     
     required = {'phonology': 'phonology.txt', 'grammar': 'grammar.txt'}
@@ -433,29 +431,32 @@ def run_translation_step(args, llm_client):
         context += f"\n\nLEXICON:\n{files['lexicon']}"
     metadata = {'input_sentence': args.translation_input_sentence, 'lexicon_available': 'lexicon' in files}
     
-    # If appending, merge the new content with existing
-    if is_appending and os.path.exists(existing_translation_path):
+    # If translation.json already exists, append the new translation to it
+    if os.path.exists(existing_translation_path):
         try:
             with open(existing_translation_path, 'r', encoding='utf-8') as f:
-                existing_data = json.load(f)
+                existing_content = f.read()
+                # Try to parse as JSON, but handle case where file has markdown code fences
+                existing_content = clean_response(existing_content, 'json')
+                existing_data = json.loads(existing_content)
             
             new_data = json.loads(content)
             
             # Append sentences from new translation to existing
             if 'sentences' in existing_data and 'sentences' in new_data:
                 existing_data['sentences'].extend(new_data['sentences'])
+                logger.info(f"Appended {len(new_data['sentences'])} new sentence(s) to existing translation.json")
             elif 'sentences' in new_data:
                 existing_data['sentences'] = new_data['sentences']
             
             # Update metadata to indicate appending
             metadata['appended'] = True
-            metadata['original_sentence_count'] = len(existing_data.get('sentences', []))
+            metadata['total_sentences'] = len(existing_data.get('sentences', []))
             
             content = json.dumps(existing_data, indent=2, ensure_ascii=False)
-            logger.info(f"Appended new translations to existing translation.json")
         except Exception as e:
-            logger.error(f"Failed to append to existing translation.json: {e}")
-            return False
+            logger.error(f"Failed to append to existing translation.json: {e}. Creating new file instead.")
+            # If appending fails, just use the new content (overwrite)
     
     save_with_qa(args, llm_client, content, 'translation', 'translation.json', metadata, context=context, context_type='language_spec')
     return True

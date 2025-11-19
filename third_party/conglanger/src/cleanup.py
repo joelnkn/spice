@@ -96,13 +96,13 @@ def add_new_rules_to_grammar(new_rules: List[str], args, llm_client: Any) -> Opt
     return grammar_path
 
 def extract_new_vocabulary(args) -> List[Dict[str, str]]:
-    """Extract new words from translation.json.
+    """Extract new words from the most recent sentence in translation.json.
     
     Args:
         args: Namespace with memory_dir
     
     Returns:
-        List of {word: translation} dicts
+        List of {word: translation} dicts from the last sentence only
     """
     translation_json_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
     
@@ -113,23 +113,27 @@ def extract_new_vocabulary(args) -> List[Dict[str, str]]:
     with open(translation_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    new_words = []
-    for sentence in data.get('sentences', []):
-        for word_dict in sentence.get('new_words', []):
-            new_words.append(word_dict)
+    sentences = data.get('sentences', [])
+    if not sentences:
+        logger.warning("No sentences found in translation.json")
+        return []
     
-    logger.info(f"Extracted {len(new_words)} new words from translation.json")
+    # Only extract from the LAST sentence (most recently added)
+    last_sentence = sentences[-1]
+    new_words = last_sentence.get('new_words', [])
+    
+    logger.info(f"Extracted {len(new_words)} new words from latest translation")
     return new_words
 
 
 def extract_new_grammar_rules(args) -> List[str]:
-    """Extract new grammar rules from translation.json.
+    """Extract new grammar rules from the most recent sentence in translation.json.
     
     Args:
         args: Namespace with memory_dir
     
     Returns:
-        List of rule strings
+        List of rule strings from the last sentence only
     """
     translation_json_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
     
@@ -140,12 +144,17 @@ def extract_new_grammar_rules(args) -> List[str]:
     with open(translation_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
-    new_rules = []
-    for sentence in data.get('sentences', []):
-        # Extract grammar rules (just the rule text)
-        for rule_obj in sentence.get('new_grammar_rules', []):
-            if 'rule' in rule_obj:
-                new_rules.append(rule_obj['rule'])
+    sentences = data.get('sentences', [])
+    if not sentences:
+        logger.warning("No sentences found in translation.json")
+        return []
     
-    logger.info(f"Extracted {len(new_rules)} new grammar rules from translation.json")
+    # Only extract from the LAST sentence (most recently added)
+    last_sentence = sentences[-1]
+    new_rules = []
+    for rule_obj in last_sentence.get('new_grammar_rules', []):
+        if 'rule' in rule_obj:
+            new_rules.append(rule_obj['rule'])
+    
+    logger.info(f"Extracted {len(new_rules)} new grammar rules from latest translation")
     return new_rules

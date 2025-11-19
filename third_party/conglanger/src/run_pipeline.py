@@ -17,9 +17,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from llm_client import LLMClientGemini, LLMClientDeepseek, LLMClientOpenAI
 from pipeline_steps import run_phonology_step, run_grammar_step, run_lexicon_step, run_translation_step
-from utils import copy_folders, find_last_created_folder
+from utils import copy_folders, create_llm_client
 from cleanup import extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar
 
 logger = logging.getLogger(__name__)
@@ -78,6 +77,7 @@ def save_metadata(lang_dir, language_id, args):
         json.dump(metadata, f, indent=2)
     
     return metadata_file
+
 
 def get_args():
     """Parse command line arguments."""
@@ -185,14 +185,6 @@ def main():
     lang_dir, memory_dir, logs_dir = setup_directories(args.output_dir, language_id)
     args.memory_dir = memory_dir
 
-    try:
-        last_id_file = os.path.join(args.output_dir, 'LAST_LANGUAGE_ID')
-        with open(last_id_file, 'w', encoding='utf-8') as f:
-            f.write(language_id)
-        logger.debug(f"Wrote LAST_LANGUAGE_ID to {last_id_file}")
-    except Exception as e:
-        logger.warning(f"Could not write LAST_LANGUAGE_ID file: {e}")
-
     log_file = os.path.join(logs_dir, 'pipeline.log')
     setup_logging(log_file)
     
@@ -205,35 +197,15 @@ def main():
     logger.info(f"Metadata saved to: {metadata_file}")
     
     # Initialize LLM client
-    if args.model.startswith('gemini'):
-        llm_client = LLMClientGemini(
-            model_checkpoint=args.model,
-            max_tokens=args.max_tokens,
-            temperature=args.temperature,
-            sleep_between_calls=args.sleep_between_calls,
-            debug=args.debug,
-            thinking_budget=args.thinking_budget
-        )
-    elif args.model.startswith('deepseek'):
-        llm_client = LLMClientDeepseek(
-            model_checkpoint=args.model,
-            max_tokens=args.max_tokens,
-            temperature=args.temperature,
-            sleep_between_calls=args.sleep_between_calls,
-            debug=args.debug
-        )
-    elif args.model.startswith('o') or args.model.startswith('gpt-'):
-        # OpenAI client supports both o-series reasoning models and gpt-4o style
-        llm_client = LLMClientOpenAI(
-            model_checkpoint=args.model,
-            max_tokens=args.max_tokens,
-            reasoning_effort=args.reasoning_effort,
-            temperature=args.temperature,
-            sleep_between_calls=args.sleep_between_calls,
-            debug=args.debug
-        )
-    else:
-        raise ValueError(f"Unsupported model: {args.model}")
+    llm_client = create_llm_client(
+        model=args.model,
+        max_tokens=args.max_tokens,
+        temperature=args.temperature,
+        sleep_between_calls=args.sleep_between_calls,
+        debug=args.debug,
+        thinking_budget=args.thinking_budget,
+        reasoning_effort=args.reasoning_effort
+    )
     
     # Parse and run steps
     steps = [step.strip() for step in args.steps.split(',')]
@@ -277,18 +249,30 @@ def main():
     print(f"Results saved in: {lang_dir}")
     logger.info(f"Language generation completed for ID: {language_id}")
     
-    # Post-processing: Extract and update language files with translation-derived content
-    if 'translation' in steps:
-        logger.info("Processing translation outputs...")
-        
-        # Always extract and append new words to lexicon
-        new_words = extract_new_vocabulary(args)
-        if new_words:
-            append_new_words_to_lexicon(new_words, args)
-            logger.info(f"Added {len(new_words)} new words to lexicon")
-        
-        # Only integrate grammar rules if iteration is defined (not for final_iteration appending)
-        if args.iteration:
+    # Post-processing based on iteration mode
+    if args.iteration:
+        # Iteration mode: creating evolving language snapshots
+        if 'translation' not in steps:
+            # Case 1: Initial language generation (no translation step)
+            # Create iter_0 with phonology, grammar, and lexicon
+            iteration = 0
+            logger.info("Initial language generation - creating iter_0")
+            new_iter_dir = os.path.join(lang_dir, f"iter_{iteration}")
+            os.makedirs(new_iter_dir, exist_ok=False)
+            copy_folders(args.memory_dir, new_iter_dir, ['grammar', 'lexicon'])
+            logger.info(f"Saved initial snapshot: {new_iter_dir}")
+        else:
+            # Case 2: Translation step with iteration (adapting language)
+            # First, apply new words and grammar rules from translation
+            logger.info("Processing translation outputs for iteration...")
+            
+            # Extract and append new words to lexicon
+            new_words = extract_new_vocabulary(args)
+            if new_words:
+                append_new_words_to_lexicon(new_words, args)
+                logger.info(f"Added {len(new_words)} new words to lexicon")
+            
+            # Integrate new grammar rules using LLM
             new_rules = extract_new_grammar_rules(args)
             if new_rules:
                 logger.info(f"Integrating {len(new_rules)} new grammar rules...")
@@ -297,28 +281,40 @@ def main():
                     logger.info(f"Successfully integrated grammar rules")
                 else:
                     logger.warning("Failed to integrate grammar rules")
-                    
-            # copy iteration result
+            
+            # Now create the next iteration snapshot
             iter_dirs = [
                 name for name in os.listdir(lang_dir)
                 if name.startswith("iter_") and name[len("iter_"):].isdigit()
             ]
-
-            if iter_dirs:
-                # Get the maximum existing iteration number
-                last_iter = max(int(name[len("iter_"):]) for name in iter_dirs)
-            else:
-                # If none exist, start from -1 so new becomes iter_0
-                last_iter = -1
-                
-            new_iter = last_iter + 1
-            new_iter_dir = os.path.join(lang_dir, f"iter_{new_iter}")
-
+            
+            if not iter_dirs:
+                logger.error("No iter_0 found! Translation step requires initial language generation first.")
+                raise RuntimeError("Cannot run translation in iteration mode without iter_0")
+            
+            iteration = max(int(name[len("iter_"):]) for name in iter_dirs) + 1
+            logger.info(f"Adapting language - creating iter_{iteration}")
+            
+            new_iter_dir = os.path.join(lang_dir, f"iter_{iteration}")
             os.makedirs(new_iter_dir, exist_ok=False)
-            copy_folders(args.memory_dir, new_iter_dir, ['grammar', 'lexicon', 'phonology'])
-        else:
-            logger.info("Appending mode: skipping grammar rule integration")
+            copy_folders(args.memory_dir, new_iter_dir, ['grammar', 'lexicon', 'translation'])
+            logger.info(f"Saved iteration snapshot: {new_iter_dir}")
     
-
+    elif 'translation' in steps:
+        # Non-iteration mode: stabilized language, just append new words
+        logger.info("Processing translation outputs (stabilized language mode)...")
+        
+        new_words = extract_new_vocabulary(args)
+        if new_words:
+            append_new_words_to_lexicon(new_words, args)
+            logger.info(f"Added {len(new_words)} new words to lexicon")
+        
+        # Check for grammar rules and warn if any exist
+        new_rules = extract_new_grammar_rules(args)
+        if new_rules:
+            logger.warning(f"Found {len(new_rules)} new grammar rules but skipping integration (stabilized language mode)")
+        else:
+            logger.info("No new grammar rules found (as expected for stabilized language)")
+    
 if __name__ == '__main__':
     main()

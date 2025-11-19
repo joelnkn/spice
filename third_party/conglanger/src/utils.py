@@ -7,6 +7,55 @@ import shutil
 logger = logging.getLogger(__name__)
 
 
+def create_llm_client(model='gemini-2.5-pro', max_tokens=8192, temperature=0.7, 
+                     sleep_between_calls=30, debug=False, thinking_budget=1000, 
+                     reasoning_effort='medium'):
+    """Create an LLM client based on model name.
+    
+    Args:
+        model: Model identifier (e.g., gemini-2.5-pro, gpt-4o, deepseek-ai/DeepSeek-R1)
+        max_tokens: Maximum tokens for generation
+        temperature: Temperature for sampling
+        sleep_between_calls: Sleep time between API calls (seconds)
+        debug: Enable debug mode with dummy responses
+        thinking_budget: Thinking budget for models that support it (Gemini)
+        reasoning_effort: Reasoning effort for OpenAI o-series models
+        
+    Returns:
+        Initialized LLM client instance
+    """
+    from llm_client import LLMClientGemini, LLMClientDeepseek, LLMClientOpenAI
+    
+    if model.startswith('gemini'):
+        return LLMClientGemini(
+            model_checkpoint=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            sleep_between_calls=sleep_between_calls,
+            debug=debug,
+            thinking_budget=thinking_budget
+        )
+    elif model.startswith('deepseek'):
+        return LLMClientDeepseek(
+            model_checkpoint=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            sleep_between_calls=sleep_between_calls,
+            debug=debug
+        )
+    elif model.startswith('o') or model.startswith('gpt-'):
+        return LLMClientOpenAI(
+            model_checkpoint=model,
+            max_tokens=max_tokens,
+            reasoning_effort=reasoning_effort,
+            temperature=temperature,
+            sleep_between_calls=sleep_between_calls,
+            debug=debug
+        )
+    else:
+        raise ValueError(f"Unsupported model: {model}")
+
+
 def clean_response(response: str, response_type: str = "text") -> str:
     """Clean LLM response by removing markdown formatting and extracting content."""
     if response_type == "csv":
@@ -161,42 +210,3 @@ def copy_folders(src_dir: str, dst_dir: str, folder_names: list) -> None:
         else:
             logger.warning(f"Folder '{folder}' not found in source directory: {src}")
 
-
-def find_last_created_folder(parent_dir: str) -> str:
-    """Find the folder with the maximum iteration number in a directory.
-
-    Args:
-        parent_dir: Directory to search in
-
-    Returns:
-        Path to the folder with the highest iter_N number
-    """
-    if not os.path.exists(parent_dir):
-        raise FileNotFoundError(f"Directory not found: {parent_dir}")
-
-    # Get all directories starting with 'iter_'
-    entries = [
-        e
-        for e in os.listdir(parent_dir)
-        if os.path.isdir(os.path.join(parent_dir, e)) and e.startswith("iter_")
-    ]
-
-    if not entries:
-        raise FileNotFoundError(f"No iter_ folders found in {parent_dir}")
-
-    # Extract iteration numbers and find the maximum
-    iter_nums = []
-    for entry in entries:
-        parts = entry.split("_")
-        if len(parts) == 2 and parts[1].isdigit():
-            iter_nums.append((int(parts[1]), entry))
-
-    if not iter_nums:
-        raise FileNotFoundError(f"No valid iter_ folders found in {parent_dir}")
-
-    # Get the folder with the max iteration number
-    _, max_folder_name = max(iter_nums, key=lambda x: x[0])
-    max_folder_path = os.path.join(parent_dir, max_folder_name)
-
-    logger.info(f"Found folder with max iteration: {max_folder_name}")
-    return max_folder_path

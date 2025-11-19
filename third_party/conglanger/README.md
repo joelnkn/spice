@@ -55,16 +55,64 @@ src/                    # Core source code
 ├── run_pipeline.py     # Main pipeline script
 ├── llm_client.py       # LLM API clients
 ├── pipeline_steps.py   # Language generation steps
+├── cleanup.py          # Post-processing for iteration mode
+├── analysis.py         # Language analysis
 └── utils.py           # Utility functions
 
 prompts/               # Prompt templates
 ├── phonology/         # Phonology generation prompts
 ├── grammar/           # Grammar generation prompts
 ├── lexicon/           # Lexicon building prompts
-└── translation/       # Translation prompts
+├── translation/       # Translation prompts
+└── analysis/          # Analysis prompts
 
 output/                # Generated languages (created automatically)
 ```
+
+### Output Directory Structure
+
+When you generate a language, the output is organized as follows:
+
+```
+output_dir/
+└── run_name/
+    └── languages/
+        └── language_id/              # Unique 8-character ID
+            ├── memory/               # Active working language files
+            │   ├── phonology/
+            │   │   └── phonology.txt
+            │   ├── grammar/
+            │   │   └── grammar.txt
+            │   ├── lexicon/
+            │   │   └── lexicon.csv
+            │   └── translation/      # (if translation step run)
+            │       ├── translation.json
+            │       └── translation_qa.json
+            ├── logs/
+            │   └── pipeline.log
+            ├── analysis/             # (if analysis step run)
+            │   └── features.txt
+            ├── metadata.json
+            ├── iter_0/               # Initial snapshot (--iteration mode)
+            │   ├── grammar/
+            │   └── lexicon/
+            ├── iter_1/               # After 1st translation (--iteration mode)
+            │   ├── grammar/
+            │   ├── lexicon/
+            │   └── translation/
+            └── iter_N/               # Subsequent iterations
+```
+
+**Key directories:**
+- `memory/`: The current state of the language (modified in-place during iteration)
+- `iter_N/`: Snapshots of the language at each iteration (only in `--iteration` mode)
+- `logs/`: Pipeline execution logs
+- `analysis/`: WALS-style feature analysis results of working language
+
+**Iteration Mode (`--iteration` flag):**
+- **First run** (no `--lang-id`): Generates phonology/grammar/lexicon, creates `iter_0` snapshot
+- **Subsequent runs** (with `--lang-id`): Runs translation only, extracts new words/grammar rules, updates `memory/`, creates `iter_N+1` snapshot
+- Each iteration preserves grammar and lexicon evolution; phonology remains static
 
 ### Configuration
 
