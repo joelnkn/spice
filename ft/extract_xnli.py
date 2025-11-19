@@ -53,11 +53,11 @@ def extract_xnli_examples(k=None, language="all", split="train", seed=None):
     
     print(f"Total examples in dataset: {len(dataset)}")
     
-    # Map XNLI labels to our format
+    # Map XNLI labels to our format (using numbers for simpler generation)
     label_map = {
-        0: "entailment",
-        1: "neutral", 
-        2: "contradiction"
+        0: "0",  # entailment
+        1: "1",  # neutral
+        2: "2"   # contradiction
     }
     
     if k is None:

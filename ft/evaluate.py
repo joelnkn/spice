@@ -121,20 +121,25 @@ def evaluate_nli(predictions: List[str], labels: List[str]) -> Dict:
     total = len(predictions)
     accuracy = correct / total if total > 0 else 0.0
     
-    # Per-class accuracy
-    classes = ["entailment", "contradiction", "neutral"]
+    # Per-class accuracy (using numeric labels)
+    classes = ["0", "1", "2"]  # 0=entailment, 1=neutral, 2=contradiction
+    class_names = {
+        "0": "entailment",
+        "1": "neutral", 
+        "2": "contradiction"
+    }
     class_counts = {c: {"correct": 0, "total": 0} for c in classes}
     
     for pred, label in zip(predictions, labels):
-        label_lower = label.lower()
-        pred_lower = pred.lower()
-        if label_lower in class_counts:
-            class_counts[label_lower]["total"] += 1
-            if pred_lower == label_lower:
-                class_counts[label_lower]["correct"] += 1
+        label_clean = label.strip()
+        pred_clean = pred.strip()
+        if label_clean in class_counts:
+            class_counts[label_clean]["total"] += 1
+            if pred_clean == label_clean:
+                class_counts[label_clean]["correct"] += 1
     
     per_class_acc = {
-        c: class_counts[c]["correct"] / class_counts[c]["total"]
+        class_names[c]: class_counts[c]["correct"] / class_counts[c]["total"]
         if class_counts[c]["total"] > 0 else 0.0
         for c in classes
     }
