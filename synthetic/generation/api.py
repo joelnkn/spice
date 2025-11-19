@@ -5,14 +5,14 @@ import os
 
 def generate_consistent_language(corpus, output_dir=OUTPUT_DIR, run_name="consistent"):
     # # generate base language
-    # run_conglanger(
-    #     steps=("phonology", "grammar", "lexicon"),
-    #     qa_enabled=False,
-    #     output_dir=output_dir,
-    #     run_name=run_name,
-    #     reasoning_effort="low",
-    #     iteration=True,
-    # )
+    run_conglanger(
+        steps=("phonology", "grammar", "lexicon"),
+        qa_enabled=False,
+        output_dir=output_dir,
+        run_name=run_name,
+        reasoning_effort="low",
+        iteration=True,
+    )
 
     last_id_file = os.path.join(output_dir, run_name, "LAST_LANGUAGE_ID")
     with open(last_id_file, "r", encoding="utf-8") as f:
@@ -24,8 +24,10 @@ def generate_consistent_language(corpus, output_dir=OUTPUT_DIR, run_name="consis
         run_conglanger(
             steps=("translation",),
             translation_sentence=sample,
+            output_dir=output_dir,
             qa_enabled=True,
             lang_id=language_id,
+            run_name=run_name,
             iteration=True,
         )
 

@@ -315,7 +315,6 @@ def main():
             new_iter_dir = os.path.join(lang_dir, f"iter_{new_iter}")
 
             os.makedirs(new_iter_dir, exist_ok=False)
-            breakpoint()
             copy_folders(args.memory_dir, new_iter_dir, ['grammar', 'lexicon', 'phonology'])
         else:
             logger.info("Appending mode: skipping grammar rule integration")
