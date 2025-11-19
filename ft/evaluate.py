@@ -291,6 +291,9 @@ def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, us
         "total": len(predictions)
     }
     
+    # Create output directory if it doesn't exist
+    os.makedirs(cfg.io.out_dir, exist_ok=True)
+    
     results_path = os.path.join(cfg.io.out_dir, "evaluation_results.json")
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
