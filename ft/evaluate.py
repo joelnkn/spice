@@ -104,7 +104,7 @@ def predict(model, tokenizer, input_text, task_type="seq2seq", max_length=128):
     
     with torch.no_grad():
         outputs = model.generate(
-            inputs["input_ids"],
+            input_ids=inputs["input_ids"],
             attention_mask=inputs["attention_mask"],
             max_length=max_length,
             num_beams=3,
