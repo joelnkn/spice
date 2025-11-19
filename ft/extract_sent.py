@@ -1,22 +1,22 @@
 """
-Extract k random examples from XNLI dataset.
-XNLI is a cross-lingual natural language inference dataset.
+Extract k random examples from mteb/amazon_reviews_multi dataset.
+Amazon Reviews Multi is a multilingual product review dataset with star ratings.
 
 Usage Examples:
     # Extract 16 random English examples and save to file
-    python3 -m ft.extract_xnli --k 16 --language en --split train --output data/xnli_train_16.jsonl
+    python3 -m ft.extract_sent --k 16 --language en --split train --output data/amazon_train_16.jsonl
 
     # Extract 16 random examples from each language and save to file
-    python3 -m ft.extract_xnli --k 16 --split train --output data/xnli_train_16.jsonl
+    python3 -m ft.extract_sent --k 16 --split train --output data/amazon_train_16.jsonl
     
     # Extract 32 examples with a fixed seed (reproducible)
-    python3 -m ft.extract_xnli --k 32 --seed 42 --output data/xnli_train_32.jsonl
+    python3 -m ft.extract_sent --k 32 --seed 42 --output data/amazon_train_32.jsonl
     
     # Just print examples without saving (for testing)
-    python3 -m ft.extract_xnli --k 5
+    python3 -m ft.extract_sent --k 5
 
     # Extract all test examples
-    python3 -m ft.extract_xnli --split test --output data/xnli_test.jsonl
+    python3 -m ft.extract_sent --split test --output data/amazon_test.jsonl
 
 Arguments:
     --k: Number of examples to extract. Omit to extract all examples.
@@ -30,11 +30,11 @@ import json
 import argparse
 import random
 
-XNLI_LANGUAGES = ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"]
+AMAZON_LANGUAGES = ["en", "de", "es", "fr", "ja", "zh"]
 
-def extract_xnli_examples(k=None, language="all", split="train", seed=None):
+def extract_amazon_examples(k=None, language="all", split="train", seed=None):
     """
-    Extract k random examples from XNLI dataset.
+    Extract k random examples from mteb/amazon_reviews_multi dataset.
     
     Args:
         k: Number of examples to extract (None = all examples)
@@ -45,20 +45,16 @@ def extract_xnli_examples(k=None, language="all", split="train", seed=None):
     Returns:
         List of examples in the format expected by the training script
     """
-    print(f"Loading XNLI dataset (language={language}, split={split})...")
+    print(f"Loading Amazon Reviews Multi dataset (language={language}, split={split})...")
     
-    # Load XNLI dataset
-    # XNLI has premise, hypothesis, and label fields
-    dataset = load_dataset("xnli", language, split=split)
+    # Load Amazon Reviews Multi dataset
+    # Dataset has text (review), label (star rating 0-4 representing 1-5 stars)
+    dataset = load_dataset("mteb/amazon_reviews_multi", language, split=split)
     
     print(f"Total examples in dataset: {len(dataset)}")
     
-    # Map XNLI labels to our format (using numbers for simpler generation)
-    label_map = {
-        0: "entailment",  # entailment
-        1: "neutral",  # neutral
-        2: "contradiction"   # contradiction
-    }
+    # Map star ratings (0-4 in dataset) to 1-5 stars
+    # 0 -> 1 star, 1 -> 2 stars, ..., 4 -> 5 stars
     
     if k is None:
         indices = range(len(dataset))
@@ -72,17 +68,14 @@ def extract_xnli_examples(k=None, language="all", split="train", seed=None):
     examples = []
     for idx in indices:
         example = dataset[idx]
-        premise = example["premise"]
-        hypothesis = example["hypothesis"]
-        label = label_map.get(example["label"], "neutral")
-        
-        # Format as our NLI format: "Premise: ... Hypothesis: ..."
-        input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
+        review_text = example["text"]
+        # Convert 0-4 label to 1-5 star rating
+        stars = example["label"] + 1
         
         examples.append({
-            "input": input_text,
-            "target": label,
-            "task_id": "nli"
+            "input": review_text,
+            "target": str(stars),
+            "task_id": "sentiment"
         })
     
     print(f"Extracted {len(examples)} examples")
@@ -91,7 +84,7 @@ def extract_xnli_examples(k=None, language="all", split="train", seed=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Extract random examples from XNLI dataset")
+    parser = argparse.ArgumentParser(description="Extract random examples from mteb/amazon_reviews_multi dataset")
     parser.add_argument("--k", type=int, default=None, help="Number of examples to extract")
     parser.add_argument("--language", type=str, default="all", help="Language code (default: 'all' for all languages, or specify e.g., 'en', 'de', 'fr')")
     parser.add_argument("--split", type=str, default="train", choices=["train", "validation", "test"], 
@@ -103,11 +96,11 @@ def main():
     
     args = parser.parse_args()
 
-    languages = XNLI_LANGUAGES if args.language == "all" else [args.language]
+    languages = AMAZON_LANGUAGES if args.language == "all" else [args.language]
 
     examples = []
     for language in languages:
-        examples.extend(extract_xnli_examples(
+        examples.extend(extract_amazon_examples(
         k=args.k,
         language=language,
         split=args.split,
