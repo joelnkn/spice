@@ -25,7 +25,7 @@ seed: 17
 io:
   # Can be a single file (str) or list of files for multi-task training
   train_path: data/train_nli.jsonl  # or [data/train.jsonl, data/train_nli.jsonl] for multiple tasks
-  eval_path: data/val.jsonl
+  eval_path: data/test.jsonl
   out_dir: outputs/run1
   push_to_hub: false
 wandb:

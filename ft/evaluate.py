@@ -1,28 +1,39 @@
 """
-Evaluate fine-tuned models on test datasets.
+Evaluate fine-tuned or base mT5 models on test datasets.
 
-This script loads a trained model checkpoint and evaluates it on test data,
+This script loads a trained model checkpoint (or base model) and evaluates it on test data,
 computing task-specific metrics like accuracy, per-class accuracy, etc.
 
 Usage Examples:
+    # Evaluate base model without fine-tuning
+    python -m ft.evaluate --base-only
+    
+    # Evaluate base model with custom test file
+    python -m ft.evaluate --base-only --test-path data/my_test.jsonl
+    
     # Evaluate using default config (automatically finds latest checkpoint)
     python -m ft.evaluate
     
     # Evaluate specific checkpoint
-    python -m ft.evaluate outputs/run1/best_step1000
+    python -m ft.evaluate --model-path outputs/run1/best_step1000
     
     # Evaluate specific checkpoint on custom test file
-    python -m ft.evaluate outputs/run1/final data/xnli_test.jsonl
+    python -m ft.evaluate --model-path outputs/run1/final --test-path data/xnli_test.jsonl
+    
+    # Use custom config file
+    python -m ft.evaluate --config configs/custom.yaml --base-only
     
     # The script will:
-    # 1. Load the trained LoRA adapters from the checkpoint
+    # 1. Load the base model or trained LoRA adapters from the checkpoint
     # 2. Run predictions on all test examples
     # 3. Compute metrics by task (NLI, sentiment, paraphrase, translation)
     # 4. Print results and save to evaluation_results.json
 
 Arguments:
-    checkpoint_path: Path to checkpoint directory (optional, auto-detects if not provided)
-    test_path: Path to test JSONL file (optional, uses eval_path from config if not provided)
+    --model-path: Path to checkpoint directory (optional, auto-detects if not provided)
+    --test-path: Path to test JSONL file (optional, uses eval_path from config if not provided)
+    --base-only: Evaluate base model without loading LoRA adapters (default: False)
+    --config: Path to config file (default: configs/train.yaml)
 
 Output:
     - Prints accuracy metrics to console
@@ -39,8 +50,15 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 
-def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq"):
-    """Load fine-tuned model with LoRA adapters."""
+def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq", use_base_only: bool = False):
+    """Load model and tokenizer.
+
+    If use_base_only is True, load only the base model (no LoRA adapters).
+    Otherwise, load fine-tuned model with LoRA adapters from model_path.
+    """
+    if use_base_only:
+        model_path = base_model_name
+
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     
     if task_type == "seq2seq":
@@ -49,7 +67,7 @@ def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq"):
         base_model = AutoModelForCausalLM.from_pretrained(base_model_name)
     
     # Load LoRA adapters
-    model = PeftModel.from_pretrained(base_model, model_path)
+    model = base_model if use_base_only else PeftModel.from_pretrained(base_model, model_path)
     model.eval()
     
     return model, tokenizer
@@ -77,22 +95,13 @@ def predict(model, tokenizer, input_text, task_type="seq2seq", max_length=128):
     inputs = tokenizer(input_text, return_tensors="pt", truncation=True, max_length=512)
     
     with torch.no_grad():
-        if task_type == "seq2seq":
-            outputs = model.generate(
-                inputs.input_ids,
-                attention_mask=inputs.attention_mask,
-                max_length=max_length,
-                num_beams=3,
-                early_stopping=True
-            )
-        else:
-            outputs = model.generate(
-                inputs.input_ids,
-                attention_mask=inputs.attention_mask,
-                max_length=max_length,
-                num_beams=3,
-                early_stopping=True
-            )
+        outputs = model.generate(
+            inputs.input_ids,
+            attention_mask=inputs.attention_mask,
+            max_length=max_length,
+            num_beams=3,
+            early_stopping=True
+        )
     
     prediction = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return prediction.strip()
@@ -173,31 +182,35 @@ def evaluate_translation(predictions: List[str], labels: List[str]) -> Dict:
     }
 
 
-def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None):
+def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, use_base_only: bool = False):
     """Main evaluation function."""
     cfg = OmegaConf.load(cfg_path)
     
-    # Determine checkpoint path
-    if checkpoint_path is None:
-        # Look for best checkpoint or final checkpoint
-        out_dir = cfg.io.out_dir
-        if os.path.exists(os.path.join(out_dir, "final")):
-            checkpoint_path = os.path.join(out_dir, "final")
-        elif os.path.exists(os.path.join(out_dir, "best_step2000")):
-            checkpoint_path = os.path.join(out_dir, "best_step2000")
-        else:
-            # Find latest checkpoint
-            checkpoints = [d for d in os.listdir(out_dir) if d.startswith("step") or d == "final"]
-            if checkpoints:
-                checkpoint_path = os.path.join(out_dir, sorted(checkpoints)[-1])
+    if use_base_only:
+        checkpoint_path = cfg.model_name
+    else:
+        # Determine checkpoint path
+        if checkpoint_path is None:
+            # Look for best checkpoint or final checkpoint
+            out_dir = cfg.io.out_dir
+            if os.path.exists(os.path.join(out_dir, "final")):
+                checkpoint_path = os.path.join(out_dir, "final")
+            elif os.path.exists(os.path.join(out_dir, "best_step2000")):
+                checkpoint_path = os.path.join(out_dir, "best_step2000")
             else:
-                raise ValueError(f"No checkpoint found in {out_dir}")
+                # Find latest checkpoint
+                checkpoints = [d for d in os.listdir(out_dir) if d.startswith("step") or d == "final"]
+                if checkpoints:
+                    checkpoint_path = os.path.join(out_dir, sorted(checkpoints)[-1])
+                else:
+                    raise ValueError(f"No checkpoint found in {out_dir}")
     
     print(f"Loading model from: {checkpoint_path}")
     model, tokenizer = load_model_and_tokenizer(
         checkpoint_path, 
         cfg.model_name, 
-        cfg.task_type
+        cfg.task_type,
+        use_base_only=use_base_only,
     )
     
     # Load test data
@@ -279,10 +292,39 @@ def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None):
 
 
 if __name__ == "__main__":
-    import sys
+    import argparse
     
-    checkpoint = sys.argv[1] if len(sys.argv) > 1 else None
-    test_file = sys.argv[2] if len(sys.argv) > 2 else None
+    parser = argparse.ArgumentParser(description="Evaluate fine-tuned or base mT5 models on test datasets.")
+    parser.add_argument(
+        "--model-path",
+        type=str,
+        default=None,
+        help="Path to checkpoint directory (optional, auto-detects if not provided)"
+    )
+    parser.add_argument(
+        "--test-path",
+        type=str,
+        default=None,
+        help="Path to test JSONL file (optional, uses eval_path from config if not provided)"
+    )
+    parser.add_argument(
+        "--base-only",
+        action="store_true",
+        help="Evaluate base model without loading LoRA adapters"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/train.yaml",
+        help="Path to config file (default: configs/train.yaml)"
+    )
     
-    main(checkpoint_path=checkpoint, test_path=test_file)
+    args = parser.parse_args()
+    
+    main(
+        cfg_path=args.config,
+        checkpoint_path=args.model_path,
+        test_path=args.test_path,
+        use_base_only=args.base_only
+    )
 

@@ -40,14 +40,11 @@ synthetic/data/processed/*
 synthetic/outputs/
 *.csv
 *.json
-*.jsonl
 *.pkl
 *.pt
 *.pth
 
 # Fine-tuning data and outputs
-data/*.jsonl
-data/*.json
 outputs/
 ft/outputs/
 *.safetensors
