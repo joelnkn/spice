@@ -10,19 +10,19 @@ This script supports fine-tuning on multiple NLP tasks including:
 Usage Examples:
     # Basic training with default config
     python3 -m ft.train configs/train.yaml
-    
+
     # Specify training dataset via command line (overrides config)
     python3 -m ft.train configs/train.yaml --train-path data/train_nli.jsonl
-    
+
     # Train on XNLI data
     python3 -m ft.train configs/train.yaml --train-path data/xnli_train_16.jsonl
-    
+
     # Train on multiple datasets (comma-separated)
     python3 -m ft.train configs/train.yaml --train-path data/train.jsonl,data/train_nli.jsonl
-    
+
     # Using a custom config file
     python3 -m ft.train my_custom_config.yaml
-    
+
     # Or specify dataset in config file (configs/train.yaml):
     #   train_path: data/train_nli.jsonl
     #   or
@@ -44,7 +44,7 @@ Data Format:
         "target": "Expected output",
         "task_id": "nli" | "sentiment" | "paraphrase" | "trans"
     }
-    
+
     For NLI tasks, input format: "Premise: ... Hypothesis: ..."
     For other tasks, the input format is flexible and will be auto-formatted.
 
@@ -54,6 +54,7 @@ Output:
     - outputs/run1/step{N}/ - Periodic checkpoints
     - outputs/run1/final/ - Final checkpoint after training
 """
+
 import json, os, math, random
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -69,6 +70,7 @@ from transformers import (
     get_cosine_schedule_with_warmup,
 )
 from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
+from ft.utils import format_input_for_task
 
 # --- helpers -----------------------------------------------------------------
 
@@ -159,34 +161,19 @@ def load_jsonl_dataset(path):
     else:
         # Multiple files: concatenate them
         # Convert OmegaConf ListConfig or other iterables to Python list
-        path_list = OmegaConf.to_container(path, resolve=True) if hasattr(path, '__iter__') and not isinstance(path, str) else path
+        path_list = (
+            OmegaConf.to_container(path, resolve=True)
+            if hasattr(path, "__iter__") and not isinstance(path, str)
+            else path
+        )
         if not isinstance(path_list, list):
             path_list = [path_list]
-        datasets = [load_dataset("json", data_files=p, split="train") for p in path_list]
+        datasets = [
+            load_dataset("json", data_files=p, split="train") for p in path_list
+        ]
         from datasets import concatenate_datasets
+
         return concatenate_datasets(datasets)
-
-
-def format_input_for_task(example: Dict) -> str:
-    """Format input text based on task type."""
-    task_id = example.get("task_id", "").lower()
-    input_text = example.get("input", "")
-    
-    if task_id == "nli":
-        # NLI: already formatted as "Premise: ... Hypothesis: ..."
-        return input_text
-    elif task_id == "sentiment":
-        # Sentiment: format as "Sentiment analysis: <text>"
-        return f"Sentiment analysis: {input_text}"
-    elif task_id == "paraphrase":
-        # Paraphrase: format as "Paraphrase detection: <sentence1> | <sentence2>"
-        return f"Paraphrase detection: {input_text}"
-    elif task_id == "trans":
-        # Translation: keep as is
-        return input_text
-    else:
-        # Default: use input as is
-        return input_text
 
 
 @dataclass
@@ -199,7 +186,7 @@ class Collator:
     def __call__(self, batch: List[Dict]):
         # Format inputs based on task
         inputs = [format_input_for_task(ex) for ex in batch]
-        
+
         if self.task_type == "seq2seq":
             targets = [ex.get("target", "") for ex in batch]
             enc = self.tokenizer(
@@ -242,7 +229,7 @@ class Collator:
 def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
     """
     Main training function.
-    
+
     Args:
         cfg_path: Path to config YAML file
         train_path: Optional path to training data file(s). Overrides config if provided.
@@ -251,12 +238,12 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
                      If provided, loads existing LoRA adapters instead of creating new ones.
     """
     cfg = OmegaConf.load(cfg_path)
-    
+
     # Override train_path if provided as argument
     if train_path is not None:
         cfg.io.train_path = train_path
         print(f"Using training data from command line: {train_path}")
-    
+
     set_seed(cfg.seed)
 
     accelerator = Accelerator(gradient_accumulation_steps=cfg.train.grad_accum)
@@ -387,24 +374,38 @@ def save_adapters(model, tokenizer, out_dir, tag):
 if __name__ == "__main__":
     import sys
     import argparse
-    
-    parser = argparse.ArgumentParser(description="Fine-tune language models with LoRA/QLoRA")
-    parser.add_argument("config", nargs="?", default="configs/train.yaml",
-                       help="Path to config YAML file (default: configs/train.yaml)")
-    parser.add_argument("--train-path", type=str, default=None,
-                       help="Path to training data file(s). Can be a single file or comma-separated list. "
-                            "Overrides config file if provided. Example: --train-path data/train_nli.jsonl "
-                            "or --train-path data/train.jsonl,data/train_nli.jsonl")
-    parser.add_argument("--resume-from", type=str, default=None,
-                       help="Path to existing checkpoint to resume training from. "
-                            "Loads existing LoRA adapters instead of creating new ones. "
-                            "Example: --resume-from outputs/run1/best_step1000")
-    
+
+    parser = argparse.ArgumentParser(
+        description="Fine-tune language models with LoRA/QLoRA"
+    )
+    parser.add_argument(
+        "config",
+        nargs="?",
+        default="configs/train.yaml",
+        help="Path to config YAML file (default: configs/train.yaml)",
+    )
+    parser.add_argument(
+        "--train-path",
+        type=str,
+        default=None,
+        help="Path to training data file(s). Can be a single file or comma-separated list. "
+        "Overrides config file if provided. Example: --train-path data/train_nli.jsonl "
+        "or --train-path data/train.jsonl,data/train_nli.jsonl",
+    )
+    parser.add_argument(
+        "--resume-from",
+        type=str,
+        default=None,
+        help="Path to existing checkpoint to resume training from. "
+        "Loads existing LoRA adapters instead of creating new ones. "
+        "Example: --resume-from outputs/run1/best_step1000",
+    )
+
     args = parser.parse_args()
-    
+
     # Parse train_path if it's a comma-separated list
     train_path = args.train_path
-    if train_path and ',' in train_path:
-        train_path = [p.strip() for p in train_path.split(',')]
-    
+    if train_path and "," in train_path:
+        train_path = [p.strip() for p in train_path.split(",")]
+
     main(cfg_path=args.config, train_path=train_path, resume_from=args.resume_from)

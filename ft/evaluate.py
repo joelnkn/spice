@@ -48,6 +48,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoModelForCausalLM, AutoTokeni
 from peft import PeftModel
 from datasets import load_dataset
 from tqdm import tqdm
+from ft.utils import format_input_for_task
 
 
 def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq", use_base_only: bool = False):
@@ -75,23 +76,6 @@ def load_model_and_tokenizer(model_path, base_model_name, task_type="seq2seq", u
     model.eval()
     
     return model, tokenizer
-
-
-def format_input_for_task(example: Dict) -> str:
-    """Format input text based on task type (same as in train.py)."""
-    task_id = example.get("task_id", "").lower()
-    input_text = example.get("input", "")
-    
-    if task_id == "nli":
-        return input_text
-    elif task_id == "sentiment":
-        return f"Sentiment analysis: {input_text}"
-    elif task_id == "paraphrase":
-        return f"Paraphrase detection: {input_text}"
-    elif task_id == "trans":
-        return input_text
-    else:
-        return input_text
 
 
 def predict(model, tokenizer, input_text, task_type="seq2seq", max_length=128):
