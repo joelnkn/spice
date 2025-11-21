@@ -8,12 +8,7 @@ def format_input_for_task(example: Dict) -> str:
 
     if task_id == "nli":
         # NLI: already formatted as "Premise: ... Hypothesis: ..."
-        return f"""
-Determine whether the hypothesis is entailed by the premise.
-Respond with one of: entailment, neutral, contradiction.
-
-{input_text}
-"""
+        return input_text
     elif task_id == "sentiment":
         # Sentiment: format as "Sentiment analysis: <text>"
         return f"Sentiment analysis: {input_text}"
