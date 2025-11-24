@@ -24,7 +24,10 @@ Instructions:
 2. Follow the grammatical rules and patterns described
 3. Apply the phonological conventions
 4. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
-5. If a grammatical construction is needed but not specified, invent a new grammar rule that is consistent with the existing language patterns
+5. If a grammatical construction seems needed but is not explicitly specified:
+   - FIRST attempt to rephrase or approximate the meaning using only existing constructions.
+   - ONLY IF the core meaning truly cannot be expressed using any existing pattern, invent a minimal new grammar rule that is consistent with the existing language patterns.
+   - Do NOT invent new rules for mere stylistic variation or minor nuances if an approximate expression already exists.
 6. Ensure the translation follows the word order and morphological patterns specified
 
 If you create new words, ensure they:
