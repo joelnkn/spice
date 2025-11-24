@@ -14,9 +14,10 @@ It has the following grammar:
 
 {lexicon_section}
 
-Your task is to translate the following English sentence into this constructed language:
+Your task is to translate the following new-line separated English sentences into this constructed language:
 
-English sentence: {input_sentence}
+English sentences:
+{input_sentence}
 
 Instructions:
 1. Use the vocabulary provided in the language specification (if available)
