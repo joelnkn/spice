@@ -7,10 +7,10 @@ Consider the following checklist:
 
 Use values {values} for those respectively.
 
-A hypothetical language has the following phonology:
-=== START ===
-{phonology}
-=== END ===
+The language uses the following orthography and word-shape rules:
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
 
 It should also obey the following constraint(s); if these contradict the above, these take priority:
 {custom}

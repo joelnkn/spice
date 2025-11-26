@@ -29,9 +29,6 @@ logger = logging.getLogger(__name__)
 # Order here defines vector layout.
 # ---------------------------------------------------------------------------
 FEATURE_SCHEMA: Dict[str, List[str]] = {
-    "consonant_inventory": ["small", "large", "null"],
-    "vowel_inventory": ["small", "large", "null"],
-    "tone": ["tonal", "non-tonal", "null"],
     "morphological_fusion": ["isolating", "agglutinating", "fusional", "polysynthetic", "null"],
     "affixation_balance": ["prefixing", "suffixing", "null"],
     "gender_inventory": ["none", "few", "moderate", "many", "null"],
@@ -146,29 +143,6 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
         return 'null'
 
     low = raw.lower()
-
-    # Feature-specific normalization
-    if feature in ('consonant_inventory', 'vowel_inventory'):
-        if 'large' in low or '>' in low or 'more' in low or '≥' in low:
-            return 'large'
-        if 'small' in low or '<=' in low or '≤' in low or 'fewer' in low:
-            return 'small'
-        # numeric guesses
-        m = re.search(r'(\d+)', low)
-        if m:
-            n = int(m.group(1))
-            if feature == 'consonant_inventory':
-                return 'small' if n <= 20 else 'large'
-            if feature == 'vowel_inventory':
-                return 'small' if n < 9 else 'large'
-        return 'null'
-
-    if feature == 'tone':
-        if 'non' in low or 'no tone' in low or 'not tonal' in low:
-            return 'non-tonal'
-        if 'ton' in low:
-            return 'tonal'
-        return 'null'
 
     if feature == 'morphological_fusion':
         for opt in FEATURE_SCHEMA[feature]:

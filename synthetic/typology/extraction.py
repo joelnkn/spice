@@ -40,9 +40,9 @@ def extract_features(llm_client: Any, run_name: str, language_id: str,
         return False
     
     files = load_required_files(memory_dir, {
-        'phonology': 'phonology.txt',
         'grammar': 'grammar.txt',
         'lexicon': 'lexicon.csv',
+        'orthography': 'orthography.txt',
     })
     if files is None:
         logger.error("Could not load required files for feature extraction")
@@ -58,7 +58,7 @@ def extract_features(llm_client: Any, run_name: str, language_id: str,
         return False
     
     kwargs = {
-        'phonology': files['phonology'],
+        'orthography': files['orthography'],
         'grammar': files['grammar'],
         'lexicon_section': lex_section,
     }

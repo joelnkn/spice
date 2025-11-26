@@ -1,16 +1,16 @@
-You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
+You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar, and orthography.
 
-A hypothetical language has the following phonology:
+The language uses the following orthography and word-shape rules:
 
-=== START ===
-{phonology}
-=== END ===
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
 
 It has the following grammar:
 
-=== START ===
+=== GRAMMAR START ===
 {grammar}
-=== END ===
+=== GRAMMAR END ===
 
 {lexicon_section}
 
@@ -20,27 +20,28 @@ English sentences:
 {input_sentence}
 
 Instructions:
-1. Use the vocabulary provided in the language specification (if available)
-2. Follow the grammatical rules and patterns described
-3. Apply the phonological conventions
-4. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
-5. If a grammatical construction seems needed but is not explicitly specified:
+1. Use vocabulary from the lexicon whenever possible.
+2. Follow the grammar rules exactly.
+3. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
+4. If a grammatical construction seems needed but is not explicitly specified:
    - FIRST attempt to rephrase or approximate the meaning using only existing constructions.
-   - ONLY IF the core meaning truly cannot be expressed using any existing pattern, invent a minimal new grammar rule that is consistent with the existing language patterns.
+   - ONLY IF the core meaning truly cannot be expressed using any existing pattern, invent a new grammar rule that is consistent with the existing language patterns.
    - Do NOT invent new rules for mere stylistic variation or minor nuances if an approximate expression already exists.
-6. Ensure the translation follows the word order and morphological patterns specified
+5. Ensure the translation follows the word order and morphological patterns specified
 
 If you create new words, ensure they:
-- Follow the phonological constraints of the language
-- Have appropriate semantic scope for the meaning needed
-- Use appropriate derivational processes if applicable
+- follow the orthography
+- have correct semantic scope
+- use derivational morphology when appropriate
 
 If you create new grammar rules, ensure they:
-- Are consistent with existing grammatical patterns
-- Follow the language's morphological and syntactic tendencies
-- Are plausible extensions of the existing system
+- extend existing patterns only
+- be minimal and well-justified
+- preserve typological coherence
 
-Provide a gloss line: break down the conlang sentence word by word, showing morphemes and their grammatical functions using standard linguistic abbreviations (e.g., FUT, SBJ, OBJ, ACC, etc.). The gloss should use English abbreviations and morpheme breakdowns, NOT the conlang words.
+Provide a gloss line using standard linguistic abbreviations (SBJ, OBJ, ACC, PST, etc.).
+
+Do NOT include multi-step reasoning, alternatives, or long explanations anywhere.
 
 Return the result in JSON format only:
 
@@ -48,9 +49,9 @@ Return the result in JSON format only:
     "sentences": [
         {{
             "conlang_sentence": "<sentence in the constructed language>",
-            "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
+            "gloss": "<gloss>",
             "new_words": [{{"<new_word>": "<english_translation>"}}],
-            "new_grammar_rules": [{{"rule": "<description_of_new_rule>", "justification": "<explanation_of_why_needed_and_consistency>"}}]
+            "new_grammar_rules": [{{"rule": "<one short sentence (max ~20 words) describing the new rule>", "justification": "justification": "<one short sentence (max ~20 words) explaining why it is consistent and necessary>"}}]
         }}
     ]
 }}

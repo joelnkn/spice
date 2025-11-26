@@ -1,10 +1,13 @@
-A hypothetical language has the following phonology and grammar:
+A hypothetical language has the following grammar:
 
-=== START ===
-{phonology}
-
+=== START GRAMMAR ===
 {grammar}
-=== END ===
+=== END GRAMMAR ===
+
+The language also obeys the following orthography and word-shape rules:
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
 
 Output a CSV with a lexicon of the language, including all lexical items that appear in the language's information above.
 
@@ -16,24 +19,21 @@ The CSV column names and their contents should be:
 * "derivation": If the item is derived, note its derivation here
 * "notes": Any additional notes
 
-Provide translations for all lexical items, even those whose translations are not explicitly specified in the provided background above (i.e. don't list any translations as "unknown").
+NEVER invent lexicon similar to English or common languages.
 
-You MUST follow these strict CSV formatting rules:
+Output a CSV lexicon that includes all lexical items explicitly mentioned in the grammar.
 
-1. The first line of your output MUST be exactly:
+The CSV must follow these strict rules:
+
+1. First line must be exactly:
 ipa,pos,translation,grammar,derivation,notes
 
-2. Every lexicon entry must follow this exact structure:
+2. Every entry must follow:
 ipa,pos,translation,grammar,derivation,notes
 
-3. Each entry MUST contain exactly six comma-separated fields.
-   - If a field is empty, leave it blank but KEEP the comma.
-   - Example of correct empty fields:
-    taka,noun,stone,gender: neuter,,
+3. Exactly six comma-separated fields per line.
+   If a field is empty, leave it blank but keep the comma.
 
-4. The only valid output format is:
-   - the exact header line
-   - followed by CSV rows with six fields each
-   - nothing else
-    
-Do not provide any further explanation or text, only the CSV.
+4. No field may contain a comma. Use semicolons if needed.
+
+5. Output only the CSV. No explanation.

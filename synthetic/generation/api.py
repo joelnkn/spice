@@ -10,6 +10,19 @@ import uuid
 from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
 
+import os
+import json
+
+def load_metadata(lang_dir):
+    """Load metadata.json from a language directory, or return {} if missing."""
+    metadata_path = os.path.join(lang_dir, "metadata.json")
+    if os.path.exists(metadata_path):
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Warning: could not load metadata.json: {e}")
+    return {}
 
 class NLISentenceOnlyDataset(Dataset):
     def __init__(self, hf_dataset):
@@ -35,9 +48,9 @@ def generate_from_snli(
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
-        ds, batch_size=32, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
+        ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
     )
-    generate_consistent_language(
+    return generate_consistent_language(
         loader, language_id, output_dir, run_name, max_stabilize_steps
     )
 
@@ -68,7 +81,7 @@ def generate_consistent_language(
 
     # Generate base language
     run_conglanger(
-        steps=("phonology", "grammar", "lexicon"),
+        steps=("grammar", "lexicon"),
         qa_enabled=False,
         output_dir=output_dir,
         run_name=run_name,
@@ -76,6 +89,12 @@ def generate_consistent_language(
         iteration=True,
         lang_id=language_id,
     )
+    
+    lang_dir = os.path.join(output_dir, run_name, "languages", language_id)
+    
+    # Track previous totals so we can compute deltas per step
+    prev_words = 0
+    prev_rules = 0
 
     # Make consistent using corpus
     print("Stabilizing language with corpus...")
@@ -85,11 +104,26 @@ def generate_consistent_language(
             steps=("translation",),
             translation_sentence=sample,
             output_dir=output_dir,
-            qa_enabled=False,
             lang_id=language_id,
             run_name=run_name,
             iteration=True,
         )
+        
+        metadata = load_metadata(lang_dir)
+        total_rules = metadata.get("num_new_grammar_rules", 0)
+        total_words = metadata.get("num_new_words", 0)
+
+        delta_rules = total_rules - prev_rules
+        delta_words = total_words - prev_words
+
+        print(
+            f"New words this step: {delta_words} (total: {total_words}) | "
+            f"New rules this step: {delta_rules} (total: {total_rules})"
+        )
+
+        prev_rules = total_rules
+        prev_words = total_words
+        
         if i >= max_stabilize_steps:
             break
 

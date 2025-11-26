@@ -95,66 +95,109 @@ def add_new_rules_to_grammar(new_rules: List[str], args, llm_client: Any) -> Opt
     logger.info(f"Updated grammar with {len(new_rules)} new rules at {grammar_path}")
     return grammar_path
 
-def extract_new_vocabulary(args) -> List[Dict[str, str]]:
-    """Extract new words from the most recent sentence in translation.json.
-    
+def update_metadata_count(lang_dir, key: str, value: int):
+    """Helper to update a count in metadata.json in lang_dir."""
+    metadata_path = os.path.join(lang_dir, "metadata.json")
+    metadata = {}
+    if os.path.exists(metadata_path):
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                metadata = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load metadata.json: {e}")
+    metadata[key] = value
+    with open(metadata_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+    logger.info(f"Updated metadata.json with {key}={value}")
+
+def extract_new_vocabulary(lang_dir) -> List[Dict[str, str]]:
+    """Extract new words from all sentences in translation.json in lang_dir/memory/translation/translation.json.
     Args:
-        args: Namespace with memory_dir
-    
+        lang_dir: Path to the language directory (contains memory/)
     Returns:
-        List of {word: translation} dicts from the last sentence only
+        List of {word: translation} dicts from all sentences
     """
-    translation_json_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
-    
+    memory_dir = os.path.join(lang_dir, "memory")
+    translation_json_path = os.path.join(memory_dir, 'translation', 'translation.json')
     if not os.path.exists(translation_json_path):
         logger.warning(f"Translation file not found: {translation_json_path}")
         return []
-    
     with open(translation_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
     sentences = data.get('sentences', [])
     if not sentences:
         logger.warning("No sentences found in translation.json")
         return []
-    
-    # Only extract from the LAST sentence (most recently added)
-    last_sentence = sentences[-1]
-    new_words = last_sentence.get('new_words', [])
-    
-    logger.info(f"Extracted {len(new_words)} new words from latest translation")
+    new_words = []
+    for sentence in sentences:
+        for word_dict in sentence.get('new_words', []):
+            new_words.append(word_dict)
+    logger.info(f"Extracted {len(new_words)} new words from all translations")
+    update_metadata_count(lang_dir, "num_new_words", len(new_words))
     return new_words
 
 
-def extract_new_grammar_rules(args) -> List[str]:
-    """Extract new grammar rules from the most recent sentence in translation.json.
-    
+def extract_new_grammar_rules(lang_dir) -> List[str]:
+    """Extract new grammar rules from all sentences in translation.json in lang_dir/memory/translation/translation.json.
     Args:
-        args: Namespace with memory_dir
-    
+        lang_dir: Path to the language directory (contains memory/)
     Returns:
-        List of rule strings from the last sentence only
+        List of rule strings from all sentences
     """
-    translation_json_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
-    
+    memory_dir = os.path.join(lang_dir, "memory")
+    translation_json_path = os.path.join(memory_dir, 'translation', 'translation.json')
     if not os.path.exists(translation_json_path):
         logger.warning(f"Translation file not found: {translation_json_path}")
         return []
-    
     with open(translation_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    
     sentences = data.get('sentences', [])
     if not sentences:
         logger.warning("No sentences found in translation.json")
         return []
-    
-    # Only extract from the LAST sentence (most recently added)
-    last_sentence = sentences[-1]
     new_rules = []
-    for rule_obj in last_sentence.get('new_grammar_rules', []):
-        if 'rule' in rule_obj:
-            new_rules.append(rule_obj['rule'])
-    
-    logger.info(f"Extracted {len(new_rules)} new grammar rules from latest translation")
+    for sentence in sentences:
+        for rule_obj in sentence.get('new_grammar_rules', []):
+            if 'rule' in rule_obj:
+                new_rules.append(rule_obj['rule'])
+    logger.info(f"Extracted {len(new_rules)} new grammar rules from all translations")
+    update_metadata_count(lang_dir, "num_new_grammar_rules", len(new_rules))
     return new_rules
+
+def append_sentences_to_valid_translations(memory_dir) -> str:
+    """Append all sentences from translation.json to valid_translations.json in memory_dir/translation.
+    Creates valid_translations.json if it does not exist.
+    Args:
+        memory_dir: Path to the memory directory
+    Returns:
+        Path to the updated valid_translations.json file
+    """
+    translation_dir = os.path.join(memory_dir, 'translation')
+    translation_json_path = os.path.join(translation_dir, 'translation.json')
+    valid_translations_path = os.path.join(translation_dir, 'valid_translations.json')
+
+    # Load sentences from translation.json
+    if not os.path.exists(translation_json_path):
+        logger.warning(f"Translation file not found: {translation_json_path}")
+        return valid_translations_path
+    with open(translation_json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    sentences = data.get('sentences', [])
+    if not sentences:
+        logger.warning("No sentences found in translation.json")
+        return valid_translations_path
+
+    # Load or create valid_translations.json
+    if os.path.exists(valid_translations_path):
+        with open(valid_translations_path, 'r', encoding='utf-8') as f:
+            valid_data = json.load(f)
+        valid_sentences = valid_data.get('sentences', [])
+    else:
+        valid_sentences = []
+
+    # Append all sentences from translation.json
+    valid_sentences.extend(sentences)
+    with open(valid_translations_path, 'w', encoding='utf-8') as f:
+        json.dump({'sentences': valid_sentences}, f, ensure_ascii=False, indent=2)
+    logger.info(f"Appended {len(sentences)} sentences to {valid_translations_path}")
+    return valid_translations_path

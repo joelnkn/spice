@@ -3,6 +3,7 @@
 import os
 import sys
 import importlib
+from synthetic.generation.custom_constraints import BASE 
 
 # Add conglanger to path
 _conglanger_src = os.path.join(os.path.dirname(__file__), '../third_party/conglanger/src')
@@ -27,7 +28,6 @@ copy_folders = _utils.copy_folders
 load_required_files = _utils.load_required_files
 create_llm_client = _utils.create_llm_client
 
-run_phonology_step = _pipeline_steps.run_phonology_step
 run_grammar_step = _pipeline_steps.run_grammar_step
 run_lexicon_step = _pipeline_steps.run_lexicon_step
 run_translation_step = _pipeline_steps.run_translation_step
@@ -36,15 +36,15 @@ run_translation_step = _pipeline_steps.run_translation_step
 def run_conglanger(
     run_name=None,
     model="gemini-2.5-flash-lite", # prob should change back to gemini-2.5-pro
-    steps=("phonology", "grammar", "lexicon", "translation"),
-    custom_constraints=None,
+    steps=("grammar", "lexicon", "translation"),
+    custom_constraints=BASE,
     translation_sentence="Hello, world!",
     max_tokens=8192,
     temperature=0.7,
     thinking_budget=1000,
     reasoning_effort="medium",
     sleep_between_calls=0,
-    qa_enabled=True,
+    qa_enabled=False,
     self_refine_steps=3,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,
@@ -174,7 +174,7 @@ __all__ = [
     'load_required_files',
     
     # Pipeline steps
-    'run_phonology_step',
+
     'run_grammar_step',
     'run_lexicon_step',
     'run_translation_step',

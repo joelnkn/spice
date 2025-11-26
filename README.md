@@ -8,7 +8,7 @@ Colab: https://colab.research.google.com/drive/1ig1AQZ26Q-1xXjZMbJi1cLRfKrghR2Lf
 
 ```
 spice/
-├── scripts/              # Utility scripts
+├── scripts/             # Utility scripts
 │   ├── setup.sh         # Environment setup
 │   └── generate.sh      # Language generation
 ├── synthetic/           # Synthetic language generation module

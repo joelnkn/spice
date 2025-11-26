@@ -1,4 +1,4 @@
-Here is a hypothetical language's phonology:
+Here is a hypothetical language description:
 === START ===
 {content}
 === END ===

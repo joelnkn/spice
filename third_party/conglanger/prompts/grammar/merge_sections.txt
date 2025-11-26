@@ -9,4 +9,4 @@ Create a unified grammar description that:
 4. Organizes information clearly with appropriate headings
 5. Removes redundancy while preserving all unique information
 
-Format the output with clear section headers and provide no additional explanation.
+Provide no additional explanation.

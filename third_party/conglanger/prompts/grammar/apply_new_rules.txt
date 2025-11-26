@@ -30,4 +30,4 @@ Your task is to:
 
 # Output
 
-Provide the complete, updated grammar document that incorporates all new rules in a coherent and well-structured manner. The output should be the full grammar text, ready to be written to grammar.txt.
+Rewrite the grammar as a single, self-contained specification with all changes integrated. DO NOT include the previous version of the grammar or any explanations. Output ONLY the final updated grammar document.

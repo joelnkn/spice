@@ -182,31 +182,30 @@ def save_individual_metadata(metadata: dict, memory_dir: str, filename: str):
     logger.info(f"Saved individual metadata {filename} to {memory_dir}")
 
 
-def copy_folders(src_dir: str, dst_dir: str, folder_names: list) -> None:
-    """Copy specified folders from source directory to destination directory.
-
-    Args:
-        src_dir: Source directory path
-        dst_dir: Destination directory path
-        folder_names: List of folder names to copy
-
-    Raises:
-        FileNotFoundError: If source directory doesn't exist
-    """
-    if not os.path.exists(src_dir):
-        raise FileNotFoundError(f"Source directory not found: {src_dir}")
+def copy_folders(lang_dir: str, dst_dir: str, folder_names: list) -> None:
+    """Copy specified folders from lang_dir/memory to destination directory, and copy metadata.json from lang_dir."""
+    memory_dir = os.path.join(lang_dir, "memory")
+    if not os.path.exists(memory_dir):
+        raise FileNotFoundError(f"Memory directory not found: {memory_dir}")
 
     os.makedirs(dst_dir, exist_ok=True)
 
     for folder in folder_names:
-        src = os.path.join(src_dir, folder)
+        src = os.path.join(memory_dir, folder)
         dst = os.path.join(dst_dir, folder)
 
         if os.path.exists(src):
             if os.path.exists(dst):
                 shutil.rmtree(dst)
             shutil.copytree(src, dst)
-            logger.info(f"Copied folder '{folder}' from {src_dir} to {dst_dir}")
+            logger.info(f"Copied folder '{folder}' from {memory_dir} to {dst_dir}")
         else:
-            logger.warning(f"Folder '{folder}' not found in source directory: {src}")
+            logger.warning(f"Folder '{folder}' not found in memory directory: {src}")
+
+    # Also copy metadata.json if it exists in lang_dir
+    src_metadata = os.path.join(lang_dir, "metadata.json")
+    dst_metadata = os.path.join(dst_dir, "metadata.json")
+    if os.path.exists(src_metadata):
+        shutil.copy2(src_metadata, dst_metadata)
+        logger.info(f"Copied metadata.json from {lang_dir} to {dst_dir}")
 

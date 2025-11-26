@@ -69,7 +69,7 @@ def save_with_qa(args, llm_client, content, step_name, filename, metadata,
     return content
 
 
-def run_qa_step(args, llm_client, step_name, content, content_type="phonology", context=None, context_type=None):
+def run_qa_step(args, llm_client, step_name, content, content_type="grammar", context=None, context_type=None):
     """Run QA critic/amend loop for a content artifact."""
     if context and not context_type:
         raise ValueError("Missing context_type")
@@ -77,7 +77,7 @@ def run_qa_step(args, llm_client, step_name, content, content_type="phonology", 
         raise ValueError("Missing context")
     has_context = context is not None
 
-    if not getattr(args, 'qa_enabled', False):
+    if not getattr(args, 'qa_enabled', False): 
         return True, None, content
 
     prompt_dir = os.path.join(args.prompt_dir, 'qa')
@@ -86,7 +86,11 @@ def run_qa_step(args, llm_client, step_name, content, content_type="phonology", 
             critic = PromptManager.load_prompt(os.path.join(prompt_dir, 'qa_translation_critic_with_context.txt'))
         else:
             critic = PromptManager.load_prompt(os.path.join(prompt_dir, 'qa_critic.txt'))
-        amend = PromptManager.load_prompt(os.path.join(prompt_dir, 'qa_translation_amend.txt'))
+            print("ERROR WE SHOULD ALWAYS HAVE CONTEXT!")
+            
+        stabilizing = getattr(args, 'iteration', False)
+        filename = "post_stabilization_qa_translation_amend.txt" if not stabilizing else "pre_stabilization_qa_translation_amend.txt"
+        amend = PromptManager.load_prompt(os.path.join(prompt_dir, filename))
     else:
         if has_context:
             critic = PromptManager.load_prompt(os.path.join(prompt_dir, 'qa_critic_with_context.txt'))
@@ -162,36 +166,6 @@ def _generate_with_prompts(llm_client, prompts, kwargs_list, do_sleep_flags=None
     return responses
 
 
-# ===================== PHONOLOGY ===================== #
-
-def run_phonology_step(args, llm_client):
-    if args.continue_qa:
-        existing_file = os.path.join(args.memory_dir, 'phonology', 'phonology.txt')
-        if os.path.exists(existing_file):
-            with open(existing_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            metadata = {'continue_qa': True}
-            save_with_qa(args, llm_client, content, 'phonology', 'phonology.txt', metadata)
-            return True
-    prompt_dir = os.path.join(args.prompt_dir, 'phonology')
-    prompts = PromptManager.load_prompts(prompt_dir, ['phon_step1_checklist.txt', 'phon_step2_summary.txt', 'phon_step3_word_shapes.txt'])
-    custom = "(none)" if args.custom_constraints is None else args.custom_constraints
-    values = np.random.randint(args.phon_n_answers, size=args.phon_n_questions) + 1
-    kwargs_list = [{'n_questions': args.phon_n_questions, 'n_answers': args.phon_n_answers, 'scale_size': args.phon_scale_size}]
-    responses = _generate_with_prompts(llm_client, {'step1': prompts['phon_step1_checklist']}, kwargs_list)
-    _, checklist = responses[0]
-    step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom}
-    step2_responses = _generate_with_prompts(llm_client, {'step2': prompts['phon_step2_summary']}, [step2_kwargs], [False])
-    _, phonology = step2_responses[0]
-    step3_kwargs = {'phonology': phonology, 'n': args.phon_n_words, 'custom': custom}
-    step3_responses = _generate_with_prompts(llm_client, {'step3': prompts['phon_step3_word_shapes']}, [step3_kwargs], [False])
-    _, word_shapes = step3_responses[0]
-    full = phonology.strip() + '\n\n' + word_shapes.strip()
-    metadata = {**kwargs_list[0], **step2_kwargs, **step3_kwargs}
-    save_with_qa(args, llm_client, full, 'phonology', 'phonology.txt', metadata)
-    return True
-
-
 # ===================== GRAMMAR ===================== #
 
 def run_grammar_step(args, llm_client):
@@ -200,15 +174,15 @@ def run_grammar_step(args, llm_client):
         if os.path.exists(existing_file):
             with open(existing_file, 'r', encoding='utf-8') as f:
                 merged = f.read()
-            files = load_required_files(args.memory_dir, {'phonology': 'phonology.txt'})
+            files = load_required_files(args.memory_dir, {'orthography': 'orthography.txt'})
             if files is None:
                 return False
-            save_with_qa(args, llm_client, merged, 'grammar', 'grammar.txt', {'continue_qa': True}, context=files['phonology'], context_type='phonology')
+            save_with_qa(args, llm_client, merged, 'grammar', 'grammar.txt', {'continue_qa': True}, context=files['orthography'], context_type='orthography')
             return True
-    files = load_required_files(args.memory_dir, {'phonology': 'phonology.txt'})
+    files = load_required_files(args.memory_dir, {'orthography': 'orthography.txt'})
     if files is None:
         return False
-    phonology = files['phonology']
+    orthography = files['orthography']
     prompt_dir = os.path.join(args.prompt_dir, 'grammar')
     prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary.txt', 'gram_step3_expand.txt', 'merge_sections.txt'])
     custom = "(none)" if args.custom_constraints is None else args.custom_constraints
@@ -216,10 +190,10 @@ def run_grammar_step(args, llm_client):
     kwargs_list = [{'n_questions': args.gram_n_questions, 'n_answers': args.gram_n_answers, 'scale_size': args.gram_scale_size}]
     step1 = _generate_with_prompts(llm_client, {'step1': prompts['gram_step1_checklist']}, kwargs_list)
     _, checklist = step1[0]
-    step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'phonology': phonology}
+    step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
     step2 = _generate_with_prompts(llm_client, {'step2': prompts['gram_step2_summary']}, [step2_kwargs])
     _, grammar = step2[0]
-    step3_kwargs = {'grammar': grammar, 'custom': custom, 'phonology': phonology}
+    step3_kwargs = {'grammar': grammar, 'custom': custom, 'orthography': orthography}
     step3 = _generate_with_prompts(llm_client, {'step3': prompts['gram_step3_expand']}, [step3_kwargs])
     _, expanded = step3[0]
     summaries = f"===SUMMARY 1:===\n{grammar}\n\n===SUMMARY 2:===\n{expanded}\n===END SUMMARIES==="
@@ -227,7 +201,7 @@ def run_grammar_step(args, llm_client):
     step4 = _generate_with_prompts(llm_client, {'step4': prompts['merge_sections']}, [step4_kwargs], [False])
     _, merged = step4[0]
     metadata = {**kwargs_list[0], **step2_kwargs, **step3_kwargs}
-    save_with_qa(args, llm_client, merged, 'grammar', 'grammar.txt', metadata, context=phonology, context_type='phonology')
+    save_with_qa(args, llm_client, merged, 'grammar', 'grammar.txt', metadata, context=orthography, context_type='orthography')
     return True
 
 
@@ -247,7 +221,7 @@ def _run_iterative_csv_step_with_qa(args, llm_client, step_name, required_files,
     extra_sleep = getattr(args, extra_sleep_attr)
     max_iters = getattr(args, max_iters_attr)
     pbar = tqdm(desc=f"Making {step_name}", total=min_entries)
-    step1_kwargs = {k: v for k, v in files.items() if k in ['phonology', 'grammar']}
+    step1_kwargs = {k: v for k, v in files.items() if k in ['orthography', 'grammar']}
     step1 = _generate_with_prompts(llm_client, {'step1': prompts[p1]}, [step1_kwargs])
     _, csv_raw = step1[0]
     csv_data = clean_response(csv_raw, 'csv')
@@ -271,9 +245,9 @@ def _run_iterative_csv_step_with_qa(args, llm_client, step_name, required_files,
         logger.warning(f"{step_name} hit max iterations with {get_csv_text_n_entries(csv_data)} entries (target {min_entries})")
     # Convert to text for QA
     text_version = _csv_to_text_for_qa(csv_data)
-    context = f"Phonology:\n{files['phonology']}\n\nGrammar:\n{files['grammar']}"
+    context = f"Orthography:\n{files['orthography']}\n\nGrammar:\n{files['grammar']}"
     metadata = {'min_entries': min_entries, 'n_per_iter': n_per_iter, 'max_iters': max_iters, 'actual_entries': get_csv_text_n_entries(csv_data), 'iterations_used': i}
-    final_text = save_with_qa(args, llm_client, text_version, step_name, f'{step_name}.csv', metadata, context=context, context_type='phonology and grammar')
+    final_text = save_with_qa(args, llm_client, text_version, step_name, f'{step_name}.csv', metadata, context=context, context_type='orthography and grammar')
     final_csv = _text_to_csv_for_qa(final_text)
     step_memory_dir = os.path.join(args.memory_dir, step_name)
     with open(os.path.join(step_memory_dir, f'{step_name}.csv'), 'w', encoding='utf-8') as f:
@@ -365,11 +339,11 @@ def run_lexicon_step(args, llm_client):
             with open(existing, 'r', encoding='utf-8') as f:
                 csv_data = f.read()
             text_version = _csv_to_text_for_qa(csv_data)
-            files = load_required_files(args.memory_dir, {'phonology': 'phonology.txt', 'grammar': 'grammar.txt'})
+            files = load_required_files(args.memory_dir, {'orthography': 'orthography.txt', 'grammar': 'grammar.txt'})
             if files is None:
                 return False
-            context = f"Phonology:\n{files['phonology']}\n\nGrammar:\n{files['grammar']}"
-            final_text = save_with_qa(args, llm_client, text_version, 'lexicon', 'lexicon.csv', {'continue_qa': True}, context=context, context_type='phonology and grammar')
+            context = f"Orthography:\n{files['orthography']}\n\nGrammar:\n{files['grammar']}"
+            final_text = save_with_qa(args, llm_client, text_version, 'lexicon', 'lexicon.csv', {'continue_qa': True}, context=context, context_type='orthography and grammar')
             final_csv = _text_to_csv_for_qa(final_text)
             step_memory_dir = os.path.join(args.memory_dir, 'lexicon')
             with open(os.path.join(step_memory_dir, 'lexicon.csv'), 'w', encoding='utf-8') as f:
@@ -387,7 +361,7 @@ def run_lexicon_step(args, llm_client):
                 except Exception as e:
                     logger.warning(f"Could not update lexicon QA file: {e}")
             return True
-    required_files = {'phonology': 'phonology.txt', 'grammar': 'grammar.txt'}
+    required_files = {'orthography': 'orthography.txt', 'grammar': 'grammar.txt'}
     prompt_files = ['lex_step1_extract.txt', 'lex_step2_expand.txt']
     return _run_iterative_csv_step_with_qa(args, llm_client, 'lexicon', required_files, prompt_files, 'lexicon_min_entries', 'lexicon_n_per_iter', 'lexicon_extra_sleep', 'lexicon_max_iters')
 
@@ -400,16 +374,13 @@ def run_translation_step(args, llm_client):
         if os.path.exists(existing):
             with open(existing, 'r', encoding='utf-8') as f:
                 content = f.read()
-            files = load_required_files(args.memory_dir, {'phonology': 'phonology.txt', 'grammar': 'grammar.txt'})
+            files = load_required_files(args.memory_dir, {'orthography': 'orthography.txt', 'grammar': 'grammar.txt'})
             if files is None:
                 return False
-            context = f"PHONOLOGY:\n{files['phonology']}\n\nGRAMMAR:\n{files['grammar']}"
+            context = f"ORTHOGRAPHY:\n{files['orthography']}\n\nGRAMMAR:\n{files['grammar']}"
             save_with_qa(args, llm_client, content, 'translation', 'translation.json', {'continue_qa': True, 'input_sentence': args.translation_input_sentence}, context=context, context_type='language_spec')
             return True
-    
-    existing_translation_path = os.path.join(args.memory_dir, 'translation', 'translation.json')
-    
-    required = {'phonology': 'phonology.txt', 'grammar': 'grammar.txt'}
+    required = {'orthography': 'orthography.txt', 'grammar': 'grammar.txt'}
     optional = {'lexicon': 'lexicon.csv'}
     files = load_files_with_optional(args.memory_dir, required, optional)
     if files is None:
@@ -421,42 +392,14 @@ def run_translation_step(args, llm_client):
     if 'lexicon' in files:
         lex_section = f"""It has the following lexicon:\n\n=== START ===\n{files['lexicon']}\n=== END ==="""
     else:
-        lex_section = """Note: No specific lexicon has been provided. You will need to create appropriate vocabulary words that follow the phonological and morphological patterns of the language."""
-    kwargs = {'phonology': files['phonology'], 'grammar': files['grammar'], 'lexicon_section': lex_section, 'input_sentence': args.translation_input_sentence}
+        lex_section = """Note: No specific lexicon has been provided. You will need to create appropriate vocabulary words that follow the orthographic and morphological patterns of the language."""
+    kwargs = {'orthography': files['orthography'], 'grammar': files['grammar'], 'lexicon_section': lex_section, 'input_sentence': args.translation_input_sentence}
     prompt = PromptManager.format_prompt(raw_prompt, **kwargs)
     _, content = llm_client.generate_and_extract(prompt, do_sleep=False)
     content = clean_response(content, 'json')
-    context = f"PHONOLOGY:\n{files['phonology']}\n\nGRAMMAR:\n{files['grammar']}"
+    context = f"ORTHOGRAPHY:\n{files['orthography']}\n\nGRAMMAR:\n{files['grammar']}"
     if 'lexicon' in files:
         context += f"\n\nLEXICON:\n{files['lexicon']}"
     metadata = {'input_sentence': args.translation_input_sentence, 'lexicon_available': 'lexicon' in files}
-    
-    # If translation.json already exists, append the new translation to it
-    if os.path.exists(existing_translation_path):
-        try:
-            with open(existing_translation_path, 'r', encoding='utf-8') as f:
-                existing_content = f.read()
-                # Try to parse as JSON, but handle case where file has markdown code fences
-                existing_content = clean_response(existing_content, 'json')
-                existing_data = json.loads(existing_content)
-            
-            new_data = json.loads(content)
-            
-            # Append sentences from new translation to existing
-            if 'sentences' in existing_data and 'sentences' in new_data:
-                existing_data['sentences'].extend(new_data['sentences'])
-                logger.info(f"Appended {len(new_data['sentences'])} new sentence(s) to existing translation.json")
-            elif 'sentences' in new_data:
-                existing_data['sentences'] = new_data['sentences']
-            
-            # Update metadata to indicate appending
-            metadata['appended'] = True
-            metadata['total_sentences'] = len(existing_data.get('sentences', []))
-            
-            content = json.dumps(existing_data, indent=2, ensure_ascii=False)
-        except Exception as e:
-            logger.error(f"Failed to append to existing translation.json: {e}. Creating new file instead.")
-            # If appending fails, just use the new content (overwrite)
-    
     save_with_qa(args, llm_client, content, 'translation', 'translation.json', metadata, context=context, context_type='language_spec')
     return True

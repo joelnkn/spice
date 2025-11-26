@@ -1,10 +1,14 @@
-A hypothetical language has the following phonology and grammar:
+A hypothetical language has the following grammar:
 
-=== START ===
-{phonology}
-
+=== START GRAMMAR ===
 {grammar}
-=== END ===
+=== END GRAMMAR ===
+
+It also uses the following orthography and word-shape rules:
+
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
 
 It currently has the following partial lexicon:
 
@@ -13,25 +17,18 @@ It currently has the following partial lexicon:
 === END LEXICON ===
 
 Add {n} new entries to this lexicon. Create new words that:
-1. Follow the phonological constraints of the language
+1. Follow the orthography rules
 2. Are morphologically consistent with the grammar
 3. Cover basic vocabulary areas (body parts, family, nature, actions, etc.)
 4. Use appropriate derivational processes if specified in the grammar
 
-Output only the new entries in the same CSV format:
+NEVER invent lexicon similar to English or common languages. Do not repeat existing entries!
+
+Output ONLY the new entries in the same CSV format:
 ipa,pos,translation,grammar,derivation,notes
 
-Do not include the existing entries, only the new ones. Provide no additional explanation.
-
-You MUST follow these strict CSV formatting rules:
-
-1. Every output entry MUST have exactly six comma-separated fields:
-   ipa,pos,translation,grammar,derivation,notes
-
-2. The CSV header MUST NOT be repeated. Output ONLY new rows.
-
-3. Each entry MUST appear on a single line with exactly five commas.
-   - Leave unused fields empty but KEEP their commas, e.g.:
-    taka,noun,stone,gender: neuter,,
-
-Your output must contain ONLY the new CSV entries in valid six-field format.
+Follow these strict rules:
+- EXACTLY six comma-separated fields
+- NO header
+- NO explanation
+- NO commas inside fields

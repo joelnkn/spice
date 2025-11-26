@@ -1,40 +1,47 @@
-You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar and phonology.
+You are a skilled linguist working with a constructed language. You have been provided with a complete language specification including vocabulary, grammar, and orthography.
 
-A hypothetical language has the following phonology:
+The language uses the following orthography and word-shape rules:
 
-=== START ===
-{phonology}
-=== END ===
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
 
 It has the following grammar:
 
-=== START ===
+=== GRAMMAR START ===
 {grammar}
-=== END ===
+=== GRAMMAR END ===
+
 
 {lexicon_section}
 
 Your task is to translate the following new-line separated English sentences into this constructed language:
 
-English sentences:
+English sentences: 
 {input_sentence}
 
 Instructions:
-1. Use the vocabulary provided in the language specification (if available)
-2. Follow ONLY the grammatical rules and patterns explicitly described in the grammar section.
-3. Apply the phonological conventions
-4. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
-5. If a grammatical construction is needed but not specified, DO NOT invent new grammar rules. Instead:
+1. Use vocabulary from the lexicon whenever possible.
+2. Follow the grammar rules exactly.
+3. If a word is not in the vocabulary, invent a new word that is consistent with the specifications
+4. If a grammatical construction is needed but not specified, DO NOT invent new grammar rules. Instead:
    - Rephrase or approximate the meaning using only existing, documented constructions.
    - Prefer simpler periphrastic expressions over adding new morphology or syntax.
-6. Ensure the translation follows the word order and morphological patterns specified
+5. Ensure the translation follows the word order and morphological patterns specified
 
 If you create new words, ensure they:
-- Follow the phonological constraints of the language
-- Have appropriate semantic scope for the meaning needed
-- Use appropriate derivational processes if applicable
+- follow the orthography
+- have correct semantic scope
+- use derivational morphology when appropriate
 
-Provide a gloss line: break down the conlang sentence word by word, showing morphemes and their grammatical functions using standard linguistic abbreviations (e.g., FUT, SBJ, OBJ, ACC, etc.). The gloss should use English abbreviations and morpheme breakdowns, NOT the conlang words.
+If you create new grammar rules, ensure they:
+- extend existing patterns only
+- be minimal and well-justified
+- preserve typological coherence
+
+Provide a gloss line using standard linguistic abbreviations (SBJ, OBJ, ACC, PST, etc.).
+
+Do NOT include multi-step reasoning, alternatives, or long explanations anywhere.
 
 Return the result in JSON format only:
 
@@ -42,7 +49,7 @@ Return the result in JSON format only:
     "sentences": [
         {{
             "conlang_sentence": "<sentence in the constructed language>",
-            "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
+            "gloss": "<gloss>",
             "new_words": [{{"<new_word>": "<english_translation>"}}]
         }}
     ]
