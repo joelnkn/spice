@@ -22,9 +22,6 @@ Usage Examples:
 
     # Extract all test examples
     python3 -m ft.extract --dataset xnli --split test --output data/xnli_test.jsonl
-
-    # Resume from previous run
-    python3 -m ft.train --train-path data/xnli_en_train.jsonl --resume-from outputs/run1/final
 """
 from datasets import load_dataset
 import json
