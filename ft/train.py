@@ -23,6 +23,9 @@ Usage Examples:
     # Using a custom config file
     python3 -m ft.train my_custom_config.yaml
 
+    # Resume from previous run
+    python3 -m ft.train --train-path data/xnli_en_train.jsonl --resume-from outputs/run1/final
+
     # Or specify dataset in config file (configs/train.yaml):
     #   train_path: data/train_nli.jsonl
     #   or

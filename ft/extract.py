@@ -1,32 +1,30 @@
 """
-Extract k random examples from a dataset.
-XNLI is a cross-lingual natural language inference dataset.
-
-Usage Examples:
-    # Extract 16 random English examples and save to file
-    python3 -m ft.extract_xnli --k 16 --language en --split train --output data/xnli_train_16.jsonl
-    python -m ft.extract --dataset xnli --k 16 --language en --split train --output data/xnli_train_16.jsonl
-
-    # Extract 16 random examples from each language and save to file
-    python3 -m ft.extract_xnli --k 16 --split train --output data/xnli_train_16.jsonl
-    
-    # Extract 32 examples with a fixed seed (reproducible)
-    python3 -m ft.extract_xnli --k 32 --seed 42 --output data/xnli_train_32.jsonl
-    
-    # Just print examples without saving (for testing)
-    python3 -m ft.extract_xnli --k 5
-
-    # Extract all test examples
-    python3 -m ft.extract_xnli --split test --output data/xnli_test.jsonl
-
-    # Resume from previous run
-    python3 -m ft.train --train-path data/xnli_en_train.jsonl --resume-from outputs/run1/final
 Arguments:
+    --dataset: Dataset name (supported: "xnli", "paws-x")
     --k: Number of examples to extract. Omit to extract all examples.
     --language: Language code (default: "all" - extracts from all languages). Specify a language code (e.g., "en", "de", "fr") to extract from a single language.
     --split: Dataset split - "train", "validation", or "test" (default: "train")
     --output: Output file path in JSONL format (optional, prints to stdout if not provided)
     --seed: Random seed for reproducibility (optional, only used when k is specified)
+
+Usage Examples:
+    # Extract 16 random English examples and save to file
+    python3 -m ft.extract --dataset xnli --k 16 --language en --split train --output data/xnli_train_16.jsonl
+
+    # Extract 16 random examples from each language and save to file
+    python3 -m ft.extract --dataset xnli --k 16 --split train --output data/xnli_train_16.jsonl
+    
+    # Extract 32 examples with a fixed seed (reproducible)
+    python3 -m ft.extract --dataset xnli --k 32 --seed 42 --output data/xnli_train_32.jsonl
+    
+    # Just print examples without saving (for testing)
+    python3 -m ft.extract --dataset xnli --k 5
+
+    # Extract all test examples
+    python3 -m ft.extract --dataset xnli --split test --output data/xnli_test.jsonl
+
+    # Resume from previous run
+    python3 -m ft.train --train-path data/xnli_en_train.jsonl --resume-from outputs/run1/final
 """
 from datasets import load_dataset
 import json
