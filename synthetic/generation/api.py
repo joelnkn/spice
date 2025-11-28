@@ -6,6 +6,7 @@ load_dotenv()
 from synthetic.config import OUTPUT_DIR
 from synthetic.conglanger import run_conglanger, create_llm_client
 from synthetic.typology.extraction import extract_features
+from synthetic.generation.custom_constraints import BASE, combine_constraints, URDU_LIKE_FEATURES
 import uuid
 from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
@@ -44,14 +45,32 @@ def generate_from_snli(
     output_dir=OUTPUT_DIR,
     run_name="consistent",
     max_stabilize_steps=32,
+    wals_features=None,
+    language_features=None,
 ):
+    """Generate a language from SNLI dataset.
+    
+    Args:
+        language_id: Optional language ID to reuse
+        output_dir: Base output directory
+        run_name: Name for this language generation run
+        max_stabilize_steps: Maximum number of stabilization steps
+        wals_features: Optional dict of WALS features to enforce (e.g., 
+                      {"basic_word_order": "SOV", "morphological_fusion": "agglutinating"})
+        language_features: Optional multi-line string describing language features to emulate
+                          (e.g., characteristics similar to a particular language without
+                          naming it or using words from that language)
+    
+    Returns:
+        str: The language_id for the generated language
+    """
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
         ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
     )
     return generate_consistent_language(
-        loader, language_id, output_dir, run_name, max_stabilize_steps
+        loader, language_id, output_dir, run_name, max_stabilize_steps, wals_features, language_features
     )
 
 
@@ -61,6 +80,8 @@ def generate_consistent_language(
     output_dir=OUTPUT_DIR,
     run_name="consistent",
     max_stabilize_steps=32,
+    wals_features=None,
+    language_features=None,
 ):
     """Generate a consistent language by training on a corpus of sentences.
 
@@ -69,6 +90,12 @@ def generate_consistent_language(
         language_id: Optional language ID to reuse (default: generate new UUID)
         output_dir: Base output directory (default: OUTPUT_DIR from config)
         run_name: Name for this language generation run (default: "consistent")
+        max_stabilize_steps: Maximum number of stabilization steps
+        wals_features: Optional dict of WALS features to enforce (e.g., 
+                      {"basic_word_order": "SOV", "morphological_fusion": "agglutinating"})
+        language_features: Optional multi-line string describing language features to emulate
+                          (e.g., characteristics similar to a particular language without
+                          naming it or using words from that language)
 
     Returns:
         str: The language_id for the generated language
@@ -78,6 +105,13 @@ def generate_consistent_language(
         language_id = str(uuid.uuid4())[:8]
 
     print(f"Generating consistent language with ID: {language_id}")
+    
+    # Combine BASE constraints with WALS features and language features if provided
+    constraints = combine_constraints(BASE, wals_features, language_features)
+    if wals_features:
+        print(f"Enforcing WALS features: {list(wals_features.keys())}")
+    if language_features:
+        print("Enforcing custom language feature descriptions")
 
     # Generate base language
     run_conglanger(
@@ -88,9 +122,19 @@ def generate_consistent_language(
         reasoning_effort="low",
         iteration=True,
         lang_id=language_id,
+        custom_constraints=constraints,
     )
     
     lang_dir = os.path.join(output_dir, run_name, "languages", language_id)
+    memory_dir = os.path.join(lang_dir, "memory")
+    
+    # Verify that required files were created
+    grammar_file = os.path.join(memory_dir, "grammar", "grammar.txt")
+    if not os.path.exists(grammar_file):
+        raise RuntimeError(
+            f"Grammar file was not created at {grammar_file}. "
+            f"The grammar step may have failed. Please check the logs and try again."
+        )
     
     # Track previous totals so we can compute deltas per step
     prev_words = 0
@@ -107,6 +151,7 @@ def generate_consistent_language(
             lang_id=language_id,
             run_name=run_name,
             iteration=True,
+            custom_constraints=constraints,
         )
         
         metadata = load_metadata(lang_dir)
@@ -131,7 +176,7 @@ def generate_consistent_language(
     return language_id
 
 
-def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent"):
+def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent", wals_features=None, language_features=None):
     """Translate a sentence using an already stabilized language.
 
     Args:
@@ -139,11 +184,19 @@ def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent
         language_id: ID of the stabilized language
         output_dir: Base output directory
         run_name: Name of the run containing the language
+        wals_features: Optional dict of WALS features (usually not needed for translation)
+        language_features: Optional multi-line string describing language features (usually not needed for translation)
 
     Returns:
         Result from run_conglanger
     """
     print(f"Translating with language {language_id}: {sentence[:50]}...")
+    
+    # Use constraints if provided, otherwise just BASE
+    if wals_features or language_features:
+        constraints = combine_constraints(BASE, wals_features, language_features)
+    else:
+        constraints = BASE
 
     result = run_conglanger(
         steps=("translation",),
@@ -152,14 +205,52 @@ def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent
         run_name=run_name,
         lang_id=language_id,
         iteration=False,  # Not iteration mode - just append new words
+        custom_constraints=constraints,
     )
 
     return result
 
 
 if __name__ == "__main__":
+    # Toggle: Set to True to use Urdu typological features, False to generate without constraints
+    USE_URDU_FEATURES = False
+    USE_URDU_LIKE_DESCRIPTIONS = False
+    
+    # Urdu typological features based on WALS
+    urdu_features = {
+        "morphological_fusion": "fusional",
+        "affixation_balance": "suffixing",
+        "gender_inventory": "moderate",
+        "case_inventory": "extensive",
+        "numeral_classifiers": "non-classifier",
+        "basic_word_order": "SOV",
+        "adposition_type": "postpositional",
+        "genitive_noun_order": "genitive-before-noun",
+        "adjective_noun_order": "adjective-before-noun",
+        "relative_clause_order": "head-final",
+        "alignment_typology": "nominative–accusative",
+        "causative_morphology": "present",
+        "passive_morphology": "present",
+        "applicative_morphology": "null",
+        "question_marking_strategy": "interrogative-particle",
+    }
+    
     # Example 1: Generate a consistent language from a corpus
-    language_id = generate_from_snli(max_stabilize_steps=4)
+    wals_features = urdu_features if USE_URDU_FEATURES else None
+    language_features = URDU_LIKE_FEATURES if USE_URDU_LIKE_DESCRIPTIONS else None
+    
+    if USE_URDU_FEATURES:
+        print("Generating language with Urdu typological features...")
+    if USE_URDU_LIKE_DESCRIPTIONS:
+        print("Generating language with Urdu-like feature descriptions...")
+    if not USE_URDU_FEATURES and not USE_URDU_LIKE_DESCRIPTIONS:
+        print("Generating language without feature constraints...")
+    
+    language_id = generate_from_snli(
+        max_stabilize_steps=4, 
+        wals_features=wals_features,
+        language_features=language_features
+    )
 
     # Example 2: Use the stabilized language to translate new sentences
     translate("How are you today?", run_name="consistent", language_id=language_id)
