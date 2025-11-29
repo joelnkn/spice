@@ -1,12 +1,19 @@
-Merge and consolidate the following grammar summaries into a single, coherent description:
+The following is the orthography and word-shape rules for a hypothetical language: 
+
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
+
+Merge and consolidate the following grammar summaries for this language into a single, coherent description:
 
 {summaries}
 
 Create a unified grammar description that:
 1. Combines all information from both summaries
 2. Resolves any contradictions by choosing the most detailed version
-3. Maintains consistency throughout
-4. Organizes information clearly with appropriate headings
-5. Removes redundancy while preserving all unique information
+3. Ensures all example words and paradigms are consistent with the language's writing system.
+4. Maintains consistency throughout
+5. Organizes information clearly with appropriate headings
+6. Removes redundancy while preserving all unique information
 
-Provide no additional explanation.
+Provide no additional explanation. DO NOT include the orthography description provided above. 

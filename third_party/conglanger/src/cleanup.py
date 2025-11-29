@@ -27,8 +27,11 @@ def append_new_words_to_lexicon(new_words: List[Dict[str, str]], args) -> str:
     with open(lexicon_csv_path, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         for word_dict in new_words:
-            for word, translation in word_dict.items():
-                writer.writerow([word, translation, '', '', '', ''])
+            # Expecting {'word': ..., 'pos': ..., 'translation': ...}
+            word = word_dict.get('word')
+            pos = word_dict.get('pos', '')
+            translation = word_dict.get('translation', '')
+            writer.writerow([word, pos, translation, '', '', ''])
     
     logger.info(f"Appended {len(new_words)} new words to {lexicon_csv_path}")
     
@@ -47,17 +50,18 @@ def add_new_rules_to_grammar(new_rules: List[str], args, llm_client: Any) -> Opt
     Returns:
         Path to the updated grammar.txt file, or None if failed
     """
-    # Load existing grammar using load_required_files
-    files = load_required_files(args.memory_dir, {'grammar': 'grammar.txt'})
+    # Load existing grammar and orthography using load_required_files
+    files = load_required_files(args.memory_dir, {'grammar': 'grammar.txt', 'orthography': 'orthography.txt'})
     if files is None:
-        logger.error("Could not load grammar file")
+        logger.error("Could not load grammar or orthography file")
         return None
-    
+
     existing_grammar = files['grammar']
-    
+    orthography = files['orthography']
+
     # Format new rules for the prompt
     formatted_rules = "\n".join([f"- {rule}" for rule in new_rules])
-    
+
     # Load and format the prompt using PromptManager static method
     grammar_prompt_dir = os.path.join(args.prompt_dir, 'grammar')
     try:
@@ -65,9 +69,14 @@ def add_new_rules_to_grammar(new_rules: List[str], args, llm_client: Any) -> Opt
     except Exception as e:
         logger.error(f"Could not load apply_new_rules prompt: {e}")
         return None
-    
+
     # Format the prompt with context
-    formatted_prompt = PromptManager.format_prompt(prompt, grammar=existing_grammar, new_rules=formatted_rules)
+    formatted_prompt = PromptManager.format_prompt(
+        prompt,
+        grammar=existing_grammar,
+        new_rules=formatted_rules,
+        orthography=orthography
+    )
     
     # Log the prompt being sent
     logger.debug(f"Prompt for grammar rule integration:\n{formatted_prompt}")

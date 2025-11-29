@@ -1,13 +1,15 @@
-Expand the following grammar description with more detail:
+The following is the orthography and word-shape rules for a hypothetical language: 
 
-{grammar}
-
-The language uses the following orthography and word-shape rules:
 === ORTHOGRAPHY START ===
 {orthography}
 === ORTHOGRAPHY END ===
+
+Expand the following grammar description for this language with more detail:
+
+{grammar}
 
 It should also obey the following constraint(s):
 {custom}
 
 Add more specific details about morphological processes, syntactic constructions, and example paradigms. Include concrete examples using plausible words that follow the orthography rules. Make the grammar more complete and detailed while maintaining consistency with the original description.
+Ensures all example words and paradigms are consistent with the language's writing system, but DO NOT include the orthography description provided above. 

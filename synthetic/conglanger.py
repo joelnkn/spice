@@ -44,7 +44,7 @@ def run_conglanger(
     thinking_budget=1000,
     reasoning_effort="medium",
     sleep_between_calls=0,
-    qa_enabled=False,
+    qa_enabled=True,
     self_refine_steps=3,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,

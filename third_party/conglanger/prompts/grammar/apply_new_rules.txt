@@ -1,4 +1,10 @@
-You are a linguistic expert tasked with integrating new grammar rules into an existing grammar document for a constructed language.
+You are a linguistic expert tasked with integrating new grammar rules into an existing grammar document for a hypothetical language.
+
+Consider the language's orthography and word-shape rules to ensure all examples and terminology in the grammar are consistent.
+
+# Orthography
+
+{orthography}
 
 # Existing Grammar
 
@@ -17,7 +23,7 @@ Your task is to:
 2. Identify the appropriate sections in the existing grammar where each rule should be integrated
 3. If a section doesn't exist for a rule, create an appropriate section
 4. Merge the new rules coherently with existing content, avoiding redundancy
-5. Maintain consistency in formatting and terminology
+5. Maintain consistency in formatting and terminology with the orthography description in mind
 6. Ensure the grammar remains well-organized and easy to reference
 
 # Guidelines
@@ -27,6 +33,7 @@ Your task is to:
 - Preserve all valuable information from the original grammar
 - Use clear, concise language
 - Include examples from the new rules if they help clarify usage
+- DO NOT include the orthography description provided above
 
 # Output
 

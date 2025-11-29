@@ -89,7 +89,7 @@ def run_qa_step(args, llm_client, step_name, content, content_type="grammar", co
             print("ERROR WE SHOULD ALWAYS HAVE CONTEXT!")
             
         stabilizing = getattr(args, 'iteration', False)
-        filename = "post_stabilization_qa_translation_amend.txt" if not stabilizing else "pre_stabilization_qa_translation_amend.txt"
+        filename = "post_stabilization_translation_amend.txt" if not stabilizing else "pre_stabilization_translation_amend.txt"
         amend = PromptManager.load_prompt(os.path.join(prompt_dir, filename))
     else:
         if has_context:
@@ -138,7 +138,7 @@ def run_qa_step(args, llm_client, step_name, content, content_type="grammar", co
                 all_iters.append(iter_record)
                 amend_prompt = PromptManager.format_prompt(amend, content=current, judgement=qa_raw)
                 _, amended = llm_client.generate_and_extract(amend_prompt, do_sleep=False)
-                current = amended
+                current = content = clean_response(amended, 'json')
             else:
                 all_iters.append(iter_record)
         except json.JSONDecodeError:
@@ -197,7 +197,7 @@ def run_grammar_step(args, llm_client):
     step3 = _generate_with_prompts(llm_client, {'step3': prompts['gram_step3_expand']}, [step3_kwargs])
     _, expanded = step3[0]
     summaries = f"===SUMMARY 1:===\n{grammar}\n\n===SUMMARY 2:===\n{expanded}\n===END SUMMARIES==="
-    step4_kwargs = {'summaries': summaries}
+    step4_kwargs = {'summaries': summaries, 'orthography': orthography}
     step4 = _generate_with_prompts(llm_client, {'step4': prompts['merge_sections']}, [step4_kwargs], [False])
     _, merged = step4[0]
     metadata = {**kwargs_list[0], **step2_kwargs, **step3_kwargs}
@@ -378,6 +378,8 @@ def run_translation_step(args, llm_client):
             if files is None:
                 return False
             context = f"ORTHOGRAPHY:\n{files['orthography']}\n\nGRAMMAR:\n{files['grammar']}"
+            if 'lexicon' in files:
+                context += f"\n\nLEXICON:\n{files['lexicon']}"
             save_with_qa(args, llm_client, content, 'translation', 'translation.json', {'continue_qa': True, 'input_sentence': args.translation_input_sentence}, context=context, context_type='language_spec')
             return True
     required = {'orthography': 'orthography.txt', 'grammar': 'grammar.txt'}

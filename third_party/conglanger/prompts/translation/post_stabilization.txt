@@ -49,8 +49,14 @@ Return the result in JSON format only:
     "sentences": [
         {{
             "conlang_sentence": "<sentence in the constructed language>",
-            "gloss": "<gloss>",
-            "new_words": [{{"<new_word>": "<english_translation>"}}]
+            "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
+            "new_words": [{{"word": "<new_word>", "pos": "<part_of_speech>", "translation": "<english_translation>"}}],
         }}
     ]
 }}
+
+STRICT FORMAT REQUIREMENTS FOR "new_words":
+- Each object in the "new_words" list must have exactly three fields: "word", "pos", and "translation".
+- The value for "word" must be ONLY the word itself.
+- The value for "pos" must be ONLY the part of speech (e.g., "noun", "verb", "adj").
+- The value for "translation" must be ONLY the English translation of the word.

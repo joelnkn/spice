@@ -82,7 +82,6 @@ def generate_consistent_language(
     # Generate base language
     run_conglanger(
         steps=("grammar", "lexicon"),
-        qa_enabled=False,
         output_dir=output_dir,
         run_name=run_name,
         reasoning_effort="low",
@@ -92,11 +91,9 @@ def generate_consistent_language(
     
     lang_dir = os.path.join(output_dir, run_name, "languages", language_id)
     
-    # Track previous totals so we can compute deltas per step
-    prev_words = 0
-    prev_rules = 0
+    # Track totals at each iteration
+    iteration_stats = []
 
-    # Make consistent using corpus
     print("Stabilizing language with corpus...")
     for i, sample in enumerate(corpus, 1):
         print(f"Processing sample {i}/{len(corpus)}: {sample[:50]}...")
@@ -108,26 +105,24 @@ def generate_consistent_language(
             run_name=run_name,
             iteration=True,
         )
-        
+
         metadata = load_metadata(lang_dir)
         total_rules = metadata.get("num_new_grammar_rules", 0)
         total_words = metadata.get("num_new_words", 0)
 
-        delta_rules = total_rules - prev_rules
-        delta_words = total_words - prev_words
+        iteration_stats.append({
+            "iteration": i,
+            "num_new_words": total_words,
+            "num_new_grammar_rules": total_rules
+        })
 
-        print(
-            f"New words this step: {delta_words} (total: {total_words}) | "
-            f"New rules this step: {delta_rules} (total: {total_rules})"
-        )
-
-        prev_rules = total_rules
-        prev_words = total_words
-        
         if i >= max_stabilize_steps:
             break
 
-    print(f"Language stabilization complete! ID: {language_id}")
+    print(f"\nLanguage stabilization complete! ID: {language_id}")
+    print("\nSummary of new words and grammar rules at each iteration:")
+    for stat in iteration_stats:
+        print(f"Iteration {stat['iteration']}: New words: {stat['num_new_words']}, New grammar rules: {stat['num_new_grammar_rules']}")
     return language_id
 
 
@@ -159,7 +154,7 @@ def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent
 
 if __name__ == "__main__":
     # Example 1: Generate a consistent language from a corpus
-    language_id = generate_from_snli(max_stabilize_steps=4)
+    language_id = generate_from_snli(max_stabilize_steps=2)
 
     # Example 2: Use the stabilized language to translate new sentences
     translate("How are you today?", run_name="consistent", language_id=language_id)
