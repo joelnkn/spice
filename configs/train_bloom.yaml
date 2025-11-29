@@ -1,5 +1,5 @@
-model_name: google/mt5-base        # or bigscience/bloom-560m, etc.
-task_type: seq2seq                 # "seq2seq" or "causal"
+model_name: bigscience/bloomz-560m        # or bigscience/bloom-560m, etc.
+task_type: causal                 # "seq2seq" or "causal"
 use_qlora: false                   # Set to false on macOS (no CUDA). QLoRA requires CUDA or bitsandbytes>=0.43.1
 lora:
   r: 16

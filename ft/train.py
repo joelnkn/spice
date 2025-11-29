@@ -88,6 +88,14 @@ def set_seed(seed: int):
 
 def map_lora_targets(model, names):
     """Map generic names -> actual module names for common archs."""
+    if "bloom" in getattr(model.config, "model_type", "").lower():
+        return [
+            "query_key_value",  # fused QKV
+            "dense",  # attn output proj
+            "dense_h_to_4h",  # MLP up
+            "dense_4h_to_h",  # MLP down
+        ]
+
     # Good defaults for T5/mT5 and BLOOM/Llama-like blocks.
     text = " ".join(n.lower() for n in names)
     if any(k in model.config.model_type for k in ["t5"]):
