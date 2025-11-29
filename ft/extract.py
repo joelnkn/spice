@@ -1,6 +1,6 @@
 """
 Arguments:
-    --dataset: Dataset name (supported: "xnli", "paws-x")
+    --dataset: Dataset name (supported: "xnli", "paws-x", "squad")
     --k: Number of examples to extract. Omit to extract all examples.
     --language: Language code (default: "all" - extracts from all languages). Specify a language code (e.g., "en", "de", "fr") to extract from a single language.
     --split: Dataset split - "train", "validation", or "test" (default: "train")
@@ -30,7 +30,8 @@ import random
 
 DATASET_LANGUAGES = {
     "xnli": ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"],
-    "paws-x": ["de", "en", "es", "fr", "ja", "ko", "zh"]
+    "paws-x": ["de", "en", "es", "fr", "ja", "ko", "zh"],
+    "squad": ["plain_text"],
 }
 
 DATASET_LABELS = {
@@ -70,10 +71,23 @@ def format_paws_x(row):
         "target": label,
         "task_id": "paws-x"
     }
+    
+def format_squad(row):
+    question = row["question"]
+    context = row["context"]
+    
+    input_text = f"question: {question} context: {context}"
+    label = row["answers"]["text"][0]
+    return {
+        "input": input_text,
+        "target": label,
+        "task_id": "paws-x"
+    }
 
 DATASET_FORMAT = {
     "xnli": format_xnli,
-    "paws-x": format_paws_x
+    "paws-x": format_paws_x,
+    "squad": format_squad,
 }
 
 def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
