@@ -108,9 +108,8 @@ def run_qa_step(args, llm_client, step_name, content, content_type="grammar", co
             qa_prompt = PromptManager.format_prompt(critic, content=current, content_type=content_type, context=context, context_type=context_type)
         else:
             qa_prompt = PromptManager.format_prompt(critic, content=current, content_type=content_type)
-        logger.info(f"QA prompt ({step_name} iter {i+1}): {qa_prompt}")
-        _, qa_raw = llm_client.generate_and_extract(qa_prompt, do_sleep=False)
-        qa_raw = clean_response(qa_raw, 'json')
+        logger.info(f"QA prompt ({step_name} iter {i+1}): {qa_prompt}")   
+        qa_raw, _ = generate_and_parse_json_with_retries(llm_client, qa_prompt, max_retries=3, do_sleep=False)
         try:
             qa_data = json.loads(qa_raw)
             final_qa = qa_data
@@ -137,8 +136,7 @@ def run_qa_step(args, llm_client, step_name, content, content_type="grammar", co
                 iter_record['amended'] = True
                 all_iters.append(iter_record)
                 amend_prompt = PromptManager.format_prompt(amend, content=current, judgement=qa_raw)
-                _, amended = llm_client.generate_and_extract(amend_prompt, do_sleep=False)
-                current = content = clean_response(amended, 'json')
+                current, _ = generate_and_parse_json_with_retries(llm_client, amend_prompt, max_retries=3, do_sleep=False)
             else:
                 all_iters.append(iter_record)
         except json.JSONDecodeError:
@@ -165,6 +163,23 @@ def _generate_with_prompts(llm_client, prompts, kwargs_list, do_sleep_flags=None
         responses.append((full_response, extracted))
     return responses
 
+def generate_and_parse_json_with_retries(llm_client, prompt, max_retries=3, do_sleep=False):
+    """Generate LLM output, clean, and parse as JSON, retrying up to max_retries if parsing fails."""
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        _, extracted = llm_client.generate_and_extract(prompt, do_sleep=do_sleep)
+        cleaned = clean_response(extracted, 'json')
+        try:
+            parsed = json.loads(cleaned)
+            return cleaned, parsed
+        except json.JSONDecodeError as e:
+            last_error = e
+            if logger:
+                logger.warning(f"Attempt {attempt}: Failed to parse LLM response as JSON. Retrying... Error: {e}\nResponse: {cleaned}")
+    if logger:
+        logger.error(f"All {max_retries} attempts failed to produce valid JSON. Last error: {last_error}")
+    return cleaned, None
+
 
 # ===================== GRAMMAR ===================== #
 
@@ -184,13 +199,11 @@ def run_grammar_step(args, llm_client):
         return False
     orthography = files['orthography']
     prompt_dir = os.path.join(args.prompt_dir, 'grammar')
-    prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary_target.txt', 'gram_step2_summary_random.txt' 'gram_step3_expand.txt', 'merge_sections.txt'])
+    prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary_target.txt', 'gram_step2_summary_random.txt', 'gram_step3_expand.txt', 'merge_sections.txt'])
     custom = "(none)" if args.custom_constraints is None else args.custom_constraints
-    values = np.random.randint(args.gram_n_answers, size=args.gram_n_questions) + 1
-    kwargs_list = [{'n_questions': args.gram_n_questions, 'n_answers': args.gram_n_answers, 'scale_size': args.gram_scale_size}]
-    step1 = _generate_with_prompts(llm_client, {'step1': prompts['gram_step1_checklist']}, kwargs_list)
     # Determine if we are using a target language or random
     if hasattr(args, 'target') and args.target:
+        logger.info(f"Running grammar generation step 2 for target language: {args.target}")
         # Use target feature vector from typology/features.json
         features_path = os.path.join(args.prompt_dir, 'typology', 'features.json')
         with open(features_path, 'r', encoding='utf-8') as f:
@@ -198,13 +211,18 @@ def run_grammar_step(args, llm_client):
         feature_vector = features.get(args.target)
         if not feature_vector:
             raise ValueError(f"Target language '{args.target}' not found in features.json")
-        step2_filename = 'gram_step2_summary_target.txt'
+        step2_filename = 'gram_step2_summary_target'
         step2_kwargs = {'feature_vector': feature_vector, 'custom': custom, 'orthography': orthography}
     else:
+        logger.info(f"Running grammar generation step 2 for random language")
+        values = np.random.randint(args.gram_n_answers, size=args.gram_n_questions) + 1
+        kwargs_list = [{'n_questions': args.gram_n_questions, 'n_answers': args.gram_n_answers, 'scale_size': args.gram_scale_size}]
+        step1 = _generate_with_prompts(llm_client, {'step1': prompts['gram_step1_checklist']}, kwargs_list)
         _, checklist = step1[0]
-        step2_filename = 'gram_step2_summary_random.txt'
+        step2_filename = 'gram_step2_summary_random'
         step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
     # Load the correct prompt for step2
+    logger.info(f"Generating grammar summary (step 2: {step2_filename})")
     step2 = _generate_with_prompts(llm_client, {'step2': prompts[step2_filename]}, [step2_kwargs])
     _, grammar = step2[0]
     step3_kwargs = {'grammar': grammar, 'custom': custom, 'orthography': orthography}
@@ -411,8 +429,10 @@ def run_translation_step(args, llm_client):
         lex_section = """Note: No specific lexicon has been provided. You will need to create appropriate vocabulary words that follow the orthographic and morphological patterns of the language."""
     kwargs = {'orthography': files['orthography'], 'grammar': files['grammar'], 'lexicon_section': lex_section, 'input_sentence': args.translation_input_sentence}
     prompt = PromptManager.format_prompt(raw_prompt, **kwargs)
-    _, content = llm_client.generate_and_extract(prompt, do_sleep=False)
-    content = clean_response(content, 'json')
+    content, parsed_json = generate_and_parse_json_with_retries(llm_client, prompt, max_retries=3, do_sleep=False)
+    if parsed_json is None:
+        logger.error("Translation step failed: LLM did not return valid JSON after 3 attempts.")
+        return False
     context = f"ORTHOGRAPHY:\n{files['orthography']}\n\nGRAMMAR:\n{files['grammar']}"
     if 'lexicon' in files:
         context += f"\n\nLEXICON:\n{files['lexicon']}"

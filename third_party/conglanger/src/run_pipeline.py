@@ -13,6 +13,7 @@ import uuid
 import json
 from argparse import ArgumentParser
 from dotenv import load_dotenv
+import importlib.util
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,7 +21,6 @@ load_dotenv()
 from pipeline_steps import run_grammar_step, run_lexicon_step, run_translation_step
 from utils import copy_folders, create_llm_client
 from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar
-from prompts.typology.orthography import BASELINE, RULES_PER_LANGUAGE
 
 logger = logging.getLogger(__name__)
 
@@ -181,6 +181,12 @@ def main():
     ortho_path = os.path.join(ortho_dir, "orthography.txt")
     # Extract language name from language_id (prefix before _ or whole string)
     lang_name = language_id.split('_')[0].lower()
+    orthography_path = os.path.join(args.prompt_dir, 'typology', 'orthography.py')
+    spec = importlib.util.spec_from_file_location("orthography", orthography_path)
+    ortho_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ortho_mod)
+    BASELINE = getattr(ortho_mod, "BASELINE", "")
+    RULES_PER_LANGUAGE = getattr(ortho_mod, "RULES_PER_LANGUAGE", {})
     rules = RULES_PER_LANGUAGE.get(lang_name, None)
     ortho_text = BASELINE.strip()
     if rules:

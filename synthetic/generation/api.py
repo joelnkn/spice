@@ -3,26 +3,15 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from synthetic.config import OUTPUT_DIR
 from synthetic.conglanger import run_conglanger, create_llm_client
 from synthetic.typology.extraction import extract_features
 import uuid
 from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
+from synthetic.utils import load_metadata
 
 import os
-import json
-
-def load_metadata(lang_dir):
-    """Load metadata.json from a language directory, or return {} if missing."""
-    metadata_path = os.path.join(lang_dir, "metadata.json")
-    if os.path.exists(metadata_path):
-        try:
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Warning: could not load metadata.json: {e}")
-    return {}
+import re
 
 class NLISentenceOnlyDataset(Dataset):
     def __init__(self, hf_dataset):
@@ -39,68 +28,66 @@ class NLISentenceOnlyDataset(Dataset):
         return ex["premise"]
 
 
-def generate_from_snli(
-    language_id=None,
-    output_dir=OUTPUT_DIR,
-    run_name="consistent",
-    max_stabilize_steps=32,
-):
+def get_snli_batches():
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
         ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
     )
-    return generate_consistent_language(
-        loader, language_id, output_dir, run_name, max_stabilize_steps
-    )
+    return loader
+    
+def translate_dataset(corpus, language_id, run_name, num_batches=None):
+    """
+    Translate an entire corpus using an already stabilized language, where each item in corpus is a batch (e.g., a string of joined sentences).
+    Args:
+        corpus: Iterable of batches (each batch is a string of sentences)
+        language_id: ID of the stabilized language
+        run_name: Name of the run containing the language
+        num_batches: If given, only process this many batches (default: all)
+    Returns:
+        List of results from run_conglanger for each batch
+    """
+    results = []
+    for batch_idx, batch in enumerate(corpus, 1):
+        if num_batches is not None and batch_idx > num_batches:
+            break
+        print(f"Translating (batch {batch_idx}): {batch[:20]}... with language {language_id}")
+        result = run_conglanger(
+            steps=("translation",),
+            translation_sentence=batch,
+            run_name=run_name,
+            lang_id=language_id,
+            iteration=False,
+        )
+        results.append(result)
+    return results
 
-
+# TODO: make sure its randomly sampling 
 def generate_consistent_language(
     corpus,
-    language_id=None,
-    output_dir=OUTPUT_DIR,
-    run_name="consistent",
+    language_id,
+    run_name,
     max_stabilize_steps=32,
 ):
-    """Generate a consistent language by training on a corpus of sentences.
-
-    Args:
-        corpus: List of sentences to use for language stabilization
-        language_id: Optional language ID to reuse (default: generate new UUID)
-        output_dir: Base output directory (default: OUTPUT_DIR from config)
-        run_name: Name for this language generation run (default: "consistent")
-
-    Returns:
-        str: The language_id for the generated language
-    """
-    # Generate language ID if not provided
-    if language_id is None:
-        language_id = str(uuid.uuid4())[:8]
-
-    print(f"Generating consistent language with ID: {language_id}")
-
     # Generate base language
     run_conglanger(
         steps=("grammar", "lexicon"),
-        output_dir=output_dir,
         run_name=run_name,
-        reasoning_effort="low",
         iteration=True,
         lang_id=language_id,
     )
     
-    lang_dir = os.path.join(output_dir, run_name, "languages", language_id)
+    lang_dir = os.path.join(run_name, "languages", language_id)
     
     # Track totals at each iteration
     iteration_stats = []
 
     print("Stabilizing language with corpus...")
-    for i, sample in enumerate(corpus, 1):
-        print(f"Processing sample {i}/{len(corpus)}: {sample[:50]}...")
+    for i, batch in enumerate(corpus, 1):
+        print(f"Processing sample {i}/{len(corpus)}: {batch[:20]}...")
         run_conglanger(
             steps=("translation",),
-            translation_sentence=sample,
-            output_dir=output_dir,
+            translation_sentence=batch,
             lang_id=language_id,
             run_name=run_name,
             iteration=True,
@@ -123,44 +110,81 @@ def generate_consistent_language(
     print("\nSummary of new words and grammar rules at each iteration:")
     for stat in iteration_stats:
         print(f"Iteration {stat['iteration']}: New words: {stat['num_new_words']}, New grammar rules: {stat['num_new_grammar_rules']}")
-    return language_id
+    return run_name, language_id
 
 
-def translate(sentence, language_id, output_dir=OUTPUT_DIR, run_name="consistent"):
-    """Translate a sentence using an already stabilized language.
-
-    Args:
-        sentence: The sentence to translate
-        language_id: ID of the stabilized language
-        output_dir: Base output directory
-        run_name: Name of the run containing the language
-
-    Returns:
-        Result from run_conglanger
+def generate_consistent_language_for_target(target_lang, corpus, max_stabilize_steps=32):
     """
-    print(f"Translating with language {language_id}: {sentence[:50]}...")
-
-    result = run_conglanger(
-        steps=("translation",),
-        translation_sentence=sentence,
-        output_dir=output_dir,
+    Generate a consistent language for a given target language name.
+    - Sets run_name to target/target_lang
+    - Sets language_id to target_<iter> where iter = 1 + max number in that directory
+    - Calls generate_consistent_language with all params
+    Args:
+        target_lang (str): The name of the target language (e.g., 'french')
+        corpus (iterable): Sentences to use for stabilization
+        max_stabilize_steps (int): Max stabilization steps
+    Returns:
+        str: The language_id for the generated language
+    """
+    base_dir = os.path.join("target", target_lang)
+    lang_dir = os.path.join(base_dir, "languages")
+    os.makedirs(lang_dir, exist_ok=True)
+    # Find all subdirs matching target_#
+    max_iter = 0
+    for name in os.listdir(lang_dir):
+        m = re.match(r"target_(\d+)$", name)
+        if m:
+            num = int(m.group(1))
+            if num > max_iter:
+                max_iter = num
+    next_iter = max_iter + 1
+    language_id = f"target_{next_iter}"
+    run_name = os.path.join("target", target_lang)
+    return generate_consistent_language(
+        corpus=corpus,
+        language_id=language_id,
         run_name=run_name,
-        lang_id=language_id,
-        iteration=False,  # Not iteration mode - just append new words
+        max_stabilize_steps=max_stabilize_steps,
     )
 
-    return result
-
+def generate_random_consistent_language(corpus, max_stabilize_steps=32):
+    """
+    Generate a consistent language with a random language ID and run_name 'random'.
+    Args:
+        corpus (iterable): Sentences to use for stabilization
+        max_stabilize_steps (int): Max stabilization steps
+    Returns:
+        str: The language_id for the generated language
+    """
+    return generate_consistent_language(
+        corpus=corpus,
+        language_id=str(uuid.uuid4())[:8],
+        run_name="random",
+        max_stabilize_steps=max_stabilize_steps,
+    )
 
 if __name__ == "__main__":
-    # Example 1: Generate a consistent language from a corpus
-    language_id = generate_from_snli(max_stabilize_steps=2)
+    corpus = get_snli_batches()
+    
+    # create stabilized language
+    # run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=2) # change for the maximum number of times to translate a batch
+    
+    # OR create stabilized language for target
+    run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
+    
+    # translate dataset using stabilized language
+    translate_dataset(corpus, language_id, run_name, num_batches=2) # don't include num_batches to translate all
 
-    # Example 2: Use the stabilized language to translate new sentences
-    translate("How are you today?", run_name="consistent", language_id=language_id)
-    translate("The sun is shining.", run_name="consistent", language_id=language_id)
-
-    # Example 3: Analyze the language to extract WALS-style features
+    # Analyze the language to extract WALS-style features
     print(f"Analyzing language {language_id}...")
     llm_client = create_llm_client(model="gemini-2.5-pro")
-    extract_features(llm_client, "consistent", language_id)
+    extract_features(llm_client, run_name, language_id)
+    
+    # TODO: when using target language, make sure the feature vector here is same as that in prompts/typology/features.json.py maybe add a helper in utils to call here
+    # TODO: qa also checks that new words and grammar rules are actually listed in translation.json --> make sure violations actually penalize overall score (at least < 8)
+    # TODO: see how much longer it takes with qa enabled & if it is that much better
+    # TODO: consider changing thinking budget to low ? maybe this decreases time? Also using the pro model instead?
+    # TODO: increase max stabilization steps & look at the number of new words & grammar rules at each step
+    # TODO: consider adding more features to feature vector 
+    # TODO: make sure features in prompts/typology/features.json.py are correct
+    # TODO: make sure orthographies in prompts/typology/orthography.py are correct
