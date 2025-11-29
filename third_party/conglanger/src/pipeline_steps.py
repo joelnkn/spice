@@ -184,14 +184,28 @@ def run_grammar_step(args, llm_client):
         return False
     orthography = files['orthography']
     prompt_dir = os.path.join(args.prompt_dir, 'grammar')
-    prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary.txt', 'gram_step3_expand.txt', 'merge_sections.txt'])
+    prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary_target.txt', 'gram_step2_summary_random.txt' 'gram_step3_expand.txt', 'merge_sections.txt'])
     custom = "(none)" if args.custom_constraints is None else args.custom_constraints
     values = np.random.randint(args.gram_n_answers, size=args.gram_n_questions) + 1
     kwargs_list = [{'n_questions': args.gram_n_questions, 'n_answers': args.gram_n_answers, 'scale_size': args.gram_scale_size}]
     step1 = _generate_with_prompts(llm_client, {'step1': prompts['gram_step1_checklist']}, kwargs_list)
-    _, checklist = step1[0]
-    step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
-    step2 = _generate_with_prompts(llm_client, {'step2': prompts['gram_step2_summary']}, [step2_kwargs])
+    # Determine if we are using a target language or random
+    if hasattr(args, 'target') and args.target:
+        # Use target feature vector from typology/features.json
+        features_path = os.path.join(args.prompt_dir, 'typology', 'features.json')
+        with open(features_path, 'r', encoding='utf-8') as f:
+            features = json.load(f)
+        feature_vector = features.get(args.target)
+        if not feature_vector:
+            raise ValueError(f"Target language '{args.target}' not found in features.json")
+        step2_filename = 'gram_step2_summary_target.txt'
+        step2_kwargs = {'feature_vector': feature_vector, 'custom': custom, 'orthography': orthography}
+    else:
+        _, checklist = step1[0]
+        step2_filename = 'gram_step2_summary_random.txt'
+        step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
+    # Load the correct prompt for step2
+    step2 = _generate_with_prompts(llm_client, {'step2': prompts[step2_filename]}, [step2_kwargs])
     _, grammar = step2[0]
     step3_kwargs = {'grammar': grammar, 'custom': custom, 'orthography': orthography}
     step3 = _generate_with_prompts(llm_client, {'step3': prompts['gram_step3_expand']}, [step3_kwargs])

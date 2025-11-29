@@ -7,7 +7,6 @@ It supports grammar, lexicon generation, and translation.
 """
 
 import os
-import sys
 import time
 import logging
 import uuid
@@ -15,17 +14,13 @@ import json
 from argparse import ArgumentParser
 from dotenv import load_dotenv
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
-from synthetic.typology.orthography import ORTHOGRAPHY_BASELINE
-
 # Load environment variables from .env file
 load_dotenv()
 
 from pipeline_steps import run_grammar_step, run_lexicon_step, run_translation_step
 from utils import copy_folders, create_llm_client
 from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar
+from prompts.typology.orthography import BASELINE, RULES_PER_LANGUAGE
 
 logger = logging.getLogger(__name__)
 
@@ -179,18 +174,23 @@ def main():
     # Set up directories
     lang_dir, memory_dir, logs_dir = setup_directories(args.output_dir, language_id)
     args.memory_dir = memory_dir
-    
-    # Ensure orthography/orthography.txt exists inside memory_dir
+
     ortho_dir = os.path.join(memory_dir, "orthography")
     os.makedirs(ortho_dir, exist_ok=True)
 
     ortho_path = os.path.join(ortho_dir, "orthography.txt")
-    if not os.path.exists(ortho_path):
-        with open(ortho_path, "w", encoding="utf-8") as f:
-            f.write(ORTHOGRAPHY_BASELINE.strip() + "\n")
-        logger.info(f"Wrote orthography baseline to {ortho_path}")
+    # Extract language name from language_id (prefix before _ or whole string)
+    lang_name = language_id.split('_')[0].lower()
+    rules = RULES_PER_LANGUAGE.get(lang_name, None)
+    ortho_text = BASELINE.strip()
+    if rules:
+        args.target = lang_name
+        ortho_text += "\n" + rules.strip()
+        logger.info(f"Wrote orthography rules to {ortho_path} (language: {lang_name})")
     else:
-        logger.info(f"Found existing orthography at {ortho_path}")
+        logger.info(f"Language '{lang_name}' not found in RULES_PER_LANGUAGE. Using baseline only.")
+    with open(ortho_path, "w", encoding="utf-8") as f:
+        f.write(ortho_text + "\n")
 
     log_file = os.path.join(logs_dir, 'pipeline.log')
     setup_logging(log_file)
