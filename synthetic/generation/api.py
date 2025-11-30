@@ -14,6 +14,9 @@ from synthetic.utils import load_metadata
 import os
 import re
 
+# Global configuration
+REASONING_EFFORT = "low"  # Options: "low", "medium", "high" (only applies to OpenAI o-series models)
+
 class NLISentenceOnlyDataset(Dataset):
     def __init__(self, hf_dataset):
         """
@@ -59,6 +62,7 @@ def translate_dataset(corpus, language_id, run_name, num_batches=None):
             run_name=run_name,
             lang_id=language_id,
             iteration=False,
+            reasoning_effort=REASONING_EFFORT,
         )
         results.append(result)
     return results
@@ -76,9 +80,10 @@ def generate_consistent_language(
         run_name=run_name,
         iteration=True,
         lang_id=language_id,
+        reasoning_effort=REASONING_EFFORT,
     )
     
-    lang_dir = os.path.join(run_name, "languages", language_id)
+    lang_dir = os.path.join(OUTPUT_DIR, run_name, "languages", language_id)
     
     # Track totals at each iteration
     iteration_stats = []
@@ -92,6 +97,7 @@ def generate_consistent_language(
             lang_id=language_id,
             run_name=run_name,
             iteration=True,
+            reasoning_effort=REASONING_EFFORT,
         )
 
         metadata = load_metadata(lang_dir)
@@ -108,9 +114,17 @@ def generate_consistent_language(
             break
 
     print(f"\nLanguage stabilization complete! ID: {language_id}")
-    print("\nSummary of new words and grammar rules at each iteration:")
-    for stat in iteration_stats:
-        print(f"Iteration {stat['iteration']}: New words: {stat['num_new_words']}, New grammar rules: {stat['num_new_grammar_rules']}")
+    
+    # Write iteration stats to log file in language folder
+    os.makedirs(lang_dir, exist_ok=True)
+    stats_log_path = os.path.join(lang_dir, "iteration_stats.log")
+    with open(stats_log_path, "w", encoding="utf-8") as f:
+        f.write("Summary of new words and grammar rules at each iteration:\n")
+        f.write("=" * 60 + "\n")
+        for stat in iteration_stats:
+            f.write(f"Iteration {stat['iteration']}: New words: {stat['num_new_words']}, New grammar rules: {stat['num_new_grammar_rules']}\n")
+    print(f"Iteration stats logged to: {stats_log_path}")
+    
     return run_name, language_id
 
 
@@ -166,13 +180,13 @@ if __name__ == "__main__":
     corpus = get_snli_batches()
     
     # create stabilized language
-    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=2) # change for the maximum number of times to translate a batch
+    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=4) # change for the maximum number of times to translate a batch
     
     # OR create stabilized language for target
     # run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
     
     # translate dataset using stabilized language
-    translate_dataset(corpus, language_id, run_name, num_batches=2) # don't include num_batches to translate all
+    translate_dataset(corpus, language_id, run_name, num_batches=3) # don't include num_batches to translate all
 
     # Analyze the language to extract WALS-style features
     print(f"Analyzing language {language_id}...")

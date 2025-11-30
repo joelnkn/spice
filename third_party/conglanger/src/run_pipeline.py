@@ -20,7 +20,7 @@ load_dotenv()
 
 from pipeline_steps import run_grammar_step, run_lexicon_step, run_translation_step
 from utils import copy_folders, create_llm_client
-from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar, update_metadata_value
+from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar, update_metadata_value, update_metadata_qa
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +61,21 @@ def setup_logging(output_file: str):
 
 def save_metadata(lang_dir, language_id, args):
     """Save metadata about the language generation."""
+    metadata_file = os.path.join(lang_dir, 'metadata.json')
+    
+    # Preserve existing metadata (especially running_qa fields)
+    existing_metadata = {}
+    if os.path.exists(metadata_file):
+        try:
+            with open(metadata_file, 'r', encoding='utf-8') as f:
+                existing_metadata = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load existing metadata.json: {e}")
+    
+    # Update with new metadata, preserving existing fields
     metadata = {
         'language_id': language_id,
-        'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'created_at': existing_metadata.get('created_at', time.strftime('%Y-%m-%d %H:%M:%S')),
         'model': args.model,
         'steps': args.steps.split(','),
         'custom_constraints': args.custom_constraints,
@@ -73,9 +85,21 @@ def save_metadata(lang_dir, language_id, args):
         }
     }
     
-    metadata_file = os.path.join(lang_dir, 'metadata.json')
+    # Preserve running_qa fields if they exist
+    if 'running_qa' in existing_metadata:
+        metadata['running_qa'] = existing_metadata['running_qa']
+    if 'running_qa_count' in existing_metadata:
+        metadata['running_qa_count'] = existing_metadata['running_qa_count']
+    if 'average_qa' in existing_metadata:
+        metadata['average_qa'] = existing_metadata['average_qa']
+    # Also preserve num_new_words and num_new_grammar_rules
+    if 'num_new_words' in existing_metadata:
+        metadata['num_new_words'] = existing_metadata['num_new_words']
+    if 'num_new_grammar_rules' in existing_metadata:
+        metadata['num_new_grammar_rules'] = existing_metadata['num_new_grammar_rules']
+    
     with open(metadata_file, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2)
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
     
     return metadata_file
 
@@ -312,6 +336,9 @@ def main():
             os.makedirs(new_iter_dir, exist_ok=False)
             copy_folders(lang_dir, new_iter_dir, ['grammar', 'lexicon', 'translation'])
             logger.info(f"Saved iteration snapshot: {new_iter_dir}")
+            
+            # Update QA stats for this translation iteration
+            update_metadata_qa(lang_dir)
     
     elif 'translation' in steps:
         # Non-iteration mode: stabilized language, just append new words
@@ -330,7 +357,7 @@ def main():
             logger.info("No new grammar rules found (as expected for stabilized language)")
             
         append_sentences_to_valid_translations(args.memory_dir)
-        # TODO: call update_metadata_qa in cleanup
+        update_metadata_qa(lang_dir)
     
 if __name__ == '__main__':
     main()

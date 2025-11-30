@@ -119,10 +119,39 @@ def update_metadata_value(lang_dir, key: str, value):
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     logger.info(f"Updated metadata.json with {key}={value}")
     
-# TODO: change so that it doesn't need to input the qa value & instead looks in the translation/translation_qa.json for the overall score
-# to get the qa score for that iteration
-def update_metadata_qa(lang_dir, qa: float = 0):
-    """Helper to update a value (str or int) in metadata.json in lang_dir."""
+def update_metadata_qa(lang_dir):
+    """Update metadata with QA score from translation_qa.json.
+    
+    Reads the overall_score from memory/translation/translation_qa.json and
+    updates the running_qa sum and count in metadata.json.
+    
+    Args:
+        lang_dir: Path to the language directory (contains memory/)
+    """
+    memory_dir = os.path.join(lang_dir, "memory")
+    translation_qa_path = os.path.join(memory_dir, 'translation', 'translation_qa.json')
+    
+    if not os.path.exists(translation_qa_path):
+        logger.warning(f"Translation QA file not found: {translation_qa_path}")
+        return
+    
+    # Read QA score from translation_qa.json
+    try:
+        with open(translation_qa_path, 'r', encoding='utf-8') as f:
+            qa_data = json.load(f)
+    except Exception as e:
+        logger.warning(f"Could not load translation_qa.json: {e}")
+        return
+    
+    # Extract overall_score from final_qa
+    final_qa = qa_data.get('final_qa', {})
+    overall_score = final_qa.get('overall_score', 0)
+    
+    if overall_score == 0:
+        logger.warning(f"No overall_score found in translation_qa.json")
+        return
+    
+    # Update metadata
     metadata_path = os.path.join(lang_dir, "metadata.json")
     metadata = {}
     if os.path.exists(metadata_path):
@@ -131,10 +160,15 @@ def update_metadata_qa(lang_dir, qa: float = 0):
                 metadata = json.load(f)
         except Exception as e:
             logger.warning(f"Could not load metadata.json: {e}")
-    metadata["running_qa"] = metadata.get("running_qa", 0) + qa
+    
+    # Update running QA sum and count
+    metadata["running_qa"] = metadata.get("running_qa", 0) + overall_score
+    metadata["running_qa_count"] = metadata.get("running_qa_count", 0) + 1
+    metadata["average_qa"] = metadata["running_qa"] / metadata["running_qa_count"]
+    
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
-    logger.info(f"Updated metadata.json with running_qa={metadata['running_qa']}")
+    logger.info(f"Updated metadata.json with running_qa={metadata['running_qa']}, count={metadata['running_qa_count']}, average={metadata['average_qa']:.2f}")
 
 def extract_new_vocabulary(lang_dir) -> List[Dict[str, str]]:
     """Extract new words from all sentences in translation.json in lang_dir/memory/translation/translation.json.
