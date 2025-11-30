@@ -4,6 +4,7 @@ import logging
 import os
 from typing import Any
 
+from synthetic.typology.features import parse_analysis_text_to_feature_dict, save_feature_files
 from synthetic.conglanger import PromptManager, load_required_files
 from synthetic.config import OUTPUT_DIR, PROMPT_DIR
 
@@ -82,9 +83,6 @@ def extract_features(llm_client: Any, run_name: str, language_id: str,
         f.write(analysis)
     
     logger.info(f"Feature extraction completed and saved to {features_file}")
-    
-    # Parse and save structured feature JSON
-    from synthetic.typology.features import parse_analysis_text_to_feature_dict, save_feature_files
     
     logger.info("Parsing features and generating JSON...")
     feature_dict = parse_analysis_text_to_feature_dict(analysis)

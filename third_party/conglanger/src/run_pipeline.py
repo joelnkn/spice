@@ -20,7 +20,7 @@ load_dotenv()
 
 from pipeline_steps import run_grammar_step, run_lexicon_step, run_translation_step
 from utils import copy_folders, create_llm_client
-from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar
+from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar, update_metadata_value
 
 logger = logging.getLogger(__name__)
 
@@ -177,10 +177,10 @@ def main():
 
     ortho_dir = os.path.join(memory_dir, "orthography")
     os.makedirs(ortho_dir, exist_ok=True)
+    
+    lang_name = os.path.basename(args.output_dir) # run_name = lang_name if target
 
     ortho_path = os.path.join(ortho_dir, "orthography.txt")
-    # Extract language name from language_id (prefix before _ or whole string)
-    lang_name = language_id.split('_')[0].lower()
     orthography_path = os.path.join(args.prompt_dir, 'typology', 'orthography.py')
     spec = importlib.util.spec_from_file_location("orthography", orthography_path)
     ortho_mod = importlib.util.module_from_spec(spec)
@@ -189,12 +189,13 @@ def main():
     RULES_PER_LANGUAGE = getattr(ortho_mod, "RULES_PER_LANGUAGE", {})
     rules = RULES_PER_LANGUAGE.get(lang_name, None)
     ortho_text = BASELINE.strip()
+    
     if rules:
         args.target = lang_name
-        ortho_text += "\n" + rules.strip()
+        ortho_text += "\n• " + rules.strip()
         logger.info(f"Wrote orthography rules to {ortho_path} (language: {lang_name})")
     else:
-        logger.info(f"Language '{lang_name}' not found in RULES_PER_LANGUAGE. Using baseline only.")
+        logger.info(f"Language '{lang_name}' not found in RULES_PER_LANGUAGE. Creating Random Language.")
     with open(ortho_path, "w", encoding="utf-8") as f:
         f.write(ortho_text + "\n")
 
@@ -329,6 +330,7 @@ def main():
             logger.info("No new grammar rules found (as expected for stabilized language)")
             
         append_sentences_to_valid_translations(args.memory_dir)
+        # TODO: call update_metadata_qa in cleanup
     
 if __name__ == '__main__':
     main()

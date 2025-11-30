@@ -20,7 +20,7 @@ import json
 import os
 import re
 import logging
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +125,12 @@ def _map_key_to_canonical(k: str) -> str:
     }
     return aliases.get(k2, k2)
 
+def _check_which_option_in_value(value: str, feature: str) -> str | None:
+    """Check if normalized value matches one of the options."""
+    for opt in FEATURE_SCHEMA[feature]:
+        if opt in value:
+            return opt
+    return None
 
 def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
     """Normalize common synonyms/case differences into canonical categories.
@@ -143,12 +149,12 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
         return 'null'
 
     low = raw.lower()
+    
+    matched_option = _check_which_option_in_value(low, feature)
+    if matched_option is not None:
+        return matched_option
 
     if feature == 'morphological_fusion':
-        for opt in FEATURE_SCHEMA[feature]:
-            if opt in low:
-                return opt
-        # some heuristics
         if 'isolat' in low or 'analytic' in low:
             return 'isolating'
         if 'agglut' in low:
@@ -167,7 +173,7 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
         return 'null'
 
     if feature == 'gender_inventory':
-        if 'none' in low or 'no gender' in low:
+        if 'no gender' in low:
             return 'none'
         m = re.search(r'(\d+)', low)
         if m:
@@ -194,10 +200,6 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
 
     if feature == 'basic_word_order':
         for opt in FEATURE_SCHEMA[feature]:
-            if opt.lower() in low:
-                return opt
-        # try to capture common words
-        for opt in ['SOV', 'SVO', 'VSO', 'VOS', 'OVS', 'OSV']:
             if opt.lower() in low:
                 return opt
         return 'null'
@@ -270,11 +272,7 @@ def _normalize_value_for_feature(feature: str, raw_value: Any) -> str:
         if 'particle' in low or 'interrogative' in low:
             return 'interrogative-particle'
         return 'null'
-
-    # Default fallback: return raw lowercased trimmed value if it matches one of the choices
-    for opt in FEATURE_SCHEMA.get(feature, []):
-        if opt in low:
-            return opt
+    
     return 'null'
 
 

@@ -202,7 +202,8 @@ def run_grammar_step(args, llm_client):
     prompts = PromptManager.load_prompts(prompt_dir, ['gram_step1_checklist.txt', 'gram_step2_summary_target.txt', 'gram_step2_summary_random.txt', 'gram_step3_expand.txt', 'merge_sections.txt'])
     custom = "(none)" if args.custom_constraints is None else args.custom_constraints
     # Determine if we are using a target language or random
-    if hasattr(args, 'target') and args.target:
+    metadata = {}
+    if hasattr(args, 'target'):
         logger.info(f"Running grammar generation step 2 for target language: {args.target}")
         # Use target feature vector from typology/features.json
         features_path = os.path.join(args.prompt_dir, 'typology', 'features.json')
@@ -219,6 +220,7 @@ def run_grammar_step(args, llm_client):
         kwargs_list = [{'n_questions': args.gram_n_questions, 'n_answers': args.gram_n_answers, 'scale_size': args.gram_scale_size}]
         step1 = _generate_with_prompts(llm_client, {'step1': prompts['gram_step1_checklist']}, kwargs_list)
         _, checklist = step1[0]
+        metadata.update(kwargs_list[0])
         step2_filename = 'gram_step2_summary_random'
         step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
     # Load the correct prompt for step2
@@ -232,7 +234,8 @@ def run_grammar_step(args, llm_client):
     step4_kwargs = {'summaries': summaries, 'orthography': orthography}
     step4 = _generate_with_prompts(llm_client, {'step4': prompts['merge_sections']}, [step4_kwargs], [False])
     _, merged = step4[0]
-    metadata = {**kwargs_list[0], **step2_kwargs, **step3_kwargs}
+    metadata.update(**step2_kwargs)
+    metadata.update(**step3_kwargs)
     save_with_qa(args, llm_client, merged, 'grammar', 'grammar.txt', metadata, context=orthography, context_type='orthography')
     return True
 

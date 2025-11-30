@@ -104,8 +104,8 @@ def add_new_rules_to_grammar(new_rules: List[str], args, llm_client: Any) -> Opt
     logger.info(f"Updated grammar with {len(new_rules)} new rules at {grammar_path}")
     return grammar_path
 
-def update_metadata_count(lang_dir, key: str, value: int):
-    """Helper to update a count in metadata.json in lang_dir."""
+def update_metadata_value(lang_dir, key: str, value):
+    """Helper to update a value (str or int) in metadata.json in lang_dir."""
     metadata_path = os.path.join(lang_dir, "metadata.json")
     metadata = {}
     if os.path.exists(metadata_path):
@@ -118,6 +118,23 @@ def update_metadata_count(lang_dir, key: str, value: int):
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     logger.info(f"Updated metadata.json with {key}={value}")
+    
+# TODO: change so that it doesn't need to input the qa value & instead looks in the translation/translation_qa.json for the overall score
+# to get the qa score for that iteration
+def update_metadata_qa(lang_dir, qa: float = 0):
+    """Helper to update a value (str or int) in metadata.json in lang_dir."""
+    metadata_path = os.path.join(lang_dir, "metadata.json")
+    metadata = {}
+    if os.path.exists(metadata_path):
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                metadata = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load metadata.json: {e}")
+    metadata["running_qa"] = metadata.get("running_qa", 0) + qa
+    with open(metadata_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+    logger.info(f"Updated metadata.json with running_qa={metadata['running_qa']}")
 
 def extract_new_vocabulary(lang_dir) -> List[Dict[str, str]]:
     """Extract new words from all sentences in translation.json in lang_dir/memory/translation/translation.json.
@@ -142,7 +159,7 @@ def extract_new_vocabulary(lang_dir) -> List[Dict[str, str]]:
         for word_dict in sentence.get('new_words', []):
             new_words.append(word_dict)
     logger.info(f"Extracted {len(new_words)} new words from all translations")
-    update_metadata_count(lang_dir, "num_new_words", len(new_words))
+    update_metadata_value(lang_dir, "num_new_words", len(new_words))
     return new_words
 
 
@@ -170,7 +187,7 @@ def extract_new_grammar_rules(lang_dir) -> List[str]:
             if 'rule' in rule_obj:
                 new_rules.append(rule_obj['rule'])
     logger.info(f"Extracted {len(new_rules)} new grammar rules from all translations")
-    update_metadata_count(lang_dir, "num_new_grammar_rules", len(new_rules))
+    update_metadata_value(lang_dir, "num_new_grammar_rules", len(new_rules))
     return new_rules
 
 def append_sentences_to_valid_translations(memory_dir) -> str:

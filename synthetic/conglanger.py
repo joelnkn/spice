@@ -4,6 +4,8 @@ import os
 import sys
 import importlib
 from synthetic.generation.custom_constraints import BASE 
+from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
+from synthetic.utils.logger import setup_logger
 
 # Add conglanger to path
 _conglanger_src = os.path.join(os.path.dirname(__file__), '../third_party/conglanger/src')
@@ -42,11 +44,11 @@ def run_conglanger(
     max_tokens=8192,
     temperature=0.7,
     thinking_budget=1000,
-    reasoning_effort="medium",
+    reasoning_effort="low",
     sleep_between_calls=0,
     qa_enabled=True,
-    self_refine_steps=3,
-    qa_threshold=8.0,
+    self_refine_steps=2,
+    qa_threshold=7.0,
     qa_thresholds_per_step=None,
     iteration=False,
     prompt_dir=None,
@@ -61,10 +63,7 @@ def run_conglanger(
     - Running in a separate process
     - Using the CLI's full argument parsing
     - Isolating execution environment
-    """
-    from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
-    from synthetic.utils.logger import setup_logger
-    
+    """ 
     # Use defaults from config if not provided
     if prompt_dir is None:
         prompt_dir = PROMPT_DIR

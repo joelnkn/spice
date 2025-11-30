@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+from synthetic.config import OUTPUT_DIR
 from synthetic.conglanger import run_conglanger, create_llm_client
 from synthetic.typology.extraction import extract_features
 import uuid
@@ -126,8 +127,7 @@ def generate_consistent_language_for_target(target_lang, corpus, max_stabilize_s
     Returns:
         str: The language_id for the generated language
     """
-    base_dir = os.path.join("target", target_lang)
-    lang_dir = os.path.join(base_dir, "languages")
+    lang_dir = os.path.join(OUTPUT_DIR, target_lang, "languages")
     os.makedirs(lang_dir, exist_ok=True)
     # Find all subdirs matching target_#
     max_iter = 0
@@ -139,11 +139,10 @@ def generate_consistent_language_for_target(target_lang, corpus, max_stabilize_s
                 max_iter = num
     next_iter = max_iter + 1
     language_id = f"target_{next_iter}"
-    run_name = os.path.join("target", target_lang)
     return generate_consistent_language(
         corpus=corpus,
         language_id=language_id,
-        run_name=run_name,
+        run_name=target_lang,
         max_stabilize_steps=max_stabilize_steps,
     )
 
@@ -167,10 +166,10 @@ if __name__ == "__main__":
     corpus = get_snli_batches()
     
     # create stabilized language
-    # run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=2) # change for the maximum number of times to translate a batch
+    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=2) # change for the maximum number of times to translate a batch
     
     # OR create stabilized language for target
-    run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
+    # run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
     
     # translate dataset using stabilized language
     translate_dataset(corpus, language_id, run_name, num_batches=2) # don't include num_batches to translate all
@@ -180,11 +179,12 @@ if __name__ == "__main__":
     llm_client = create_llm_client(model="gemini-2.5-pro")
     extract_features(llm_client, run_name, language_id)
     
+    # TODO: update gram_step2_summary_random to tell it that it must assign values for all features in our feature vector and include them in the grammar summary
+    # TODO: play around with thinking budget, reasoning effort, model type, self refine steps to see what gives best results in terms of time vs quality
     # TODO: when using target language, make sure the feature vector here is same as that in prompts/typology/features.json.py maybe add a helper in utils to call here
-    # TODO: qa also checks that new words and grammar rules are actually listed in translation.json --> make sure violations actually penalize overall score (at least < 8)
-    # TODO: see how much longer it takes with qa enabled & if it is that much better
-    # TODO: consider changing thinking budget to low ? maybe this decreases time? Also using the pro model instead?
-    # TODO: increase max stabilization steps & look at the number of new words & grammar rules at each step
-    # TODO: consider adding more features to feature vector 
     # TODO: make sure features in prompts/typology/features.json.py are correct
     # TODO: make sure orthographies in prompts/typology/orthography.py are correct
+    
+    # LESS RELEVANT
+    # TODO: qa also checks that new words and grammar rules are actually listed in translation.json --> make sure violations actually penalize overall score (at least < 8)
+    # TODO: consider adding more features to feature vector 
