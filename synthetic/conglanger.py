@@ -87,7 +87,7 @@ def run_conglanger(
 
     # Build base command
     cmd = [
-        "python",
+        sys.executable,
         CONGLANGER_PATH,
         "--model",
         model,
