@@ -72,7 +72,7 @@ from transformers import (
     AutoTokenizer,
     get_cosine_schedule_with_warmup,
 )
-from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training, PeftModel
 from ft.utils import format_input_for_task
 
 # --- helpers -----------------------------------------------------------------
