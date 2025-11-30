@@ -112,6 +112,23 @@ def map_lora_targets(model, names):
             "DenseReluDense.wi_0",
             "DenseReluDense.wi_1",
         ]
+    
+    # RoBERTa/XLM-RoBERTa/BERT models
+    if any(k in model_type for k in ["roberta", "bert", "xlm"]):
+        targets = []
+        if any(x in text for x in ["q", "query"]):
+            targets.append("query")
+        if any(x in text for x in ["k", "key"]):
+            targets.append("key")
+        if any(x in text for x in ["v", "value"]):
+            targets.append("value")
+        if any(x in text for x in ["o", "output", "dense"]):
+            targets.extend(["dense", "output.dense"])
+        # RoBERTa MLP layers
+        if any(x in text for x in ["up", "intermediate"]):
+            targets.append("intermediate.dense")
+        return targets if targets else ["query", "key", "value", "dense"]
+    
     # decoder-only (bloom/llama/mixtral/qwen)
     return ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
