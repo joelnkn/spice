@@ -114,7 +114,7 @@ def map_lora_targets(model, names):
         ]
     
     # RoBERTa/XLM-RoBERTa/BERT models
-    if any(k in model_type for k in ["roberta", "bert", "xlm"]):
+    if any(k in model.config.model_type for k in ["roberta", "bert", "xlm"]):
         targets = []
         if any(x in text for x in ["q", "query"]):
             targets.append("query")
@@ -349,9 +349,9 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
 
     # steps - calculate based on epochs if provided, otherwise use max_steps
     if num_epochs is not None:
-        steps_per_epoch = len(train_loader) // cfg.train.grad_accum
+        steps_per_epoch = len(train_loader)
         num_update_steps = steps_per_epoch * num_epochs
-        print(f"Training for {num_epochs} epochs ({num_update_steps} steps)")
+        print(f"Training for {num_epochs} epochs {num_update_steps} steps")
     else:
         num_update_steps = cfg.train.max_steps
     warmup = int(num_update_steps * cfg.optim.warmup_ratio)
