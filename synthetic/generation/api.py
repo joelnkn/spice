@@ -15,9 +15,6 @@ from synthetic.utils import load_metadata
 import os
 import re
 
-# Global configuration
-REASONING_EFFORT = "low"  # Options: "low", "medium", "high" (only applies to OpenAI o-series models)
-
 class NLISentenceOnlyDataset(Dataset):
     def __init__(self, hf_dataset):
         """
@@ -37,7 +34,7 @@ def get_snli_batches():
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
-        ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
+        ds, batch_size=16, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
     )
     return loader
     
@@ -63,7 +60,6 @@ def translate_dataset(corpus, language_id, run_name, num_batches=None):
             run_name=run_name,
             lang_id=language_id,
             iteration=False,
-            reasoning_effort=REASONING_EFFORT,
         )
         results.append(result)
     return results
@@ -82,7 +78,6 @@ def generate_consistent_language(
         run_name=run_name,
         iteration=True,
         lang_id=language_id,
-        reasoning_effort=REASONING_EFFORT,
     )
     
     lang_dir = os.path.join(OUTPUT_DIR, run_name, "languages", language_id)
@@ -105,7 +100,6 @@ def generate_consistent_language(
             lang_id=language_id,
             run_name=run_name,
             iteration=True,
-            reasoning_effort=REASONING_EFFORT,
         )
 
         metadata = load_metadata(lang_dir)
@@ -233,14 +227,14 @@ if __name__ == "__main__":
     # run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=32) # change for the maximum number of times to translate a batch
     
     # OR create stabilized language for target
-    run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
+    run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=200)
     
     # translate dataset using stabilized language
     translate_dataset(corpus, language_id, run_name, num_batches=2) # don't include num_batches to translate all
 
     # Analyze the language to extract WALS-style features
     print(f"Analyzing language {language_id}...")
-    llm_client = create_llm_client(model="gemini-2.5-pro")
+    llm_client = create_llm_client(model="gemini-2.5-lite")
     extract_features(llm_client, run_name, language_id)
     
     # TODO: update gram_step2_summary_random to tell it that it must assign values for all features in our feature vector and include them in the grammar summary
