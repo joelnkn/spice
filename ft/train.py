@@ -254,7 +254,7 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epochs=None, resume_from=None):
+def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epochs=None, output_dir=None, resume_from=None):
     """
     Main training function.
 
@@ -264,6 +264,7 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
                     Can be a single file (str) or list of files.
         eval_path: Optional path to evaluation data file. Overrides config if provided.
         num_epochs: Optional number of epochs to train. Overrides config max_steps if provided.
+        output_dir: Optional output directory path. Overrides config if provided.
         resume_from: Optional path to existing checkpoint to resume training from.
                      If provided, loads existing LoRA adapters instead of creating new ones.
     """
@@ -278,6 +279,11 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
     if eval_path is not None:
         cfg.io.eval_path = eval_path
         print(f"Using eval data from command line: {eval_path}")
+    
+    # Override output_dir if provided as argument
+    if output_dir is not None:
+        cfg.io.out_dir = output_dir
+        print(f"Using output directory from command line: {output_dir}")
 
     set_seed(cfg.seed)
 
@@ -447,6 +453,13 @@ if __name__ == "__main__":
         "Example: --num-epochs 3",
     )
     parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for saving checkpoints. Overrides config file if provided. "
+        "Example: --output-dir outputs/my_run",
+    )
+    parser.add_argument(
         "--resume-from",
         type=str,
         default=None,
@@ -467,5 +480,6 @@ if __name__ == "__main__":
         train_path=train_path,
         eval_path=args.eval_path,
         num_epochs=args.num_epochs,
+        output_dir=args.output_dir,
         resume_from=args.resume_from,
     )
