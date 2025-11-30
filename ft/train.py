@@ -254,7 +254,7 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
+def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epochs=None, resume_from=None):
     """
     Main training function.
 
@@ -262,6 +262,8 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
         cfg_path: Path to config YAML file
         train_path: Optional path to training data file(s). Overrides config if provided.
                     Can be a single file (str) or list of files.
+        eval_path: Optional path to evaluation data file. Overrides config if provided.
+        num_epochs: Optional number of epochs to train. Overrides config max_steps if provided.
         resume_from: Optional path to existing checkpoint to resume training from.
                      If provided, loads existing LoRA adapters instead of creating new ones.
     """
@@ -271,6 +273,11 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
     if train_path is not None:
         cfg.io.train_path = train_path
         print(f"Using training data from command line: {train_path}")
+    
+    # Override eval_path if provided as argument
+    if eval_path is not None:
+        cfg.io.eval_path = eval_path
+        print(f"Using eval data from command line: {eval_path}")
 
     set_seed(cfg.seed)
 
@@ -334,8 +341,13 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
             model.parameters(), lr=cfg.optim.lr, weight_decay=cfg.optim.weight_decay
         )
 
-    # steps
-    num_update_steps = cfg.train.max_steps
+    # steps - calculate based on epochs if provided, otherwise use max_steps
+    if num_epochs is not None:
+        steps_per_epoch = len(train_loader) // cfg.train.grad_accum
+        num_update_steps = steps_per_epoch * num_epochs
+        print(f"Training for {num_epochs} epochs ({num_update_steps} steps)")
+    else:
+        num_update_steps = cfg.train.max_steps
     warmup = int(num_update_steps * cfg.optim.warmup_ratio)
     sched = get_cosine_schedule_with_warmup(opt, warmup, num_update_steps)
 
@@ -421,6 +433,20 @@ if __name__ == "__main__":
         "or --train-path data/train.jsonl,data/train_nli.jsonl",
     )
     parser.add_argument(
+        "--eval-path",
+        type=str,
+        default=None,
+        help="Path to evaluation data file. Overrides config file if provided. "
+        "Example: --eval-path data/xnli_eval.jsonl",
+    )
+    parser.add_argument(
+        "--num-epochs",
+        type=int,
+        default=None,
+        help="Number of epochs to train. Overrides max_steps from config if provided. "
+        "Example: --num-epochs 3",
+    )
+    parser.add_argument(
         "--resume-from",
         type=str,
         default=None,
@@ -436,4 +462,10 @@ if __name__ == "__main__":
     if train_path and "," in train_path:
         train_path = [p.strip() for p in train_path.split(",")]
 
-    main(cfg_path=args.config, train_path=train_path, resume_from=args.resume_from)
+    main(
+        cfg_path=args.config,
+        train_path=train_path,
+        eval_path=args.eval_path,
+        num_epochs=args.num_epochs,
+        resume_from=args.resume_from,
+    )
