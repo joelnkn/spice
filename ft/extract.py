@@ -87,10 +87,10 @@ def format_squad(row):
 
 def format_tydiqa(row):
     question = row["question_text"]
-    answer = row["annotations"]["answer_text"][0]
+    context = row["document_plaintext"]
     
-    input_text = f"question: {question}"
-    label = answer
+    input_text = f"question: {question} context: {context}"
+    label = row["annotations"]["answer_text"][0]
     return {
         "input": input_text,
         "target": label,
