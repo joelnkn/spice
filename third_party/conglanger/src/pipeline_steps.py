@@ -223,6 +223,26 @@ def run_grammar_step(args, llm_client):
         metadata.update(kwargs_list[0])
         step2_filename = 'gram_step2_summary_random'
         step2_kwargs = {'checklist': checklist, 'values': str(list(values)), 'custom': custom, 'orthography': orthography}
+        
+        # Check if a feature vector is available (e.g., from args.feature_vector)
+        # This allows passing a WALS-style feature vector even for random languages
+        feature_vector = None
+        if hasattr(args, 'feature_vector') and args.feature_vector:
+            feature_vector = args.feature_vector
+        
+        # Format feature vector section and requirement for prompt (only if feature_vector is available)
+        if feature_vector:
+            feature_vector_str = json.dumps(feature_vector, indent=2)
+            step2_kwargs['feature_vector_section'] = f"""The language should also follow this typological profile:
+== FEATURE VECTOR START ==
+{feature_vector_str}
+== FEATURE VECTOR END ==
+
+"""
+            step2_kwargs['feature_vector_requirement'] = "\nAdditionally, you must explicitly reference and incorporate every feature listed in the feature vector above. The feature vector takes priority over the checklist values when there are conflicts."
+        else:
+            step2_kwargs['feature_vector_section'] = ''
+            step2_kwargs['feature_vector_requirement'] = ''
     # Load the correct prompt for step2
     logger.info(f"Generating grammar summary (step 2: {step2_filename})")
     step2 = _generate_with_prompts(llm_client, {'step2': prompts[step2_filename]}, [step2_kwargs])

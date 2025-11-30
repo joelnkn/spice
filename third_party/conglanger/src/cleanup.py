@@ -144,7 +144,10 @@ def update_metadata_qa(lang_dir):
         return
     
     # Extract overall_score from final_qa
-    final_qa = qa_data.get('final_qa', {})
+    final_qa = qa_data.get('final_qa') or {}
+    if not isinstance(final_qa, dict):
+        logger.warning(f"final_qa is not a dict in translation_qa.json: {type(final_qa)}")
+        return
     overall_score = final_qa.get('overall_score', 0)
     
     if overall_score == 0:

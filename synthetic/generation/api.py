@@ -180,7 +180,7 @@ if __name__ == "__main__":
     corpus = get_snli_batches()
     
     # create stabilized language
-    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=4) # change for the maximum number of times to translate a batch
+    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=32) # change for the maximum number of times to translate a batch
     
     # OR create stabilized language for target
     # run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
