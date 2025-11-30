@@ -39,6 +39,8 @@ If you create new grammar rules, ensure they:
 - be minimal and well-justified
 - preserve typological coherence
 
+IMPORTANT: If you see hyphens inside words in the grammar or lexicon sections, these are for readability only and MUST NOT appear in the actual constructed language translations.
+
 Provide a gloss line using standard linguistic abbreviations (SBJ, OBJ, ACC, PST, etc.).
 
 Do NOT include multi-step reasoning, alternatives, or long explanations anywhere.
@@ -48,7 +50,7 @@ Return the result in JSON format only:
 {{
     "sentences": [
         {{
-            "conlang_sentence": "<sentence in the constructed language>",
+            "conlang_sentence": "<sentence in the constructed language with NO hyphens>",
             "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
             "new_words": [{{"word": "<new_word>", "pos": "<part_of_speech>", "translation": "<english_translation>"}}],
             "new_grammar_rules": [{{"rule": "<one short sentence (max ~20 words) describing the new rule>", "justification": "justification": "<one short sentence (max ~20 words) explaining why it is consistent and necessary>"}}]

@@ -19,7 +19,7 @@ The CSV column names and their contents should be:
 * "derivation": If the item is derived, note its derivation here
 * "notes": Any additional notes
 
-NEVER invent lexicon similar to English or common languages.
+NEVER invent lexicon similar to English.
 
 Output a CSV lexicon that includes all lexical items explicitly mentioned in the grammar.
 

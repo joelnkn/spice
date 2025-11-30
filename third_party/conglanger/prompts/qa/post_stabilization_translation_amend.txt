@@ -27,7 +27,7 @@ Return the result in JSON format only:
 {{
     "sentences": [
         {{
-            "conlang_sentence": "<corrected sentence in the constructed language only - no glosses, morpheme breaks, or explanations>",
+            "conlang_sentence": "<corrected sentence in the constructed language only with NO hyphens - no glosses, morpheme breaks, or explanations>",
             "gloss": "<corrected word-by-word breakdown with morphemes and grammatical functions>",
             "new_words": [{{"word": "<new_word>", "pos": "<part_of_speech>", "translation": "<english_translation>"}}],
         }}

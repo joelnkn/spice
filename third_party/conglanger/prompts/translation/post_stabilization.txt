@@ -14,6 +14,7 @@ It has the following grammar:
 
 
 {lexicon_section}
+ 
 
 Your task is to translate the following new-line separated English sentences into this constructed language:
 
@@ -28,6 +29,8 @@ Instructions:
    - Rephrase or approximate the meaning using only existing, documented constructions.
    - Prefer simpler periphrastic expressions over adding new morphology or syntax.
 5. Ensure the translation follows the word order and morphological patterns specified
+
+IMPORTANT: If you see hyphens inside words in the grammar or lexicon sections, these are for readability only and MUST NOT appear in the actual constructed language translations.
 
 If you create new words, ensure they:
 - follow the orthography
@@ -48,7 +51,7 @@ Return the result in JSON format only:
 {{
     "sentences": [
         {{
-            "conlang_sentence": "<sentence in the constructed language>",
+            "conlang_sentence": "<sentence in the constructed language with NO hyphens>",
             "gloss": "<word-by-word breakdown with morphemes and grammatical functions>",
             "new_words": [{{"word": "<new_word>", "pos": "<part_of_speech>", "translation": "<english_translation>"}}],
         }}

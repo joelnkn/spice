@@ -22,7 +22,7 @@ Add {n} new entries to this lexicon. Create new words that:
 3. Cover basic vocabulary areas (body parts, family, nature, actions, etc.)
 4. Use appropriate derivational processes if specified in the grammar
 
-NEVER invent lexicon similar to English or common languages. Do not repeat existing entries!
+NEVER invent lexicon similar to English. Do not repeat existing entries!
 
 Output ONLY the new entries in the same CSV format:
 ipa,pos,translation,grammar,derivation,notes

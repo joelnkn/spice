@@ -12,7 +12,7 @@ Please provide an improved version of the translation that addresses the identif
 
 1. Fix orthography violations to match the orthography rules  
 2. Correct grammatical errors using only existing grammar rules  
-3. Improve lexical choices and justify any new words created  
+3. Improve lexical choices and justify any new words created
 4. Ensure accurate glossing  
 5. Preserve semantic meaning  
 6. Maintain consistency across all elements 
@@ -25,7 +25,7 @@ Return the corrected translation in the same JSON format as the original:
 {{
     "sentences": [
         {{
-            "conlang_sentence": "<corrected sentence in the constructed language only - no glosses, morpheme breaks, or explanations>",
+            "conlang_sentence": "<corrected sentence in the constructed language only with NO hyphens - no glosses, morpheme breaks, or explanations>",
             "gloss": "<corrected word-by-word breakdown with morphemes and grammatical functions>",
             "new_words": [{{"word": "<new_word>", "pos": "<part_of_speech>", "translation": "<english_translation>"}}],
             "new_grammar_rules": [{{"rule": "<one short sentence (max ~20 words) describing the new rule>", "justification": "justification": "<one short sentence (max ~20 words) explaining why it is consistent and necessary>"}}]

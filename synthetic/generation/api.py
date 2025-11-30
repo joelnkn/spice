@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import random
 
 # Load environment variables from .env file
 load_dotenv()
@@ -73,6 +74,7 @@ def generate_consistent_language(
     language_id,
     run_name,
     max_stabilize_steps=32,
+    seed=None,
 ):
     # Generate base language
     run_conglanger(
@@ -88,8 +90,14 @@ def generate_consistent_language(
     # Track totals at each iteration
     iteration_stats = []
 
+    # Shuffle corpus for random sampling, optionally with a seed
+    corpus_list = list(corpus)
+    if seed is not None:
+        random.seed(seed)
+    random.shuffle(corpus_list)
+
     print("Stabilizing language with corpus...")
-    for i, batch in enumerate(corpus, 1):
+    for i, batch in enumerate(corpus_list, 1):
         print(f"Processing sample {i}/{len(corpus)}: {batch[:20]}...")
         run_conglanger(
             steps=("translation",),
@@ -114,7 +122,18 @@ def generate_consistent_language(
             break
 
     print(f"\nLanguage stabilization complete! ID: {language_id}")
-    
+
+    # Compute rolling averages for new words and grammar rules
+    def rolling_average(stats, key):
+        vals = [stat[key] for stat in stats if stat[key] is not None]
+        return sum(vals) / len(vals) if vals else 0
+
+    for window in (20, 40, 60, 80, 100):
+        if len(iteration_stats) >= window:
+            avg_words = rolling_average(iteration_stats, "num_new_words", window)
+            avg_rules = rolling_average(iteration_stats, "num_new_grammar_rules", window)
+            print(f"Average over last {window} iterations: New words: {avg_words:.2f}, New grammar rules: {avg_rules:.2f}")
+
     # Write iteration stats to log file in language folder
     os.makedirs(lang_dir, exist_ok=True)
     stats_log_path = os.path.join(lang_dir, "iteration_stats.log")
@@ -123,6 +142,37 @@ def generate_consistent_language(
         f.write("=" * 60 + "\n")
         for stat in iteration_stats:
             f.write(f"Iteration {stat['iteration']}: New words: {stat['num_new_words']}, New grammar rules: {stat['num_new_grammar_rules']}\n")
+        
+        # Windowed averages (non-overlapping windows of 20 and 40)
+    f.write("\nRolling window averages (non-overlapping):\n")
+    f.write("=" * 60 + "\n")
+
+    for window in (20, 40, 60, 80):
+        if len(iteration_stats) < window:
+            continue  # not enough data for even one full window
+
+        f.write(f"\nWindow size: {window} iterations\n")
+
+        # step through in chunks: 0–19, 20–39, 40–59, etc. for window=20
+        for start in range(0, len(iteration_stats), window):
+            end = start + window
+            if end > len(iteration_stats):
+                break  # ignore incomplete final window
+
+            window_stats = iteration_stats[start:end]
+
+            avg_words = rolling_average(window_stats, "num_new_words")
+            avg_rules = rolling_average(window_stats, "num_new_grammar_rules")
+
+            # Use the actual iteration numbers from your stats
+            start_iter = window_stats[0]["iteration"]
+            end_iter = window_stats[-1]["iteration"]
+
+            f.write(
+                f"Iterations {start_iter}–{end_iter}: "
+                f"Avg new words: {avg_words:.2f}, "
+                f"Avg new grammar rules: {avg_rules:.2f}\n"
+            )
     print(f"Iteration stats logged to: {stats_log_path}")
     
     return run_name, language_id
@@ -180,13 +230,13 @@ if __name__ == "__main__":
     corpus = get_snli_batches()
     
     # create stabilized language
-    run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=32) # change for the maximum number of times to translate a batch
+    # run_name, language_id = generate_random_consistent_language(corpus, max_stabilize_steps=32) # change for the maximum number of times to translate a batch
     
     # OR create stabilized language for target
-    # run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
+    run_name, language_id = generate_consistent_language_for_target("urdu", corpus, max_stabilize_steps=2)
     
     # translate dataset using stabilized language
-    translate_dataset(corpus, language_id, run_name, num_batches=3) # don't include num_batches to translate all
+    translate_dataset(corpus, language_id, run_name, num_batches=2) # don't include num_batches to translate all
 
     # Analyze the language to extract WALS-style features
     print(f"Analyzing language {language_id}...")

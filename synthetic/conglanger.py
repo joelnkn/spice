@@ -43,7 +43,7 @@ def run_conglanger(
     translation_sentence="Hello, world!",
     max_tokens=8192,
     temperature=0.7,
-    thinking_budget=1000,
+    thinking_budget=500,
     reasoning_effort="low",
     sleep_between_calls=0,
     qa_enabled=True,
