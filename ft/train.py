@@ -366,7 +366,7 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
     best_eval = math.inf
     model.train()
 
-    while step < cfg.train.max_steps:
+    while step < num_update_steps:
         for batch in train_loader:
             with accelerator.accumulate(model):
                 out = model(**{k: v.to(accelerator.device) for k, v in batch.items()})
@@ -389,7 +389,7 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
             if step % cfg.train.save_steps == 0 and step > 0 and is_main:
                 save_adapters(model, tokenizer, cfg.io.out_dir, f"step{step}")
             step += 1
-            if step >= cfg.train.max_steps:
+            if step >= num_update_steps:
                 break
 
     if is_main:
