@@ -69,6 +69,7 @@ from datasets import load_dataset
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoModelForCausalLM,
+    AutoModelForSequenceClassification,
     AutoTokenizer,
     get_cosine_schedule_with_warmup,
 )
@@ -140,6 +141,8 @@ def get_model(model_name, task_type, use_qlora):
         )
     if task_type == "seq2seq":
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name, **kwargs)
+    elif task_type == "classification":
+        model = AutoModelForSequenceClassification.from_pretrained(model_name, **kwargs)
     else:
         model = AutoModelForCausalLM.from_pretrained(model_name, **kwargs)
     return model
@@ -147,14 +150,19 @@ def get_model(model_name, task_type, use_qlora):
 
 def attach_lora(model, task_type, cfg):
     target_modules = map_lora_targets(model, cfg.lora.target_modules)
+
+    task_type_mapping = {
+        "seq2seq": TaskType.SEQ_2_SEQ_LM,
+        "causal": TaskType.CAUSAL_LM,
+        "masked": TaskType.SEQ_CLS,
+    }
+
     peft_cfg = LoraConfig(
         r=cfg.lora.r,
         lora_alpha=cfg.lora.alpha,
         lora_dropout=cfg.lora.dropout,
         bias="none",
-        task_type=(
-            TaskType.SEQ_2_SEQ_LM if task_type == "seq2seq" else TaskType.CAUSAL_LM
-        ),
+        task_type=task_type_mapping[task_type],
         target_modules=target_modules,
     )
     return get_peft_model(model, peft_cfg)
