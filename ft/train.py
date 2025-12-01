@@ -473,11 +473,11 @@ if __name__ == "__main__":
         "Example: --output-dir outputs/my_run",
     )
     parser.add_argument(
-        "--save-latest",
+        "--save-latest-dir",
         type=str,
         default=None,
         help="Directory path to save the latest checkpoint (overwrites each time). "
-        "Example: --save-latest outputs/latest",
+        "Example: --save-latest-dir outputs/latest",
     )
     parser.add_argument(
         "--resume-from",
