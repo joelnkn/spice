@@ -174,6 +174,64 @@ def evaluate_translation(predictions: List[str], labels: List[str]) -> Dict:
     }
 
 
+def normalize_answer(s: str) -> str:
+    """Normalize answer text for QA evaluation."""
+    import re
+    import string
+    
+    def remove_articles(text):
+        return re.sub(r'\b(a|an|the)\b', ' ', text)
+    
+    def white_space_fix(text):
+        return ' '.join(text.split())
+    
+    def remove_punc(text):
+        exclude = set(string.punctuation)
+        return ''.join(ch for ch in text if ch not in exclude)
+    
+    def lower(text):
+        return text.lower()
+    
+    return white_space_fix(remove_articles(remove_punc(lower(s))))
+
+
+def compute_f1(prediction: str, ground_truth: str) -> float:
+    """Compute F1 score between prediction and ground truth."""
+    pred_tokens = normalize_answer(prediction).split()
+    truth_tokens = normalize_answer(ground_truth).split()
+    
+    # Handle empty predictions or ground truths
+    if len(pred_tokens) == 0 or len(truth_tokens) == 0:
+        return int(pred_tokens == truth_tokens)
+    
+    common_tokens = set(pred_tokens) & set(truth_tokens)
+    
+    # If no common tokens, F1 is 0
+    if len(common_tokens) == 0:
+        return 0.0
+    
+    precision = len(common_tokens) / len(pred_tokens)
+    recall = len(common_tokens) / len(truth_tokens)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    
+    return f1
+
+
+def evaluate_tydiqa(predictions: List[str], labels: List[str]) -> Dict:
+    """Evaluate TyDiQA predictions using F1 metric."""
+    f1_scores = []
+    
+    for pred, label in zip(predictions, labels):
+        f1_scores.append(compute_f1(pred, label))
+    
+    avg_f1 = sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
+    
+    return {
+        "f1": avg_f1,
+        "total": len(predictions)
+    }
+
+
 def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, use_base_only: bool = False):
     """Main evaluation function."""
     cfg = OmegaConf.load(cfg_path)
@@ -251,6 +309,8 @@ def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, us
             task_results = evaluate_paraphrase(task_preds, task_labels)
         elif task.lower() == "trans":
             task_results = evaluate_translation(task_preds, task_labels)
+        elif task.lower() in ["tydiqa", "qa"]:
+            task_results = evaluate_tydiqa(task_preds, task_labels)
         else:
             # Generic accuracy
             correct = sum(1 for p, l in zip(task_preds, task_labels) if p.lower() == l.lower())
@@ -261,7 +321,13 @@ def main(cfg_path="configs/train.yaml", checkpoint_path=None, test_path=None, us
             }
         
         results[task] = task_results
-        print(f"Accuracy: {task_results.get('accuracy', 0.0):.4f}")
+        
+        # Print metrics based on task type
+        if "f1" in task_results:
+            print(f"F1 Score: {task_results['f1']:.4f}")
+        else:
+            print(f"Accuracy: {task_results.get('accuracy', 0.0):.4f}")
+        
         if "per_class_accuracy" in task_results:
             print("Per-class accuracy:")
             for cls, acc in task_results["per_class_accuracy"].items():

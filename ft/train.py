@@ -73,7 +73,7 @@ from transformers import (
     AutoTokenizer,
     get_cosine_schedule_with_warmup,
 )
-from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training, PeftModel
 from ft.utils import format_input_for_task
 
 # --- helpers -----------------------------------------------------------------
@@ -113,6 +113,23 @@ def map_lora_targets(model, names):
             "DenseReluDense.wi_0",
             "DenseReluDense.wi_1",
         ]
+    
+    # RoBERTa/XLM-RoBERTa/BERT models
+    if any(k in model.config.model_type for k in ["roberta", "bert", "xlm"]):
+        targets = []
+        if any(x in text for x in ["q", "query"]):
+            targets.append("query")
+        if any(x in text for x in ["k", "key"]):
+            targets.append("key")
+        if any(x in text for x in ["v", "value"]):
+            targets.append("value")
+        if any(x in text for x in ["o", "output", "dense"]):
+            targets.extend(["dense", "output.dense"])
+        # RoBERTa MLP layers
+        if any(x in text for x in ["up", "intermediate"]):
+            targets.append("intermediate.dense")
+        return targets if targets else ["query", "key", "value", "dense"]
+    
     # decoder-only (bloom/llama/mixtral/qwen)
     return ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
@@ -245,7 +262,15 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
+def main(
+    cfg_path="configs/train.yaml",
+    train_path=None,
+    eval_path=None,
+    num_epochs=None,
+    output_dir=None,
+    save_latest_dir=None,
+    resume_from=None,
+):
     """
     Main training function.
 
@@ -253,6 +278,10 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
         cfg_path: Path to config YAML file
         train_path: Optional path to training data file(s). Overrides config if provided.
                     Can be a single file (str) or list of files.
+        eval_path: Optional path to evaluation data file. Overrides config if provided.
+        num_epochs: Optional number of epochs to train. Overrides config max_steps if provided.
+        output_dir: Optional output directory path. Overrides config if provided.
+        save_latest_dir: Optional directory path to save the latest checkpoint (overwrites each time).
         resume_from: Optional path to existing checkpoint to resume training from.
                      If provided, loads existing LoRA adapters instead of creating new ones.
     """
@@ -262,6 +291,16 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
     if train_path is not None:
         cfg.io.train_path = train_path
         print(f"Using training data from command line: {train_path}")
+    
+    # Override eval_path if provided as argument
+    if eval_path is not None:
+        cfg.io.eval_path = eval_path
+        print(f"Using eval data from command line: {eval_path}")
+    
+    # Override output_dir if provided as argument
+    if output_dir is not None:
+        cfg.io.out_dir = output_dir
+        print(f"Using output directory from command line: {output_dir}")
 
     set_seed(cfg.seed)
 
@@ -325,8 +364,13 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
             model.parameters(), lr=cfg.optim.lr, weight_decay=cfg.optim.weight_decay
         )
 
-    # steps
-    num_update_steps = cfg.train.max_steps
+    # steps - calculate based on epochs if provided, otherwise use max_steps
+    if num_epochs is not None:
+        steps_per_epoch = len(train_loader)
+        num_update_steps = steps_per_epoch * num_epochs
+        print(f"Training for {num_epochs} epochs {num_update_steps} steps")
+    else:
+        num_update_steps = cfg.train.max_steps
     warmup = int(num_update_steps * cfg.optim.warmup_ratio)
     sched = get_cosine_schedule_with_warmup(opt, warmup, num_update_steps)
 
@@ -339,7 +383,7 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
     best_eval = math.inf
     model.train()
 
-    while step < cfg.train.max_steps:
+    while step < num_update_steps:
         for batch in train_loader:
             with accelerator.accumulate(model):
                 out = model(**{k: v.to(accelerator.device) for k, v in batch.items()})
@@ -361,12 +405,16 @@ def main(cfg_path="configs/train.yaml", train_path=None, resume_from=None):
                         )
             if step % cfg.train.save_steps == 0 and step > 0 and is_main:
                 save_adapters(model, tokenizer, cfg.io.out_dir, f"step{step}")
+                if save_latest_dir is not None:
+                    save_adapters(model, tokenizer, save_latest_dir, "")
             step += 1
-            if step >= cfg.train.max_steps:
+            if step >= num_update_steps:
                 break
 
     if is_main:
         save_adapters(model, tokenizer, cfg.io.out_dir, "final")
+        if save_latest_dir is not None:
+            save_adapters(model, tokenizer, save_latest_dir, "")
 
 
 def evaluate_loop(model, loader, accelerator):
@@ -412,6 +460,34 @@ if __name__ == "__main__":
         "or --train-path data/train.jsonl,data/train_nli.jsonl",
     )
     parser.add_argument(
+        "--eval-path",
+        type=str,
+        default=None,
+        help="Path to evaluation data file. Overrides config file if provided. "
+        "Example: --eval-path data/xnli_eval.jsonl",
+    )
+    parser.add_argument(
+        "--num-epochs",
+        type=int,
+        default=None,
+        help="Number of epochs to train. Overrides max_steps from config if provided. "
+        "Example: --num-epochs 3",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for saving checkpoints. Overrides config file if provided. "
+        "Example: --output-dir outputs/my_run",
+    )
+    parser.add_argument(
+        "--save-latest-dir",
+        type=str,
+        default=None,
+        help="Directory path to save the latest checkpoint (overwrites each time). "
+        "Example: --save-latest-dir outputs/latest",
+    )
+    parser.add_argument(
         "--resume-from",
         type=str,
         default=None,
@@ -427,4 +503,12 @@ if __name__ == "__main__":
     if train_path and "," in train_path:
         train_path = [p.strip() for p in train_path.split(",")]
 
-    main(cfg_path=args.config, train_path=train_path, resume_from=args.resume_from)
+    main(
+        cfg_path=args.config,
+        train_path=train_path,
+        eval_path=args.eval_path,
+        num_epochs=args.num_epochs,
+        output_dir=args.output_dir,
+        save_latest_dir=args.save_latest_dir,
+        resume_from=args.resume_from,
+    )

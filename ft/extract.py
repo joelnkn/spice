@@ -32,6 +32,7 @@ DATASET_LANGUAGES = {
     "xnli": ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"],
     "paws-x": ["de", "en", "es", "fr", "ja", "ko", "zh"],
     "squad": ["plain_text"],
+    "copenlu/answerable_tydiqa": [""]
 }
 
 DATASET_LABELS = {
@@ -81,18 +82,31 @@ def format_squad(row):
     return {
         "input": input_text,
         "target": label,
-        "task_id": "paws-x"
+        "task_id": "squad"
+    }
+
+def format_tydiqa(row):
+    question = row["question_text"]
+    context = row["document_plaintext"]
+    
+    input_text = f"question: {question} context: {context}"
+    label = row["annotations"]["answer_text"][0]
+    return {
+        "input": input_text,
+        "target": label,
+        "task_id": "tydiqa"
     }
 
 DATASET_FORMAT = {
     "xnli": format_xnli,
     "paws-x": format_paws_x,
     "squad": format_squad,
+    "copenlu/answerable_tydiqa": format_tydiqa,
 }
 
 def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
     """
-    Extract k random examples from XNLI dataset.
+    Extract k random examples from dataset.
     
     Args:
         dataset_name: Dataset name in BUFFET (default: "xnli")
