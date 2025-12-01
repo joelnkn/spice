@@ -254,7 +254,15 @@ class Collator:
 # --- training loop (Accelerate) ----------------------------------------------
 
 
-def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epochs=None, output_dir=None, resume_from=None):
+def main(
+    cfg_path="configs/train.yaml",
+    train_path=None,
+    eval_path=None,
+    num_epochs=None,
+    output_dir=None,
+    save_latest_dir=None,
+    resume_from=None,
+):
     """
     Main training function.
 
@@ -265,6 +273,7 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
         eval_path: Optional path to evaluation data file. Overrides config if provided.
         num_epochs: Optional number of epochs to train. Overrides config max_steps if provided.
         output_dir: Optional output directory path. Overrides config if provided.
+        save_latest_dir: Optional directory path to save the latest checkpoint (overwrites each time).
         resume_from: Optional path to existing checkpoint to resume training from.
                      If provided, loads existing LoRA adapters instead of creating new ones.
     """
@@ -388,12 +397,16 @@ def main(cfg_path="configs/train.yaml", train_path=None, eval_path=None, num_epo
                         )
             if step % cfg.train.save_steps == 0 and step > 0 and is_main:
                 save_adapters(model, tokenizer, cfg.io.out_dir, f"step{step}")
+                if save_latest_dir is not None:
+                    save_adapters(model, tokenizer, save_latest_dir, "")
             step += 1
             if step >= num_update_steps:
                 break
 
     if is_main:
         save_adapters(model, tokenizer, cfg.io.out_dir, "final")
+        if save_latest_dir is not None:
+            save_adapters(model, tokenizer, save_latest_dir, "")
 
 
 def evaluate_loop(model, loader, accelerator):
@@ -460,6 +473,13 @@ if __name__ == "__main__":
         "Example: --output-dir outputs/my_run",
     )
     parser.add_argument(
+        "--save-latest",
+        type=str,
+        default=None,
+        help="Directory path to save the latest checkpoint (overwrites each time). "
+        "Example: --save-latest outputs/latest",
+    )
+    parser.add_argument(
         "--resume-from",
         type=str,
         default=None,
@@ -481,5 +501,6 @@ if __name__ == "__main__":
         eval_path=args.eval_path,
         num_epochs=args.num_epochs,
         output_dir=args.output_dir,
+        save_latest_dir=args.save_latest_dir,
         resume_from=args.resume_from,
     )
