@@ -112,7 +112,7 @@ def format_tydiqa(row):
     
 def format_amazon(row):
     input_text = row["text"]
-    label = row["label"]
+    label = row["label_text"]
     return {
         "input": input_text,
         "target": label,
