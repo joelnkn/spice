@@ -38,7 +38,6 @@ DATASET_LANGUAGES = {
 }
 
 def extract_amazon(language, split):
-    split = "test"
     assert split in ["train", "validation", "test"]
     return load_dataset(
         "json",
