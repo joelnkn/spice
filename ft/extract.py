@@ -23,6 +23,7 @@ Usage Examples:
     # Extract all test examples
     python3 -m ft.extract --dataset xnli --split test --output data/xnli_test.jsonl
 """
+from pydoc import text
 from datasets import load_dataset
 import json
 import argparse
@@ -32,7 +33,20 @@ DATASET_LANGUAGES = {
     "xnli": ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"],
     "paws-x": ["de", "en", "es", "fr", "ja", "ko", "zh"],
     "squad": ["plain_text"],
-    "copenlu/answerable_tydiqa": [""]
+    "copenlu/answerable_tydiqa": [""],
+    "amazon": ["en"]
+}
+
+def extract_amazon(language, split):
+    split = "test"
+    assert split in ["train", "validation", "test"]
+    return load_dataset(
+        "json",
+        data_files=f"hf://datasets/mteb/amazon_reviews_multi/en/{split}.jsonl",
+    )["train"]
+
+CUSTOM_EXTRACT = {
+    "amazon": extract_amazon,
 }
 
 DATASET_LABELS = {
@@ -96,12 +110,21 @@ def format_tydiqa(row):
         "target": label,
         "task_id": "tydiqa"
     }
+    
+def format_amazon(row):
+    input_text = row["text"]
+    label = row["label"]
+    return {
+        "input": input_text,
+        "label": label,
+    }
 
 DATASET_FORMAT = {
     "xnli": format_xnli,
     "paws-x": format_paws_x,
     "squad": format_squad,
     "copenlu/answerable_tydiqa": format_tydiqa,
+    "amazon": format_amazon,
 }
 
 def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
@@ -125,7 +148,10 @@ def extract(dataset_name="xnli", k=None, language="all", split="train", seed=Non
     for language in languages:
         print(f"Loading {dataset_name} dataset (language={language}, split={split})...")
 
-        dataset = load_dataset(dataset_name, language, split=split)
+        if dataset_name in CUSTOM_EXTRACT:
+            dataset = CUSTOM_EXTRACT[dataset_name](language, split=split)
+        else:
+            dataset = load_dataset(dataset_name, language, split=split)
         
         print(f"Total examples in dataset: {len(dataset)}")
 
@@ -137,7 +163,7 @@ def extract(dataset_name="xnli", k=None, language="all", split="train", seed=Non
             # Randomly sample k examples
             k = min(k, len(dataset))
             indices = random.sample(range(len(dataset)), k)
-        
+
         for idx in indices:
             example = dataset[idx]
             examples.append(format(example))
