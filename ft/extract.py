@@ -115,7 +115,7 @@ def format_amazon(row):
     label = row["label"]
     return {
         "input": input_text,
-        "label": label,
+        "target": label,
     }
 
 DATASET_FORMAT = {
