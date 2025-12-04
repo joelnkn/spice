@@ -34,7 +34,8 @@ DATASET_LANGUAGES = {
     "paws-x": ["de", "en", "es", "fr", "ja", "ko", "zh"],
     "squad": ["plain_text"],
     "copenlu/answerable_tydiqa": [""],
-    "amazon": ["en"]
+    "amazon": ["en"],
+    "indic": ["ur", "te", "ta", "pa", "or", "mr", "ml", "kn", "hi", "gu", "bn", "bd", "as"],
 }
 
 def extract_amazon(language, split):
@@ -42,10 +43,15 @@ def extract_amazon(language, split):
     return load_dataset(
         "json",
         data_files=f"hf://datasets/mteb/amazon_reviews_multi/en/{split}.jsonl",
-    )["train"]
+    )["train"].filter(lambda row: row['label'] != 3)
+    
+
+def extract_indic(language, split):
+    return load_dataset("mteb/IndicSentiment", language, split=split)
 
 CUSTOM_EXTRACT = {
     "amazon": extract_amazon,
+    "indic": extract_indic,
 }
 
 DATASET_LABELS = {
@@ -112,10 +118,20 @@ def format_tydiqa(row):
     
 def format_amazon(row):
     input_text = row["text"]
-    label = row["label_text"]
+    target = "Positive" if row["label"] > 3 else "Negative"
     return {
         "input": input_text,
-        "target": label,
+        "target": target,
+        "task_id": "sent"
+    }
+    
+def format_indic(row):
+    input_text = row["INDIC REVIEW"]
+    target = row["LABEL"]
+    return {
+        "input": input_text,
+        "target": target,
+        "task_id": "sent"
     }
 
 DATASET_FORMAT = {
@@ -124,6 +140,7 @@ DATASET_FORMAT = {
     "squad": format_squad,
     "copenlu/answerable_tydiqa": format_tydiqa,
     "amazon": format_amazon,
+    "indic": format_indic,
 }
 
 def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
