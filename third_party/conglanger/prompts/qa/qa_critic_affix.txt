@@ -1,0 +1,46 @@
+You are validating the following affix inventory for a synthetic language:
+
+=== AFFIXES START ===
+{content}
+=== AFFIXES END ===
+
+For context, here is the full language specification:
+=== SPEC START ===
+{context}
+=== SPEC END ===
+
+Your task:
+Check whether the affix inventory is:
+- Consistent with the orthography (only allowed characters; no capital letters, no hyphens, etc.).
+- Consistent with the feature vector:
+  • If a category is "present", it must have affixes for it. 
+- Internally consistent:
+  • Each affix object has the expected fields.
+  • No obvious duplicates that conflict in meaning.
+- No affix forms that look like English words! 
+- Reasonably compact and not wildly redundant.
+- If a form must be changed, provide a valid new name to change it to in the correction.
+
+If you cannot determine a problem clearly, mark it as a low-priority ambiguity, not a hard error.
+
+Return a JSON object with:
+
+{{
+  "overall_score": <integer 1–10>,
+  "issues": [
+    {{
+      "issue": "<description>",
+      "type": "<orthography_violation|feature_mismatch|format_error|redundancy|english_similarity|semantic_issue|ambiguity>",
+      "correction": "<specifically how the affix inventory should be corrected>",
+      "priority": <1|2|3>
+    }}
+  ]
+}}
+
+Scoring guideline:
+- 9–10: fully consistent, only tiny or stylistic nitpicks.
+- 8: minor issues.
+- 5–7: noticeable issues.
+- 1–4: serious problems (you must use this score for ANY orthography violations, feature mismatches, or english similarity).
+
+Output ONLY this JSON. No extra commentary.

@@ -1,0 +1,35 @@
+Here is a translation that needs improvement:
+=== TRANSLATION START ===
+{content}
+=== TRANSLATION END ===
+
+Here is the quality assessment:
+=== JUDGEMENT START ===
+{judgement}
+=== JUDGEMENT END ===
+
+Please produce a corrected version of the translation that fixes all issues listed in the judgement.
+Apply every correction as specified. 
+If a new word conflicts with the existing lexicon, rename or adjust it so that it no longer conflicts.
+
+Do NOT introduce any new grammar rules beyond what is implied by the feature vector and affix inventory.
+
+Return ONLY JSON in this structure:
+
+{{
+  "sentences": [
+    {{
+      "conlang_sentence": "<corrected_sentence>",
+      "gloss": "<corrected_gloss>",
+      "new_words": [
+        {{
+          "word": "<form>",
+          "pos": "<pos>",
+          "translation": "<english>"
+        }}
+      ]
+    }}
+  ]
+}}
+
+If no new words are required, return "new_words": [].

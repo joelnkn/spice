@@ -1,3 +1,4 @@
+import json
 import os
 import logging
 from time import sleep
@@ -393,3 +394,86 @@ class LLMClientOpenAI:
             extracted_content = response  # Response is already the extracted content
         
         return full_response, extracted_content
+
+
+class LLMClientMock:
+    """Local mock that returns deterministic, schema-valid responses for offline runs."""
+
+    def __init__(self):
+        self.verbose = False  # Kept for compatibility with caller expectations
+
+    def _mock_affix_inventory(self) -> str:
+        inventory = {
+            "inflectional": {
+                "number": [
+                    {"name": "PL", "type": "suffix", "form": "lat", "function": "plural"}
+                ],
+                "tense_aspect_mood": [
+                    {"name": "PST", "type": "suffix", "form": "dum", "function": "past"}
+                ],
+                "voice_valence": [
+                    {"name": "PASS", "type": "suffix", "form": "sur", "function": "passive"},
+                    {"name": "CAUS", "type": "suffix", "form": "tak", "function": "causative"},
+                ],
+            },
+            "derivational": [
+                {
+                    "name": "AGENT_N",
+                    "type": "suffix",
+                    "form": "yar",
+                    "from_pos": "verb",
+                    "to_pos": "noun",
+                    "function": "agentive (one who does X)",
+                }
+            ],
+        }
+        return json.dumps(inventory, indent=2)
+
+    def _mock_lexicon(self) -> str:
+        return "\n".join(
+            [
+                "form,pos,translation",
+                "fadal,noun,river",
+                "sutim,verb,run",
+                "nuwal,pronoun,they",
+                "garet,adj,bright",
+                "ditaw,adposition,with",
+            ]
+        )
+
+    def _mock_translation(self) -> str:
+        translation = {
+            "sentences": [
+                {
+                    "conlang_sentence": "nuwal fadal-sur",
+                    "gloss": "they river-PASS",
+                    "new_words": [],
+                }
+            ]
+        }
+        return json.dumps(translation, indent=2)
+
+    def _mock_qa(self) -> str:
+        return json.dumps({"overall_score": 9, "issues": []}, indent=2)
+
+    def _mock_response(self, prompt: str) -> str:
+        lower = prompt.lower()
+        if "return json only" in lower and '"inflectional"' in prompt:
+            return self._mock_affix_inventory()
+        if "form,pos,translation" in lower:
+            return self._mock_lexicon()
+        if "conlang_sentence" in prompt or '"sentences"' in prompt:
+            return self._mock_translation()
+        if "overall_score" in prompt and '"issues"' in prompt:
+            return self._mock_qa()
+        # Fallback: short notice to keep pipeline moving
+        return "mock_response"
+
+    def generate(self, prompt: str, do_sleep: bool = True, **kwargs) -> str:
+        response = self._mock_response(prompt)
+        logger.info(f"Mock LLM response generated ({len(response)} chars).")
+        return response
+
+    def generate_and_extract(self, prompt: str, do_sleep: bool = True, **kwargs) -> tuple[str, str]:
+        response = self.generate(prompt, do_sleep, **kwargs)
+        return response, response

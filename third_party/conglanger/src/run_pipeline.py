@@ -13,14 +13,13 @@ import uuid
 import json
 from argparse import ArgumentParser
 from dotenv import load_dotenv
-import importlib.util
 
 # Load environment variables from .env file
 load_dotenv()
 
-from pipeline_steps import run_grammar_step, run_lexicon_step, run_translation_step
-from utils import copy_folders, create_llm_client
-from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, append_new_words_to_lexicon, add_new_rules_to_grammar, update_metadata_value, update_metadata_qa
+from pipeline_steps import run_affix_step, run_lexicon_step, run_translation_step
+from utils import create_llm_client
+from cleanup import append_sentences_to_valid_translations, extract_new_vocabulary, extract_new_grammar_rules, add_new_rules_to_grammar, update_lexicon_with_new_words, update_metadata_value, update_metadata_with_translation_qa
 
 logger = logging.getLogger(__name__)
 
@@ -61,21 +60,9 @@ def setup_logging(output_file: str):
 
 def save_metadata(lang_dir, language_id, args):
     """Save metadata about the language generation."""
-    metadata_file = os.path.join(lang_dir, 'metadata.json')
-    
-    # Preserve existing metadata (especially running_qa fields)
-    existing_metadata = {}
-    if os.path.exists(metadata_file):
-        try:
-            with open(metadata_file, 'r', encoding='utf-8') as f:
-                existing_metadata = json.load(f)
-        except Exception as e:
-            logger.warning(f"Could not load existing metadata.json: {e}")
-    
-    # Update with new metadata, preserving existing fields
     metadata = {
         'language_id': language_id,
-        'created_at': existing_metadata.get('created_at', time.strftime('%Y-%m-%d %H:%M:%S')),
+        'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
         'model': args.model,
         'steps': args.steps.split(','),
         'custom_constraints': args.custom_constraints,
@@ -85,21 +72,9 @@ def save_metadata(lang_dir, language_id, args):
         }
     }
     
-    # Preserve running_qa fields if they exist
-    if 'running_qa' in existing_metadata:
-        metadata['running_qa'] = existing_metadata['running_qa']
-    if 'running_qa_count' in existing_metadata:
-        metadata['running_qa_count'] = existing_metadata['running_qa_count']
-    if 'average_qa' in existing_metadata:
-        metadata['average_qa'] = existing_metadata['average_qa']
-    # Also preserve num_new_words and num_new_grammar_rules
-    if 'num_new_words' in existing_metadata:
-        metadata['num_new_words'] = existing_metadata['num_new_words']
-    if 'num_new_grammar_rules' in existing_metadata:
-        metadata['num_new_grammar_rules'] = existing_metadata['num_new_grammar_rules']
-    
+    metadata_file = os.path.join(lang_dir, 'metadata.json')
     with open(metadata_file, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
+        json.dump(metadata, f, indent=2)
     
     return metadata_file
 
@@ -136,8 +111,8 @@ def get_args():
                         help='Number of QA self-refine (critic/amend) cycles')
     parser.add_argument('--qa-threshold', type=float, default=None,
                         help='Global passing score threshold (1–10 scale) overriding all per-step thresholds if set')
-    parser.add_argument('--qa-threshold-grammar', type=float, default=8.0,
-                        help='Passing score threshold (1–10 scale) for grammar QA')
+    parser.add_argument('--qa-threshold-affix', type=float, default=8.0,
+                        help='Passing score threshold (1–10 scale) for affix QA')
     parser.add_argument('--qa-threshold-lexicon', type=float, default=8.0,
                         help='Passing score threshold (1–10 scale) for lexicon QA')
     parser.add_argument('--qa-threshold-translation', type=float, default=8.0,
@@ -176,10 +151,24 @@ def get_args():
                        help='Directory containing prompt templates')
     parser.add_argument('--output-dir', default='output',
                        help='Output directory for generated languages')
-    parser.add_argument('--iteration', action='store_true',
-                       help='Whether to use iterations to produce a language across multiple Conglanger calls')
+    
+    # New arguments
+    parser.add_argument(
+        '--iteration',
+        type=int,
+        default=-1,
+        help=(
+            'Translation iteration index. '
+            '-1: no translation (e.g., initial lexicon generation only). '
+            '>= 0: run translation for this iteration index.'
+        )
+    )
     parser.add_argument('--lang-id', default=None,
                         help='ID for already created language during stabilization')
+    parser.add_argument('--random', action='store_true',
+                        help='Indicates if the language is part of a random language group')
+    parser.add_argument('--lang-name', default=None,
+                        help='Name of the language being generated')
     
     # Debug mode
     parser.add_argument('--debug', action='store_true',
@@ -197,42 +186,22 @@ def main():
 
     # Set up directories
     lang_dir, memory_dir, logs_dir = setup_directories(args.output_dir, language_id)
+    args.lang_dir = lang_dir
     args.memory_dir = memory_dir
 
-    ortho_dir = os.path.join(memory_dir, "orthography")
-    os.makedirs(ortho_dir, exist_ok=True)
-    
-    lang_name = os.path.basename(args.output_dir) # run_name = lang_name if target
-
-    ortho_path = os.path.join(ortho_dir, "orthography.txt")
-    orthography_path = os.path.join(args.prompt_dir, 'typology', 'orthography.py')
-    spec = importlib.util.spec_from_file_location("orthography", orthography_path)
-    ortho_mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ortho_mod)
-    BASELINE = getattr(ortho_mod, "BASELINE", "")
-    RULES_PER_LANGUAGE = getattr(ortho_mod, "RULES_PER_LANGUAGE", {})
-    rules = RULES_PER_LANGUAGE.get(lang_name, None)
-    ortho_text = BASELINE.strip()
-    
-    if rules:
-        args.target = lang_name
-        ortho_text += "\n• " + rules.strip()
-        logger.info(f"Wrote orthography rules to {ortho_path} (language: {lang_name})")
-    else:
-        logger.info(f"Language '{lang_name}' not found in RULES_PER_LANGUAGE. Creating Random Language.")
-    with open(ortho_path, "w", encoding="utf-8") as f:
-        f.write(ortho_text + "\n")
-
+    # Logging
     log_file = os.path.join(logs_dir, 'pipeline.log')
     setup_logging(log_file)
     
     logger.info(f"Starting language generation with ID: {language_id}")
     logger.info(f"Model: {args.model}")
     logger.info(f"Steps: {args.steps}")
+    logger.info(f"Iteration: {args.iteration}")
     
     # Save metadata
-    metadata_file = save_metadata(lang_dir, language_id, args)
-    logger.info(f"Metadata saved to: {metadata_file}")
+    if args.iteration == 0 and 'translation' in args.steps:
+        metadata_file = save_metadata(lang_dir, language_id, args)
+        logger.info(f"Metadata saved to: {metadata_file}")
     
     # Initialize LLM client
     llm_client = create_llm_client(
@@ -248,12 +217,24 @@ def main():
     # Parse and run steps
     steps = [step.strip() for step in args.steps.split(',')]
     step_functions = {
-        'grammar': run_grammar_step,
+        'affix': run_affix_step,
         'lexicon': run_lexicon_step,
         'translation': run_translation_step,
     }
     
     print(f"\nRunning steps: {', '.join(steps)}")
+    
+    if args.iteration == -1:
+        # No translation expected in this mode
+        if 'translation' in steps:
+            logger.error("iteration = -1 but 'translation' step requested. Remove 'translation' from --steps or set iteration >= 0.")
+            raise RuntimeError("Invalid configuration: translation step with iteration = -1")
+    else:
+        # Translation mode (iteration >= 0): we expect translation step
+        if 'translation' not in steps:
+            logger.error("iteration >= 0 but 'translation' step not present in --steps.")
+            raise RuntimeError("Invalid configuration: iteration >= 0 requires 'translation' in --steps")
+
     
     for i, step in enumerate(steps):
         if step not in step_functions:
@@ -265,7 +246,7 @@ def main():
         
         # Add translation sentence to args
         if step == 'translation':
-            args.translation_input_sentence = args.translation_sentence
+            args.input_sentences = args.translation_sentence
         
         try:
             result = step_functions[step](args, llm_client)
@@ -286,78 +267,37 @@ def main():
     print(f"Results saved in: {lang_dir}")
     logger.info(f"Language generation completed for ID: {language_id}")
     
-    # Post-processing based on iteration mode
-    if args.iteration:
-        # Iteration mode: creating evolving language snapshots
-        if 'translation' not in steps:
-            # Case 1: Initial language generation (no translation step)
-            # Create iter_0 with grammar and lexicon
-            iteration = 0
-            logger.info("Initial language generation - creating iter_0")
-            new_iter_dir = os.path.join(lang_dir, f"iter_{iteration}")
-            os.makedirs(new_iter_dir, exist_ok=False)
-            copy_folders(lang_dir, new_iter_dir, ['grammar', 'lexicon'])
-            logger.info(f"Saved initial snapshot: {new_iter_dir}")
-        else:
-            # Case 2: Translation step with iteration (adapting language)
-            # First, apply new words and grammar rules from translation
-            logger.info("Processing translation outputs for iteration...")
-            
-            # Extract and append new words to lexicon
-            new_words = extract_new_vocabulary(lang_dir)
-            if new_words:
-                append_new_words_to_lexicon(new_words, args)
-                logger.info(f"Added {len(new_words)} new words to lexicon")
-            
-            # Integrate new grammar rules using LLM
-            new_rules = extract_new_grammar_rules(lang_dir)
-            if new_rules:
-                logger.info(f"Integrating {len(new_rules)} new grammar rules...")
-                result = add_new_rules_to_grammar(new_rules, args, llm_client)
-                if result:
-                    logger.info(f"Successfully integrated grammar rules")
-                else:
-                    logger.warning("Failed to integrate grammar rules")
-            
-            # Now create the next iteration snapshot
-            iter_dirs = [
-                name for name in os.listdir(lang_dir)
-                if name.startswith("iter_") and name[len("iter_"):].isdigit()
-            ]
-            
-            if not iter_dirs:
-                logger.error("No iter_0 found! Translation step requires initial language generation first.")
-                raise RuntimeError("Cannot run translation in iteration mode without iter_0")
-            
-            iteration = max(int(name[len("iter_"):]) for name in iter_dirs) + 1
-            logger.info(f"Adapting language - creating iter_{iteration}")
-            
-            new_iter_dir = os.path.join(lang_dir, f"iter_{iteration}")
-            os.makedirs(new_iter_dir, exist_ok=False)
-            copy_folders(lang_dir, new_iter_dir, ['grammar', 'lexicon', 'translation'])
-            logger.info(f"Saved iteration snapshot: {new_iter_dir}")
-            
-            # Update QA stats for this translation iteration
-            update_metadata_qa(lang_dir)
+    # 1) No translation → nothing to do here except maybe lexicon QA
+    if 'translation' not in steps:
+        logger.info("No translation step in this run; skipping translation post-processing.")
+        return
+
+    # 2) Translation run (iteration >= 0) → handle new vocabulary + conflicts
+    logger.info("Processing translation outputs...")
+
+    # Extract new words from translation outputs (assuming QA/amend already done)
+    # IMPORTANT: we now assume extract_new_vocabulary works from memory_dir
+    new_words = extract_new_vocabulary(lang_dir, args.iteration)
+
+    if not new_words:
+        logger.info("No new words extracted from translation.")
+        # Even if no new words, we can still append sentences that passed QA
+        append_sentences_to_valid_translations(args.memory_dir, args.iteration)
+        update_metadata_with_translation_qa(lang_dir, args.iteration)
+        return
     
-    elif 'translation' in steps:
-        # Non-iteration mode: stabilized language, just append new words
-        logger.info("Processing translation outputs (stabilized language mode)...")
-        
-        new_words = extract_new_vocabulary(lang_dir)
-        if new_words:
-            append_new_words_to_lexicon(new_words, args)
-            logger.info(f"Added {len(new_words)} new words to lexicon")
-        
-        # Check for grammar rules and warn if any exist
-        new_rules = extract_new_grammar_rules(lang_dir)
-        if new_rules:
-            logger.warning(f"Found {len(new_rules)} new grammar rules but skipping integration (stabilized language mode)")
-        else:
-            logger.info("No new grammar rules found (as expected for stabilized language)")
-            
-        append_sentences_to_valid_translations(args.memory_dir)
-        update_metadata_qa(lang_dir)
+    # Still update QA metadata, but do not accept this batch into the stable dataset
+    has_conflicts = update_metadata_with_translation_qa(lang_dir, args.iteration)
+    if has_conflicts:
+        logger.info("Conflicts detected; new words will not be added to lexicon.")
+        return
+    
+    # If we reach here: no conflicts → safe to update lexicon + valid translations
+    update_lexicon_with_new_words(new_words, args)
+    logger.info(f"Added {len(new_words)} new words to lexicon.")
+
+    append_sentences_to_valid_translations(args.memory_dir, args.iteration)
+    logger.info("Appended sentences to valid translations.")
     
 if __name__ == '__main__':
     main()

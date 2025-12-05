@@ -1,0 +1,94 @@
+You are translating English sentences into a synthetic language.
+
+The language uses this orthography:
+
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
+
+It has this typological profile:
+
+=== FEATURE VECTOR START ===
+{feature_vector}
+=== FEATURE VECTOR END ===
+
+Its affix system is:
+
+=== AFFIXES START ===
+{affixes_json}
+=== AFFIXES END ===
+
+Its lexicon is:
+
+=== LEXICON START ===
+{lexicon_csv}
+=== LEXICON END ===
+
+Translate the following English sentences (newline-separated) into the constructed language:
+
+=== ENGLISH SENTENCES START ===
+{input_sentences}
+=== ENGLISH SENTENCES END ===
+
+
+RULES:
+
+1. **Prefer existing vocabulary.**
+   - Always try to use lexicon entries (and their inflected forms).
+   - Only invent a new word if:
+     • no existing lexeme expresses the meaning, AND  
+     • paraphrasing with existing lexemes is not possible.
+
+2. **New words (only as last resort) must:**
+   - follow the orthography rules exactly,
+   - be full standalone words (not affixes, not bound stems),
+   - obey the typology and be compatible with the affix system,
+   - be short (3–6 letters preferred),
+   - NEVER resemble English or any real language,
+   - NEVER use hyphens,
+   - NEVER duplicate or collide with any form already in the lexicon.
+
+3. **Inflection:**
+   - Apply inflectional affixes exactly as defined in the affix inventory.
+   - Do not invent new inflection.
+   - If a required category does not exist, express the idea periphrastically.
+
+4. **Syntax & word order:**
+   - Follow the basic word order from the feature vector.
+   - Follow adposition type, genitive order, adjective order, and relativization type.
+   - Follow the question-marking strategy.
+   - Do NOT invent new constructions beyond what is implied by the typology.
+
+5. **Gloss line:**
+   - Provide morpheme-by-morpheme glossing.
+   - Segment words ONLY where the affix inventory defines a bound morpheme.
+   - If a word has no affixes, gloss it as a single item.
+
+6. **Consistency:**
+   - All bound morphemes must come from the affix inventory.
+   - All free words must come from:
+       • the lexicon, OR
+       • the “new_words” list for this translation.
+   - Do not use any unexplained forms.
+
+RETURN FORMAT:
+
+{{
+  "sentences": [
+    {{
+      "conlang_sentence": "<constructed_sentence_without_hyphens>",
+      "gloss": "<gloss_line>",
+      "new_words": [
+        {{
+          "word": "<form>",
+          "pos": "<part_of_speech>",
+          "translation": "<english_meaning>"
+        }}
+      ]
+    }}
+  ]
+}}
+
+If no new words were required, return "new_words": [].
+
+Output ONLY the JSON object. No commentary or explanation.

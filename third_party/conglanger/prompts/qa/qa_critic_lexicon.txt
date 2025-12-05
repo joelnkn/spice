@@ -1,0 +1,75 @@
+You are validating the following lexicon for a synthetic language.
+
+=== LEXICON START ===
+{content}
+=== LEXICON END ===
+
+For context, here is the full language specification
+(including orthography, feature vector, and affix inventory):
+=== SPEC START ===
+{context}
+=== SPEC END ===
+
+Your task:
+Check that the lexicon is well-formed, consistent with the specification, and respects
+the intended morphological design (lemmas only, no affixes, no inflected forms).
+
+Evaluate the lexicon along these dimensions:
+
+1. ORTHOGRAPHY CHECK
+   - All word forms must:
+     • use only allowed characters from the orthography,
+     • be entirely lowercase,
+     • contain no hyphens, punctuation, digits, or spaces.
+   - No form may clearly resemble an English or real-world word.
+
+2. MORPHOLOGICAL STRUCTURE CHECK
+   - Lexicon entries must be full words (lemmas), not affixes or bound morphemes.
+   - No lexicon form may be identical to:
+       • any inflectional affix "form" in the affix inventory,
+       • any derivational affix "form" in the affix inventory.
+   - Lexicon entries must NOT be inflected forms:
+       • they must not visibly contain inflectional suffixes for number, case, tense,
+         aspect, mood, voice, or alignment if these are described in the affix inventory.
+       • if a form appears to be a base plus an inflectional affix, treat that as a violation.
+   - Lexicon items should be plausible lemmas (citation forms) that could serve
+     as dictionary entries.
+
+   - For each derivational affix in the inventory:
+       • there should be at least one lexical item whose English translation reflects
+         that derivational meaning (e.g., an agentive noun for an AGENT_N suffix),
+       • but the affix itself must NOT appear as a standalone lexicon entry.
+
+3. SEMANTIC CHECK
+   - Each "translation" field must be a clear English gloss.
+   - Meanings should be reasonable and consistent with the typology and affix system.
+   - No obviously English-looking conlang forms with identical meanings
+     (e.g., "house, noun, house" is not acceptable).
+
+4. FORMAT & CONSISTENCY CHECK
+   - The CSV must have a single header line and consistent column count:
+       • Exactly three fields per row: form,pos,translation.
+   - No duplicate entries with the same form but conflicting POS or translations.
+   - No obvious contradictions with the orthography, feature vector, or affix inventory.
+
+Return a JSON object with this exact structure:
+
+{
+  "overall_score": <integer 1–10>,
+  "issues": [
+    {
+      "issue": "<description of the problem>",
+      "type": "<orthography_violation|morphology_violation|format_error|lexical_error|consistency_error|ambiguity>",
+      "correction": "<how to fix it in the lexicon>",
+      "priority": <1|2|3>
+    }
+  ]
+}
+
+Scoring guidelines:
+- 9–10: Fully consistent; only tiny or stylistic issues.
+- 8: Minor violations that are easy to fix.
+- 5–7: Several noticeable but fixable problems.
+- 1–4: Serious structural issues (e.g., many affixes listed as words, many inflected forms, or major orthography violations).
+
+Output ONLY this JSON object. No extra commentary.

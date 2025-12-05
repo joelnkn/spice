@@ -1,0 +1,77 @@
+You are designing the affix inventory for a synthetic language.
+
+The language uses the following orthography:
+
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{feature_vector}
+=== FEATURE VECTOR END ===
+
+Your task:
+Define a set of derivational and inflectional affixes that are consistent with this typology and orthography.
+
+Rules:
+- All affix forms must follow the orthography (lowercase, valid letters, no hyphens).
+- Every affix must be a bound morpheme: it cannot appear as a standalone word.
+- Do NOT define any full lexical words here; only affixes.
+- Make the system reasonably rich but not overly complex:
+  - Include inflectional affixes for number, tense/aspect/mood, and any valence changes (causative, passive, applicative) indicated by the feature vector.
+  - Include a few derivational affixes if supported by the typology (e.g., verb→noun, noun→adj), but keep them simple.
+- You may not have duplicate forms.
+- NO FORMS MAY BE SIMILAR TO ENGLISH!
+
+Return JSON ONLY in this structure:
+
+{{
+  "inflectional": {{
+    "number": [
+      {{
+        "name": "PL",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "plural"
+      }}
+    ],
+    "tense_aspect_mood": [
+      {{
+        "name": "PST",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "past"
+      }}
+    ],
+    "voice_valence": [
+      {{
+        "name": "PASS",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "passive"
+      }},
+      {{
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "causative"
+      }}
+    ]
+  }},
+  "derivational": [
+    {{
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }}
+  ]
+}}
+
+You may leave some lists empty if the feature vector does not support that category (e.g., no voice_valence if there is no passive/causative), but always include the same top-level keys.
+
+Output ONLY the JSON.

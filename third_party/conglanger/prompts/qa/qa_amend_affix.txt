@@ -1,0 +1,64 @@
+Here is an affix inventory for a synthetic language:
+
+=== AFFIXES START ===
+{content}
+=== AFFIXES END ===
+
+Here is a quality assessment of that inventory:
+
+=== JUDGEMENT START ===
+{judgement}
+=== JUDGEMENT END ===
+
+Please produce a corrected version of the affix inventory that fixes all issues listed in the judgement.
+Preserve as much valid information as possible, changing only what the corrections specify.
+
+Return ONLY the corrected affix inventory as JSON (same schema as the input):
+
+{{
+  "inflectional": {{
+    "number": [
+      {{
+        "name": "PL",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "plural"
+      }}
+    ],
+    "tense_aspect_mood": [
+      {{
+        "name": "PST",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "past"
+      }}
+    ],
+    "voice_valence": [
+      {{
+        "name": "PASS",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "passive"
+      }},
+      {{
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "<affix_form>",
+        "function": "causative"
+      }}
+    ]
+  }},
+  "derivational": [
+    {{
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }}
+  ]
+}}
+
+If affixes need to be added, add them such that this structure is maintined.
+Provide no additional explanation.

@@ -29,7 +29,7 @@ def get_synthetic_feature_path(run_name: str, language_id: str) -> str:
     Returns:
         Path to feature_analysis.json file
     """
-    feature_path = os.path.join(OUTPUT_DIR, run_name, 'languages', language_id, 'analysis', 'feature_analysis.json')
+    feature_path = os.path.join(OUTPUT_DIR, run_name, 'languages', language_id, 'analysis', 'features.json')
     return feature_path
 
 def load_feature_dict(feature_path: str) -> Dict[str, str]:

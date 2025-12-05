@@ -1,0 +1,24 @@
+Here is the lexicon for a synthetic language:
+
+=== LEXICON START ===
+{content}
+=== LEXICON END ===
+
+Here is a quality assessment of it:
+=== JUDGEMENT START ===
+{judgement}
+=== JUDGEMENT END ===
+
+Please produce a corrected version of the lexicon that fixes all issues listed in the judgement.
+Preserve as much valid information as possible, changing only what the corrections specify.
+
+Output must be in the same format - a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must have 3 comma-separated fields:
+- form: the full conlang word form
+- pos: part of speech (e.g. noun, verb, adj, adposition, pronoun)
+- translation: the English meaning
+
+Provide no additional explanation.

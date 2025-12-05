@@ -1,0 +1,78 @@
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+{orthography}
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{feature_vector}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{affixes_json}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.

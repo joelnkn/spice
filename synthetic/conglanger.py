@@ -2,8 +2,6 @@
 
 import os
 import sys
-import importlib
-from synthetic.generation.custom_constraints import BASE 
 from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
 from synthetic.utils.logger import setup_logger
 
@@ -13,44 +11,46 @@ if _conglanger_src not in sys.path:
     sys.path.insert(0, _conglanger_src)
 
 # Import modules dynamically
-_llm_client = importlib.import_module('llm_client')
-_utils = importlib.import_module('utils')
-_pipeline_steps = importlib.import_module('pipeline_steps')
+#_llm_client = importlib.import_module('llm_client')
+# _utils = importlib.import_module('utils')
+# _pipeline_steps = importlib.import_module('pipeline_steps')
 
 # Re-export classes and functions
-PromptManager = _llm_client.PromptManager
-LLMClientGemini = _llm_client.LLMClientGemini
-LLMClientDeepseek = _llm_client.LLMClientDeepseek
-LLMClientOpenAI = _llm_client.LLMClientOpenAI
+# PromptManager = _llm_client.PromptManager
+# LLMClientGemini = _llm_client.LLMClientGemini
+# LLMClientDeepseek = _llm_client.LLMClientDeepseek
+# LLMClientOpenAI = _llm_client.LLMClientOpenAI
 
-clean_response = _utils.clean_response
-alphabetize_csv_text = _utils.alphabetize_csv_text
-get_csv_text_n_entries = _utils.get_csv_text_n_entries
-copy_folders = _utils.copy_folders
-load_required_files = _utils.load_required_files
-create_llm_client = _utils.create_llm_client
+# clean_response = _utils.clean_response
+# alphabetize_csv_text = _utils.alphabetize_csv_text
+# get_csv_text_n_entries = _utils.get_csv_text_n_entries
+# copy_folders = _utils.copy_folders
+# load_required_files = _utils.load_required_files
+# create_llm_client = _utils.create_llm_client
 
-run_grammar_step = _pipeline_steps.run_grammar_step
-run_lexicon_step = _pipeline_steps.run_lexicon_step
-run_translation_step = _pipeline_steps.run_translation_step
+# run_grammar_step = _pipeline_steps.run_grammar_step
+# run_lexicon_step = _pipeline_steps.run_lexicon_step
+# run_translation_step = _pipeline_steps.run_translation_step
 
 
 def run_conglanger(
+    lang_name,
     run_name=None,
+    random=True,
+    iteration=-1,
     model="gemini-2.5-flash-lite", # prob should change back to gemini-2.5-pro
-    steps=("grammar", "lexicon", "translation"),
-    custom_constraints=BASE,
-    translation_sentence="Hello, world!",
+    steps=("affix", "lexicon"),
+    custom_constraints=None,
+    translation_sentence=None,
     max_tokens=8192,
     temperature=0.7,
-    thinking_budget=512,
+    thinking_budget=1000,
     reasoning_effort="low",
     sleep_between_calls=0,
     qa_enabled=True,
-    self_refine_steps=2,
+    self_refine_steps=3,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,
-    iteration=False,
     prompt_dir=None,
     output_dir=None,
     lang_id=None,
@@ -103,6 +103,10 @@ def run_conglanger(
         str(sleep_between_calls),
         "--prompt-dir",
         prompt_dir,
+        "--iteration",
+        str(iteration),
+        "--lang-name",
+        str(lang_name)
     ]
 
     if custom_constraints:
@@ -113,10 +117,10 @@ def run_conglanger(
         cmd += ["--reasoning-effort", reasoning_effort]
     if thinking_budget:
         cmd += ["--thinking-budget", str(thinking_budget)]
-    if iteration:
-        cmd += ["--iteration"]
     if lang_id:
         cmd += ["--lang-id", str(lang_id)]
+    if random:
+        cmd.append("--random")
 
     # QA loop configuration
     if qa_enabled:
@@ -126,9 +130,12 @@ def run_conglanger(
         if qa_threshold is not None:
             cmd += ["--qa-threshold", str(qa_threshold)]
 
-        if qa_thresholds_per_step:
-            for step, threshold in qa_thresholds_per_step.items():
-                cmd += [f"--qa-threshold-{step}", str(threshold)]
+        # Set per-step thresholds if not provided
+        if qa_thresholds_per_step is None:
+            qa_thresholds_per_step = {"lexicon": 9, "affix": 9}
+        
+        for step, threshold in qa_thresholds_per_step.items():
+            cmd += [f"--qa-threshold-{step}", str(threshold)]
 
     # Debug mode
     if debug:
@@ -158,26 +165,6 @@ def run_conglanger(
 
 
 __all__ = [
-    # LLM clients
-    'PromptManager',
-    'LLMClientGemini',
-    'LLMClientDeepseek',
-    'LLMClientOpenAI',
-    'create_llm_client',
-    
-    # Utilities
-    'clean_response',
-    'alphabetize_csv_text',
-    'get_csv_text_n_entries',
-    'copy_folders',
-    'load_required_files',
-    
-    # Pipeline steps
-
-    'run_grammar_step',
-    'run_lexicon_step',
-    'run_translation_step',
-    
     # High-level runner
     'run_conglanger',
 ]

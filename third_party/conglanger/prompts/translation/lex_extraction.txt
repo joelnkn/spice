@@ -1,0 +1,30 @@
+You are selecting the relevant vocabulary needed to translate a set of English sentences into a synthetic language.
+
+Here is the lexicon of the language:
+
+=== LEXICON START ===
+{lexicon_csv}
+=== LEXICON END ===
+
+Your task:
+Extract ONLY the lexicon entries that are likely to be used in translating the following English sentences:
+
+=== ENGLISH SENTENCES START ===
+{input_sentences}
+=== ENGLISH SENTENCES END ===
+
+Rules:
+1. Select lexicon entries whose English translation matches, relates to, or semantically supports any word or phrase in the English sentences.
+   - Match direct meanings (e.g., "dog", "run", "blue").
+   - Match related grammatical concepts (e.g., pronouns, determiners, adpositions).
+   - Include function words typically needed to form grammatical sentences.
+
+2. Do NOT modify or infer new words.
+3. Do NOT include affixes or bound morphemes.
+4. Do NOT include words that are clearly irrelevant to these sentences.
+5. Keep duplicates out.
+6. Preserve the CSV header exactly as in the original.
+
+Return ONLY a CSV with the SAME header as the original lexicon, containing ONLY the selected lexical items.
+
+Output ONLY the CSV. No explanations.
