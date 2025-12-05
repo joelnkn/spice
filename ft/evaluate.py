@@ -133,8 +133,8 @@ def evaluate_nli(predictions: List[str], labels: List[str]) -> Dict:
 
 def evaluate_sentiment(predictions: List[str], labels: List[str]) -> Dict:
     """Evaluate sentiment predictions."""
-    correct = sum(1 for p, l in zip(predictions, labels) if p.lower() == l.lower())
-    total = len(predictions)
+    correct = sum(1 for p, l in zip(predictions, labels) if l is not None and p.lower() == l.lower())
+    total = sum(1 for l in labels if l is not None)
     accuracy = correct / total if total > 0 else 0.0
     
     return {
