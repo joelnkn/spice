@@ -47,7 +47,7 @@ def extract_amazon(language, split):
     
 
 def extract_indic(language, split):
-    return load_dataset("mteb/IndicSentiment", language, split=split)
+    return load_dataset("mteb/IndicSentiment", language, split=split).filter(lambda row: row["LABEL"] is not None)
 
 CUSTOM_EXTRACT = {
     "amazon": extract_amazon,
@@ -122,7 +122,7 @@ def format_amazon(row):
     return {
         "input": input_text,
         "target": target,
-        "task_id": "sent"
+        "task_id": "sentiment"
     }
     
 def format_indic(row):
@@ -131,7 +131,7 @@ def format_indic(row):
     return {
         "input": input_text,
         "target": target,
-        "task_id": "sent"
+        "task_id": "sentiment"
     }
 
 DATASET_FORMAT = {
