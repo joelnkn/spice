@@ -1,0 +1,291 @@
+{
+    "urdu": { 
+        "inflectional": { 
+            "number": [ 
+                { 
+                    "name": "PL", 
+                    "type": "suffix", 
+                    "form": "zym", 
+                    "function": "plural" 
+                } 
+                ], 
+                "tense_aspect_mood": [ 
+                { 
+                    "name": "PST", 
+                    "type": "suffix", 
+                    "form": "dek", 
+                    "function": "past" }, 
+                { 
+                    "name": "FUT", 
+                    "type": "suffix", 
+                    "form": "gor", 
+                    "function": "future" 
+                }, 
+                { 
+                    "name": "PFV", 
+                    "type": "suffix", 
+                    "form": "tyn", 
+                    "function": "perfective aspect" 
+                }, 
+                { 
+                    "name": "IPFV", 
+                    "type": "suffix", 
+                    "form": "bim", 
+                    "function": "imperfective aspect" 
+                }, 
+                { 
+                    "name": "SUBJ", 
+                    "type": "suffix", 
+                    "form": "ras", 
+                    "function": "subjunctive mood" 
+                } 
+            ], 
+            "voice_valence": [ 
+                { 
+                    "name": "PASS", 
+                    "type": "suffix", 
+                    "form": "hun", 
+                    "function": "passive" 
+                }, 
+                { 
+                    "name": "CAUS", 
+                    "type": "suffix", 
+                    "form": "guz", 
+                    "function": "causative" 
+                } 
+            ], 
+            "case": [ 
+                { 
+                    "name": "ERG", 
+                    "type": "suffix", 
+                    "form": "teg", 
+                    "function": "ergative case" 
+                }, 
+                { 
+                    "name": "ABS", 
+                    "type": "suffix", 
+                    "form": "ir", 
+                    "function": "absolutive case" 
+                }, 
+                { 
+                    "name": "GEN", 
+                    "type": "suffix", 
+                    "form": "ris", 
+                    "function": "genitive case" 
+                } 
+            ] }, "derivational": [ { "name": "AGENT_N", "type": "suffix", "form": "rym", "from_pos": "verb", "to_pos": "noun", "function": "agentive (one who does X)" }, { "name": "ABS_N", "type": "suffix", "form": "sug", "from_pos": "verb", "to_pos": "noun", "function": "abstract noun (state or process)" }, { "name": "ADJ_FROM_N", "type": "suffix", "form": "len", "from_pos": "noun", "to_pos": "adjective", "function": "relational adjective" } ] },
+    "swahili": {
+    "inflectional": {
+        "number": [
+        {
+            "name": "PL",
+            "type": "prefix",
+            "form": "myr",
+            "function": "plural"
+        }
+        ],
+        "tense_aspect_mood": [
+        {
+            "name": "PST",
+            "type": "prefix",
+            "form": "dyr",
+            "function": "past"
+        },
+        {
+            "name": "FUT",
+            "type": "prefix",
+            "form": "gyr",
+            "function": "future"
+        },
+        {
+            "name": "PFV",
+            "type": "prefix",
+            "form": "tyb",
+            "function": "perfective aspect"
+        },
+        {
+            "name": "IPFV",
+            "type": "prefix",
+            "form": "bym",
+            "function": "imperfective aspect"
+        },
+        {
+            "name": "NEG",
+            "type": "prefix",
+            "form": "waf",
+            "function": "verbal negation"
+        }
+        ],
+        "voice_valence": [
+        {
+            "name": "PASS",
+            "type": "prefix",
+            "form": "haf",
+            "function": "passive"
+        },
+        {
+            "name": "CAUS",
+            "type": "prefix",
+            "form": "gry",
+            "function": "causative"
+        },
+        {
+            "name": "APPL",
+            "type": "prefix",
+            "form": "pem",
+            "function": "applicative (adds applied object or beneficiary)"
+        }
+        ]
+    },
+    "derivational": [
+        {
+        "name": "AGENT_N",
+        "type": "suffix",
+        "form": "rym",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "agentive (one who does X)"
+        },
+        {
+        "name": "RESULT_N",
+        "type": "suffix",
+        "form": "das",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "result noun (thing produced by doing X)"
+        },
+        {
+        "name": "ABSTRACT_N",
+        "type": "suffix",
+        "form": "siy",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "abstract noun (state or process of doing X)"
+        },
+        {
+        "name": "ADJ_FROM_N",
+        "type": "suffix",
+        "form": "tuy",
+        "from_pos": "noun",
+        "to_pos": "adjective",
+        "function": "relational adjective (pertaining to the noun)"
+        },
+        {
+        "name": "ADJ_FROM_V",
+        "type": "suffix",
+        "form": "ryn",
+        "from_pos": "verb",
+        "to_pos": "adjective",
+        "function": "stative/resultant adjective (being in the state resulting from X)"
+        }
+    ]
+    },
+    "arabic": {
+        "inflectional": {
+        "number": [
+        {
+        "name": "PL",
+        "type": "suffix",
+        "form": "rimu",
+        "function": "plural (more than one referent; singular is unmarked)"
+        }
+        ],
+        "tense_aspect_mood": [
+        {
+        "name": "PST",
+        "type": "suffix",
+        "form": "duq",
+        "function": "past (binary contrast with unmarked nonpast)"
+        },
+        {
+        "name": "IPFV",
+        "type": "suffix",
+        "form": "galy",
+        "function": "imperfective (ongoing or habitual viewpoint, compatible with either tense)"
+        },
+        {
+        "name": "PFV",
+        "type": "suffix",
+        "form": "suq",
+        "function": "perfective (completed, whole-event viewpoint, compatible with either tense)"
+        },
+        {
+        "name": "IRR",
+        "type": "suffix",
+        "form": "tajm",
+        "function": "irrealis / modal (desired, possible, counterfactual or non-actual situations)"
+        },
+        {
+        "name": "NEG",
+        "type": "suffix",
+        "form": "huz",
+        "function": "verbal negation (clausal negator attaching to the main verb)"
+        }
+        ],
+        "voice_valence": [
+        {
+        "name": "PASS",
+        "type": "suffix",
+        "form": "zulam",
+        "function": "passive (demotes or omits agent, promotes patient to subject)"
+        },
+        {
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "tibar",
+        "function": "causative (adds a higher agent/causer, demotes original subject)"
+        }
+        ]
+        },
+        "derivational": [
+        {
+        "name": "AGENT_N",
+        "type": "suffix",
+        "form": "namur",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "agentive (one who habitually or characteristically does X)"
+        },
+        {
+        "name": "ACTION_N",
+        "type": "suffix",
+        "form": "duris",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "eventive/action noun (the act or process of doing X)"
+        },
+        {
+        "name": "RESULT_N",
+        "type": "suffix",
+        "form": "galm",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "result noun (product or outcome of doing X)"
+        },
+        {
+        "name": "ABSTR_N",
+        "type": "suffix",
+        "form": "siqur",
+        "from_pos": "adjective",
+        "to_pos": "noun",
+        "function": "abstract quality noun (the property or quality of being X)"
+        },
+        {
+        "name": "ADJ_FROM_N",
+        "type": "suffix",
+        "form": "rilug",
+        "from_pos": "noun",
+        "to_pos": "adjective",
+        "function": "relational/adjectival (having, relating to, or characterized by X)"
+        },
+        {
+        "name": "ADJ_FROM_V",
+        "type": "suffix",
+        "form": "huqi",
+        "from_pos": "verb",
+        "to_pos": "adjective",
+        "function": "verbal adjective (inclined or apt to do X; often used for participant roles)"
+        }
+        ]
+    }
+}

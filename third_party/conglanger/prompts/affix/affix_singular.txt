@@ -32,7 +32,7 @@ Return JSON ONLY in this structure:
     "number": [
       {{
         "name": "PL",
-        "type": "suffix",
+        "type": "<prefix|suffix>",
         "form": "<affix_form>",
         "function": "plural"
       }}
@@ -40,7 +40,7 @@ Return JSON ONLY in this structure:
     "tense_aspect_mood": [
       {{
         "name": "PST",
-        "type": "suffix",
+        "type": "<prefix|suffix>",
         "form": "<affix_form>",
         "function": "past"
       }}
@@ -48,13 +48,13 @@ Return JSON ONLY in this structure:
     "voice_valence": [
       {{
         "name": "PASS",
-        "type": "suffix",
+        "type": "<prefix|suffix>",
         "form": "<affix_form>",
         "function": "passive"
       }},
       {{
         "name": "CAUS",
-        "type": "suffix",
+        "type": "<prefix|suffix>",
         "form": "<affix_form>",
         "function": "causative"
       }}
@@ -63,7 +63,7 @@ Return JSON ONLY in this structure:
   "derivational": [
     {{
       "name": "AGENT_N",
-      "type": "suffix",
+      "type": "<prefix|suffix>",
       "form": "<affix_form>",
       "from_pos": "verb",
       "to_pos": "noun",

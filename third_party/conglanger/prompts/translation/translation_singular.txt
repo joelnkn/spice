@@ -34,42 +34,41 @@ Translate the following English sentences (newline-separated) into the construct
 RULES:
 
 1. **Prefer existing vocabulary.**
-   - Always try to use lexicon entries (and their inflected forms).
+   - Use only lexicon entries (and their inflected forms) whenever possible.
+   - Do NOT assign new meanings to existing words.
    - Only invent a new word if:
-     • no existing lexeme expresses the meaning, AND  
-     • paraphrasing with existing lexemes is not possible.
+     • no lexeme in the lexicon can express the meaning, even with paraphrasing, AND
+     • the meaning cannot be expressed by combining existing vocabulary.
 
 2. **New words (only as last resort) must:**
-   - follow the orthography rules exactly,
-   - be full standalone words (not affixes, not bound stems),
-   - obey the typology and be compatible with the affix system,
+   - follow the orthography exactly,
+   - be full standalone words (not affixes or bound stems),
+   - fit the typology and affix system,
    - be short (3–6 letters preferred),
    - NEVER resemble English or any real language,
    - NEVER use hyphens,
-   - NEVER duplicate or collide with any form already in the lexicon.
+   - NEVER duplicate or resemble any form already in the lexicon.
 
 3. **Inflection:**
    - Apply inflectional affixes exactly as defined in the affix inventory.
    - Do not invent new inflection.
-   - If a required category does not exist, express the idea periphrastically.
+   - If a required category does not exist, use periphrasis.
 
 4. **Syntax & word order:**
-   - Follow the basic word order from the feature vector.
-   - Follow adposition type, genitive order, adjective order, and relativization type.
-   - Follow the question-marking strategy.
+   - Follow the canonical word order and all structural rules (adpositions, genitives, adjective position, relativization, question marking)
    - Do NOT invent new constructions beyond what is implied by the typology.
 
 5. **Gloss line:**
    - Provide morpheme-by-morpheme glossing.
    - Segment words ONLY where the affix inventory defines a bound morpheme.
-   - If a word has no affixes, gloss it as a single item.
+   - Words without affixes receive a single gloss.
 
 6. **Consistency:**
    - All bound morphemes must come from the affix inventory.
    - All free words must come from:
        • the lexicon, OR
        • the “new_words” list for this translation.
-   - Do not use any unexplained forms.
+   - Do not introduce unexplained forms.
 
 RETURN FORMAT:
 

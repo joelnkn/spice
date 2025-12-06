@@ -1,4 +1,4 @@
-====ARABIC START====
+====SWAHILI START====
 You are generating the lexicon for a synthetic language.
 
 The language uses the following orthography rules:
@@ -19,37 +19,36 @@ Anti-English:
   "less", "ful", "pre", "re", "un", "dis".
 - If a word looks close to an English word, change at least 2 letters.
 • Language-specific orthography:
-- Letter inventory: {a, i, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
-- Use default CV/CVC syllables; do not spell long vowels as double letters.
-
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, p, r, s, t, w, y}.
+- Favors simple CV and CVC syllables; mostly avoids complex consonant clusters.
 === ORTHOGRAPHY END ===
 
 It has the following typological profile:
 
 === FEATURE VECTOR START ===
 {
-  "morphological_fusion": "fusional",
-  "affixation_balance": "suffixing",
-  "gender_inventory": "few",
+  "morphological_fusion": "agglutinating",
+  "affixation_balance": "prefixing",
+  "gender_inventory": "many",
   "number_marking": "obligatory",
-  "case_inventory": "moderate",
+  "case_inventory": "minimal",
   "numeral_classifiers": "non-classifier",
-  "basic_word_order": "VSO",
+  "basic_word_order": "SVO",
   "adposition_type": "prepositional",
   "genitive_noun_order": "genitive-after-noun",
   "adjective_noun_order": "adjective-after-noun",
   "relative_clause_order": "head-initial",
   "relative_clause_marking": "relative-pronoun",
   "alignment_typology": "nominative–accusative",
-  "agreement_pattern": "subject-only",
-  "tense_system": "binary-past-nonpast",
+  "agreement_pattern": "subject-object",
+  "tense_system": "rich",
   "aspect_system": "moderate",
-  "mood_system": "moderate",
+  "mood_system": "simple",
   "negation_strategy": "verbal-affix",
   "causative_morphology": "present",
   "passive_morphology": "present",
-  "applicative_morphology": "absent",
-  "question_marking_strategy": "wh-fronting"
+  "applicative_morphology": "present",
+  "question_marking_strategy": "interrogative-particle"
 }
 === FEATURE VECTOR END ===
 
@@ -61,55 +60,61 @@ Its affix inventory is:
     "number": [
       {
         "name": "PL",
-        "type": "suffix",
-        "form": "rimu",
-        "function": "plural (more than one referent; singular is unmarked)"
+        "type": "prefix",
+        "form": "myr",
+        "function": "plural"
       }
     ],
     "tense_aspect_mood": [
       {
         "name": "PST",
-        "type": "suffix",
-        "form": "duq",
-        "function": "past (binary contrast with unmarked nonpast)"
+        "type": "prefix",
+        "form": "dyr",
+        "function": "past"
       },
       {
-        "name": "IPFV",
-        "type": "suffix",
-        "form": "galy",
-        "function": "imperfective (ongoing or habitual viewpoint, compatible with either tense)"
+        "name": "FUT",
+        "type": "prefix",
+        "form": "gyr",
+        "function": "future"
       },
       {
         "name": "PFV",
-        "type": "suffix",
-        "form": "suq",
-        "function": "perfective (completed, whole-event viewpoint, compatible with either tense)"
+        "type": "prefix",
+        "form": "tyb",
+        "function": "perfective aspect"
       },
       {
-        "name": "IRR",
-        "type": "suffix",
-        "form": "tajm",
-        "function": "irrealis / modal (desired, possible, counterfactual or non-actual situations)"
+        "name": "IPFV",
+        "type": "prefix",
+        "form": "bym",
+        "function": "imperfective aspect"
       },
       {
         "name": "NEG",
-        "type": "suffix",
-        "form": "huz",
-        "function": "verbal negation (clausal negator attaching to the main verb)"
+        "type": "prefix",
+        "form": "waf",
+        "function": "verbal negation"
       }
     ],
     "voice_valence": [
       {
         "name": "PASS",
-        "type": "suffix",
-        "form": "zulam",
-        "function": "passive (demotes or omits agent, promotes patient to subject)"
+        "type": "prefix",
+        "form": "haf",
+        "function": "passive"
       },
       {
         "name": "CAUS",
-        "type": "suffix",
-        "form": "tibar",
-        "function": "causative (adds a higher agent/causer, demotes original subject)"
+        "type": "prefix",
+        "form": "gry",
+        "function": "causative"
+      },
+      {
+        "name": "APPL",
+        "type": "prefix",
+        "form": "pem",
+        "function": "applicative (adds applied object or beneficiary)"
       }
     ]
   },
@@ -117,50 +122,42 @@ Its affix inventory is:
     {
       "name": "AGENT_N",
       "type": "suffix",
-      "form": "namur",
+      "form": "rym",
       "from_pos": "verb",
       "to_pos": "noun",
-      "function": "agentive (one who habitually or characteristically does X)"
-    },
-    {
-      "name": "ACTION_N",
-      "type": "suffix",
-      "form": "duris",
-      "from_pos": "verb",
-      "to_pos": "noun",
-      "function": "eventive/action noun (the act or process of doing X)"
+      "function": "agentive (one who does X)"
     },
     {
       "name": "RESULT_N",
       "type": "suffix",
-      "form": "galm",
+      "form": "das",
       "from_pos": "verb",
       "to_pos": "noun",
-      "function": "result noun (product or outcome of doing X)"
+      "function": "result noun (thing produced by doing X)"
     },
     {
-      "name": "ABSTR_N",
+      "name": "ABSTRACT_N",
       "type": "suffix",
-      "form": "siqur",
-      "from_pos": "adjective",
+      "form": "siy",
+      "from_pos": "verb",
       "to_pos": "noun",
-      "function": "abstract quality noun (the property or quality of being X)"
+      "function": "abstract noun (state or process of doing X)"
     },
     {
       "name": "ADJ_FROM_N",
       "type": "suffix",
-      "form": "rilug",
+      "form": "tuy",
       "from_pos": "noun",
       "to_pos": "adjective",
-      "function": "relational/adjectival (having, relating to, or characterized by X)"
+      "function": "relational adjective (pertaining to the noun)"
     },
     {
       "name": "ADJ_FROM_V",
       "type": "suffix",
-      "form": "huqi",
+      "form": "ryn",
       "from_pos": "verb",
       "to_pos": "adjective",
-      "function": "verbal adjective (inclined or apt to do X; often used for participant roles)"
+      "function": "stative/resultant adjective (being in the state resulting from X)"
     }
   ]
 }
@@ -224,5 +221,227 @@ Each row must contain exactly 3 comma-separated fields:
 No commas are allowed inside any field.
 
 Output ONLY the CSV. No commentary or explanation.
-====ARABIC END====
+====SWAHILI END====
 
+====URDU START====
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography:
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, p, q, r, s, t, w, y, z}.
+- Uses CV and CVC syllables with occasional simple clusters; emphatic/aspirated contrasts use fixed letter sequences.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "fusional",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "few",
+  "number_marking": "obligatory",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "non-classifier",
+  "basic_word_order": "SOV",
+  "adposition_type": "postpositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-before-noun",
+  "relative_clause_order": "head-final",
+  "relative_clause_marking": "relative-pronoun",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "subject-only",
+  "tense_system": "rich",
+  "aspect_system": "rich",
+  "mood_system": "moderate",
+  "negation_strategy": "preverbal-particle",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "absent",
+  "question_marking_strategy": "wh-fronting"
+}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "suffix",
+        "form": "zym",
+        "function": "plural"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "suffix",
+        "form": "dek",
+        "function": "past"
+      },
+      {
+        "name": "FUT",
+        "type": "suffix",
+        "form": "gor",
+        "function": "future"
+      },
+      {
+        "name": "PFV",
+        "type": "suffix",
+        "form": "tyn",
+        "function": "perfective aspect"
+      },
+      {
+        "name": "IPFV",
+        "type": "suffix",
+        "form": "bim",
+        "function": "imperfective aspect"
+      },
+      {
+        "name": "SUBJ",
+        "type": "suffix",
+        "form": "ras",
+        "function": "subjunctive mood"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "suffix",
+        "form": "hun",
+        "function": "passive"
+      },
+      {
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "guz",
+        "function": "causative"
+      }
+    ],
+    "case": [
+      {
+        "name": "ERG",
+        "type": "suffix",
+        "form": "teg",
+        "function": "ergative case"
+      },
+      {
+        "name": "ABS",
+        "type": "suffix",
+        "form": "ir",
+        "function": "absolutive case"
+      },
+      {
+        "name": "GEN",
+        "type": "suffix",
+        "form": "ris",
+        "function": "genitive case"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "rym",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    },
+    {
+      "name": "ABS_N",
+      "type": "suffix",
+      "form": "sug",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "abstract noun (state or process)"
+    },
+    {
+      "name": "ADJ_FROM_N",
+      "type": "suffix",
+      "form": "len",
+      "from_pos": "noun",
+      "to_pos": "adjective",
+      "function": "relational adjective"
+    }
+  ]
+}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.
+====URDU END====

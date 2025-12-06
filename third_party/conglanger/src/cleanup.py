@@ -34,16 +34,15 @@ def update_lexicon_with_new_words(new_words: List[Dict[str, str]], args) -> str:
     lexicon_path = os.path.join(args.memory_dir, "lexicon", "lexicon.csv")
     iter_dir = os.path.join(args.memory_dir, f"iter_{args.iteration}")
     os.makedirs(iter_dir, exist_ok=True)
-
-    iter_new_words_path = os.path.join(iter_dir, "new_words.json")
+    new_words_path = os.path.join(iter_dir, "new_words.json")
 
     # ----------------------------------------------------
-    # Save new words (JSON) for this iteration
+    # Save new words (JSON) at iteration level
     # ----------------------------------------------------
     try:
-        with open(iter_new_words_path, "w", encoding="utf-8") as f:
+        with open(new_words_path, "w", encoding="utf-8") as f:
             json.dump(new_words, f, indent=2, ensure_ascii=False)
-        logger.info(f"Saved new words for iteration {args.iteration} to {iter_new_words_path}")
+        logger.info(f"Saved new words for iteration {args.iteration} to {new_words_path}")
     except Exception as e:
         logger.error(f"Failed to save new_words.json: {e}")
 
@@ -295,11 +294,13 @@ def extract_new_grammar_rules(lang_dir) -> List[str]:
     update_metadata_value(lang_dir, "num_new_grammar_rules", len(new_rules))
     return new_rules
 
-def append_sentences_to_valid_translations(memory_dir, iteration) -> str:
+def append_sentences_to_valid_translations(memory_dir, iteration, batch_size=8) -> str:
     """Append all sentences from translation.json to valid_translations.json in memory_dir/translation.
     Creates valid_translations.json if it does not exist.
+    Each sentence group includes the iteration number that translated those sentences.
     Args:
         memory_dir: Path to the memory directory
+        iteration: The iteration number that produced these translations
     Returns:
         Path to the updated valid_translations.json file
     """
@@ -318,6 +319,12 @@ def append_sentences_to_valid_translations(memory_dir, iteration) -> str:
         logger.warning("No sentences found in translation.json")
         return valid_translations_path
 
+    # Add iteration number to each sentence
+    for i, sentence in enumerate(sentences):
+        sentence['iteration'] = iteration
+        sentence['index_in_iteration'] = i
+        sentence['global_index'] = iteration * batch_size + i
+
     # Load or create valid_translations.json
     if os.path.exists(valid_translations_path):
         with open(valid_translations_path, 'r', encoding='utf-8') as f:
@@ -330,5 +337,5 @@ def append_sentences_to_valid_translations(memory_dir, iteration) -> str:
     valid_sentences.extend(sentences)
     with open(valid_translations_path, 'w', encoding='utf-8') as f:
         json.dump({'sentences': valid_sentences}, f, ensure_ascii=False, indent=2)
-    logger.info(f"Appended {len(sentences)} sentences to {valid_translations_path}")
+    logger.info(f"Appended {len(sentences)} sentences from iteration {iteration} to {valid_translations_path}")
     return valid_translations_path

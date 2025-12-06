@@ -11,7 +11,6 @@ import json
 import os
 from typing import Dict, Tuple
 from dataclasses import dataclass
-from synthetic.config import OUTPUT_DIR
 
 @dataclass
 class LanguageComparison:
@@ -19,37 +18,60 @@ class LanguageComparison:
     similarity: float      # matching / comparable
     valid_features: int    # comparable features
 
-def get_synthetic_feature_path(run_name: str, language_id: str) -> str:
-    """Get the path to the feature_analysis.json file for a language.
+def load_feature_dict(lang_name: str) -> Dict[str, str]:
+    """Load feature vector for a language.
     
     Args:
-        run_name: Name of the run
-        language_id: Unique ID of the language
-        
-    Returns:
-        Path to feature_analysis.json file
-    """
-    feature_path = os.path.join(OUTPUT_DIR, run_name, 'languages', language_id, 'analysis', 'features.json')
-    return feature_path
-
-def load_feature_dict(feature_path: str) -> Dict[str, str]:
-    """Load feature dictionary from feature_analysis.json.
+        lang_name: Language name. Can be:
+            - "low_0", "low_1", etc. → loads from base_specifications/random/low.json, gets entry i
+            - "high_0", "high_1", etc. → loads from base_specifications/random/high.json, gets entry i
+            - Any other name → loads from base_specifications/target/feature_vectors.json, gets lang_name entry
     
-    Args:
-        feature_path: Path to feature_analysis.json file
     Returns:
-        Dictionary mapping feature names to their values
+        Dictionary containing feature vector for the language
     """
+    # Find the project root by looking for third_party
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = current_dir
+    while project_root != os.path.dirname(project_root):  # Until we reach filesystem root
+        if os.path.exists(os.path.join(project_root, 'third_party')):
+            break
+        project_root = os.path.dirname(project_root)
+    
+    base_spec_dir = os.path.join(project_root, 'third_party', 'conglanger', 'base_specifications')
+    
+    # Check if lang_name matches pattern: low_N or high_N
+    parts = lang_name.split('_')
+    if len(parts) == 2 and parts[0] in ['low', 'high']:
+        try:
+            index = int(parts[1])
+            group = parts[0]
+            feature_path = os.path.join(base_spec_dir, 'random', f'{group}', 'feature_vectors.json')
+            
+            with open(feature_path, 'r', encoding='utf-8') as f:
+                all_features = json.load(f)
+            
+            # all_features should be a list, get the ith entry
+            if isinstance(all_features, list) and index < len(all_features):
+                return all_features[index]
+            else:
+                return {}
+        except (ValueError, FileNotFoundError):
+            pass
+    
+    # Otherwise, load from target/feature_vectors.json
+    feature_path = os.path.join(base_spec_dir, 'target', 'feature_vectors.json')
+    
     with open(feature_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+        all_features = json.load(f)
+    
+    return all_features.get(lang_name, {})
 
-
-def compare_languages(lang1_feature_path: str, lang2_feature_path: str) -> LanguageComparison:
+def compare_languages(lang1_name: str, lang2_name: str) -> LanguageComparison:
     """Compare two languages based on their feature vectors."""
     
-    features1 = load_feature_dict(lang1_feature_path)
-    features2 = load_feature_dict(lang2_feature_path)
-
+    features1 = load_feature_dict(lang1_name)
+    features2 = load_feature_dict(lang2_name)
     valid_features = 0
     matching_features = 0
 
@@ -76,24 +98,24 @@ def compare_languages(lang1_feature_path: str, lang2_feature_path: str) -> Langu
         valid_features=valid_features
     )
 
-def average_pairwise_distance(feature_paths: list[str]) -> Tuple[float, int]:
+def average_pairwise_distance(lang_names: list[str]) -> Tuple[float, int]:
     """
     Compute the average *normalized* pairwise distance over all languages.
     
     Args:
-        feature_paths: List of paths to feature_analysis.json files
+        lang_names: List of language names
     
     Returns:
         Tuple of (mean_distance, num_pairs)
     """
-    n = len(feature_paths)
+    n = len(lang_names)
     if n < 2:
         return 0.0, 0
 
     pair_dists = []
     for i in range(n):
         for j in range(i + 1, n):
-            comp = compare_languages(feature_paths[i], feature_paths[j])
+            comp = compare_languages(lang_names[i], lang_names[j])
             # skip pairs that had no overlapping features
             if comp.valid_features == 0:
                 continue

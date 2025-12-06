@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 import json
 from llm_client import PromptManager
 from tqdm.auto import tqdm
@@ -34,7 +33,6 @@ def save_with_qa(args, llm_client, content, step_name, filename, metadata,
     qa_metadata['content_before_qa'] = original_content
     qa_metadata['content_after_qa'] = final_content
     qa_metadata['content_changed'] = original_content != final_content
-    logger.info(f"{step_name} QA metadata: {qa_metadata}")
         
     metadata['qa_results'] = qa_metadata
 
@@ -188,9 +186,8 @@ def generate_and_parse_json_with_retries(llm_client, prompt, max_retries=3, do_s
             last_error = e
             if logger:
                 logger.warning(f"Attempt {attempt}: Failed to parse LLM response as JSON. Retrying... Error: {e}\nResponse: {cleaned}")
-    if logger:
-        logger.error(f"All {max_retries} attempts failed to produce valid JSON. Last error: {last_error}")
-    return cleaned, None
+
+    raise RuntimeError(f"Failed to parse JSON from LLM after {max_retries} attempts. Last error: {last_error}")
 
 
 def _csv_to_text_for_qa(csv_data: str) -> str:
@@ -277,7 +274,7 @@ def run_affix_step(args, llm_client) -> str:
     # TODO: use this to get the prompt to paste into chat gpt (see in prompts/affix/<all_target>)
     # change to <all_random_<low|medium|high>> for random languages
     try:
-        target_file = os.path.join(args.prompt_dir, "affix", "all_target.py")
+        target_file = os.path.join(args.prompt_dir, "affix", "all_target.txt")
         with open(target_file, "a", encoding="utf-8") as f:
             f.write(f"\n{affix_filled}\n")
         logger.info(f"Appended affix prompt to {target_file}")
@@ -400,7 +397,7 @@ def run_translation_step(args, llm_client):
     - Optionally shrink lexicon via lex_extraction.txt
     - Run translation_singular.txt
     - Run QA
-    - Save translation.json under memory_dir/translation
+    - Save translation.json under memory_dir/iter_N/translation
     """
     trans_dir = os.path.join(args.memory_dir, f"iter_{args.iteration}", "translation")
     os.makedirs(trans_dir, exist_ok=True)
@@ -455,15 +452,13 @@ def run_translation_step(args, llm_client):
         )
         required_lex_csv = lexicon_csv
 
-    # Save required lexicon for this iteration (optional but nice)
-    iter_idx = getattr(args, "iteration", -1)
-    if iter_idx >= 0:
-        iter_dir = os.path.join(args.memory_dir, f"iter_{iter_idx}")
-        os.makedirs(iter_dir, exist_ok=True)
-        req_lex_path = os.path.join(iter_dir, "required_lexicon.csv")
-        with open(req_lex_path, "w", encoding="utf-8") as f:
-            f.write(required_lex_csv)
-        logger.info(f"Saved required lexicon for iter {iter_idx} to {req_lex_path}")
+    # Save required lexicon at iteration level
+    iter_dir = os.path.join(args.memory_dir, f"iter_{args.iteration}")
+    os.makedirs(iter_dir, exist_ok=True)
+    req_lex_path = os.path.join(iter_dir, "required_lexicon.csv")
+    with open(req_lex_path, "w", encoding="utf-8") as f:
+        f.write(required_lex_csv)
+    logger.info(f"Saved required lexicon to {req_lex_path}")
 
     # 2) Translation prompt
     translation_prompt = PromptManager.load_prompt(
@@ -508,7 +503,7 @@ def run_translation_step(args, llm_client):
     metadata = {
         "input_sentences": input_sentences,
         "lexicon_provided": True,
-        "iteration": iter_idx,
+        "iteration": args.iteration,
     }
 
     save_with_qa(

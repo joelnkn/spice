@@ -47,6 +47,11 @@ synthetic/outputs/
 *.pt
 *.pth
 
+# Allow base_specifications in conglanger (tracked data files)
+!third_party/conglanger/base_specifications/
+!third_party/conglanger/base_specifications/**/*.csv
+!third_party/conglanger/base_specifications/**/*.json
+
 # Logs
 logs/
 *.log

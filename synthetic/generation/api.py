@@ -1,7 +1,6 @@
-import os
 from dotenv import load_dotenv
 
-from synthetic.utils import get_new_target_language_id
+from synthetic.utils import get_latest_target_id, get_latest_target_iteration, get_new_target_id
 
 # Load environment variables from .env file
 load_dotenv()
@@ -9,25 +8,6 @@ load_dotenv()
 from synthetic.conglanger import run_conglanger
 from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
-
-# Target languages available for synthetic language generation
-TARGET_LANGUAGES = [
-    "arabic",
-    "bulgarian",
-    "german",
-    "greek",
-    "english",
-    "spanish",
-    "french",
-    "hindi",
-    "russian",
-    "swahili",
-    "thai",
-    "turkish",
-    "urdu",
-    "vietnamese",
-    "chinese",
-]
 
 class NLISentenceOnlyDataset(Dataset):
     def __init__(self, hf_dataset):
@@ -48,7 +28,7 @@ def get_snli_batches():
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
-        ds, batch_size=2, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
+        ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
     )
     return loader
 
@@ -74,10 +54,10 @@ def apply_step_for_target(step, lang_id, target_lang, iteration=-1, batch=None):
         translation_sentence=batch,
     )
     
-def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in_group, num_batches=None):
+def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in_group, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_snli_batches()
-    for batch_idx, batch in enumerate(dataset, 1):
+    for batch_idx, batch in enumerate(dataset, iteration + 1):
         if num_batches is not None and batch_idx > num_batches:
             break
         print(f"Translating (batch {batch_idx}): {batch[:20]}... for {lang_id}")
@@ -92,10 +72,11 @@ def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in
         results.append(result)
     return results
 
-def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None):
+def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_snli_batches()
-    for batch_idx, batch in enumerate(dataset, 1):
+    for batch_idx, batch in enumerate(dataset, iteration + 1):
+        print(f"num_batches and batch_idx: {num_batches}, {batch_idx}")
         if num_batches is not None and batch_idx > num_batches:
             break
         print(f"Translating (batch {batch_idx}): {batch[:20]}... for{lang_id}")
@@ -110,17 +91,44 @@ def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None)
     return results
 
 if __name__ == "__main__":
-    corpus = None  # Lazily load SNLI only if translation is requested
+    corpus = get_snli_batches() 
+    
+    # start a new attempt for translating a language
+    # lang_id = get_new_language_id(target_directory)
+    
+    # continue translating last attempt for a language after the last translation iteration (when it stopped)
+    lang_id = get_latest_target_id("swahili") 
+    iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
+    print(f"Continuing translation for language ID {lang_id} at iteration {iteration}")
+    
+    # lang_id = get_new_target_id("swahili")
+    # print(f"Starting new translation for language ID {lang_id}")
+    
+    # translate corpus
+    translate_dataset_for_target(
+        corpus=corpus,
+        lang_id=lang_id,
+        target_lang="swahili",
+        num_batches=None, # runs all batches
+        iteration=iteration,
+    )
+    # translate_dataset_using_random(
+    #     corpus=corpus,
+    #     lang_id=lang_id,
+    #     average_hamming_dist="low",
+    #     num_in_group=0,
+    #     num_batches=2,
+    # )
+    
 
-    lang_id = get_new_target_language_id("arabic")
-    # lang_id = get_new_random_language_id(average_hamming_dist="low", num_in_group=0)
+
+    # IGNORE BUT LEAVE BELOW
     
     # create affixes
-    # for lang in TARGET_LANGUAGES:
     # apply_step_for_target(
     #     step="affix",
     #     lang_id=lang_id,
-    #     target_lang="arabic",
+    #     target_lang="urdu",
     # )
     # apply_step_for_random(
     #     step="affix",
@@ -133,7 +141,7 @@ if __name__ == "__main__":
     # apply_step_for_target(
     #     step="lexicon",
     #     lang_id=lang_id,
-    #     target_lang="arabic",
+    #     target_lang="urdu",
     # )
     # apply_step_for_random(
     #     step="lexicon",
@@ -141,20 +149,3 @@ if __name__ == "__main__":
     #     average_hamming_dist="low",
     #     num_in_group=0,
     # )
-
-    # translate corpus
-    translate_dataset_for_target(
-        corpus=corpus,
-        lang_id=lang_id,
-        target_lang="arabic",
-        num_batches=1,
-    )
-    # translate_dataset_using_random(
-    #     corpus=corpus,
-    #     lang_id=lang_id,
-    #     average_hamming_dist="low",
-    #     num_in_group=0,
-    #     num_batches=2,
-    # )
-    
-    # TODO: check affix structure

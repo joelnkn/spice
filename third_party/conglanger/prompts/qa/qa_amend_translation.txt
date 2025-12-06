@@ -10,7 +10,7 @@ Here is the quality assessment:
 
 Please produce a corrected version of the translation that fixes all issues listed in the judgement.
 Apply every correction as specified. 
-If a new word conflicts with the existing lexicon, rename or adjust it so that it no longer conflicts.
+For any new word with conflicts, change it exactly how specified by the judgement.
 
 Do NOT introduce any new grammar rules beyond what is implied by the feature vector and affix inventory.
 

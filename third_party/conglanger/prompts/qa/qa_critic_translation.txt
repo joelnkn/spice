@@ -13,41 +13,25 @@ Here are detected conflicts between newly proposed words and the existing lexico
 {lexicon_conflicts}
 === LEXICON CONFLICTS END ===
 
-Each conflict object has:
-- "word"
-- "existing_pos"
-- "existing_translation"
-- "new_pos"
-- "new_translation"
-- "issue": "pos_mismatch" | "translation_mismatch" | "both_mismatch"
+Your task: Evaluate the accuracy and consistency of the translation.
 
+Distinguish among:
+- base lexemes (listed in lexicon)
+- inflected forms (base + inflectional affixes)
+- derived forms (base + derivational affixes)
+- newly coined base lexemes (true new words)
+Derived/inflected forms MUST NOT be treated as new words.
 
-Your task:
-Evaluate the accuracy, correctness, and consistency of the translation.
+Return JSON with:
 
-You MUST distinguish among:
-- **base lexemes** (free roots listed in the lexicon)
-- **inflected forms** (base + inflectional affixes)
-- **derived forms** (base + derivational affix)
-- **newly coined base lexemes** (true "new words")
+1. "overall_score" (1–10) based on:
+   orthography, affix legality, feature-vector compliance,
+   lexicon usage, morphological correctness, gloss accuracy,
+   semantic accuracy.
 
-A derived or inflected form **MUST NOT** be counted as a new word.
-
-
-Return a JSON object with:
-
-1. **"overall_score"** — integer 1–10 evaluating:
-   - orthography consistency  
-   - correct and legal use of affixes  
-   - consistency with the feature vector (word order, alignment, adpositions, etc.)  
-   - correct use of lexicon  
-   - correct morphological analysis (inflection/derivation applied according to the affix inventory)  
-   - accuracy of glossing (morpheme boundaries & functions)  
-   - semantic accuracy  
-
-2. **"issues"** — list of objects:
+2. "issues": list of:
    {{
-     "issue": "<description>",
+     "issue": "<short description>",
      "type": "<orthography_violation|affix_error|feature_violation|lexical_error|glossing_error|semantic_error|consistency_error>",
      "correction": "<how to fix>",
      "priority": <1|2|3>
@@ -64,29 +48,31 @@ SPECIAL CONSISTENCY RULES:
      report a **priority 1** `"consistency_error"`.
 
 2. **Incorrect affix use:**
-   - If a form uses an affix not listed in the affix inventory, or uses an affix in a function it does not encode, report an **"affix_error"**.
-   - Incorrect order of affixes also counts as `"affix_error"`.
+   - Only affixes in the inventory may be used.
+   - Must be used with correct function and order.
+   - Affixes cannot be treated as new words.
 
 3. **Derived forms:**
-   - If a derived form (base + derivational affix) appears:
-       • DO NOT treat it as a new word.  
-       • BUT verify the derivation is allowed (e.g. affix from verb→noun).  
-       • If not allowed, add an `"affix_error"`.
+   - Allowed only if the derivation (POS→POS) is legal.
+   - If illegal → "affix_error"
+   - DO NOT treat them as new words.
 
 4. **Lexicon conflicts:**
    - For each conflict in LEXICON CONFLICTS:
        • Add a **priority 1 "consistency_error"**.  
-       • The correction must instruct the translator to rename the new word OR adjust POS/translation to remove the conflict.
+       • The correction must correction must rename or adjust POS/translation.
 
 5. **Necessity of new words:**
    For each invented base lexeme:
-   - If the meaning could have been expressed using an existing word or paraphrase, add a **priority 1 or 2 "lexical_error"**.
-   - If the word resembles English or violates orthography, report accordingly.
+   - If the meaning could have been expressed using a different existing word or paraphrase, add a **priority 1 "lexical_error"**.
+   - If the word resembles English or violates orthography, report a priority 1 "orthography_violation".
 
 6. **Gloss correctness:**
-   - Ensure glosses reflect affix boundaries exactly.
-   - Ensure all gloss labels correspond to actual functions of the affixes.
+   - Glosses must match affix boundaries and true functions.
    - Glossing mistakes are `"glossing_error"`.
 
-
-Output ONLY the JSON. No explanations.
+Output rules:
+- PRIORITY MUST be 1, 2, or 3 ONLY. Never 0 or "none".
+- If something is not an issue, do NOT include it.
+- If total issues > 20 → list only priority 1–2 (drop all priority 3).
+- Output ONLY the JSON.

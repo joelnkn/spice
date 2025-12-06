@@ -10,29 +10,6 @@ _conglanger_src = os.path.join(os.path.dirname(__file__), '../third_party/congla
 if _conglanger_src not in sys.path:
     sys.path.insert(0, _conglanger_src)
 
-# Import modules dynamically
-#_llm_client = importlib.import_module('llm_client')
-# _utils = importlib.import_module('utils')
-# _pipeline_steps = importlib.import_module('pipeline_steps')
-
-# Re-export classes and functions
-# PromptManager = _llm_client.PromptManager
-# LLMClientGemini = _llm_client.LLMClientGemini
-# LLMClientDeepseek = _llm_client.LLMClientDeepseek
-# LLMClientOpenAI = _llm_client.LLMClientOpenAI
-
-# clean_response = _utils.clean_response
-# alphabetize_csv_text = _utils.alphabetize_csv_text
-# get_csv_text_n_entries = _utils.get_csv_text_n_entries
-# copy_folders = _utils.copy_folders
-# load_required_files = _utils.load_required_files
-# create_llm_client = _utils.create_llm_client
-
-# run_grammar_step = _pipeline_steps.run_grammar_step
-# run_lexicon_step = _pipeline_steps.run_lexicon_step
-# run_translation_step = _pipeline_steps.run_translation_step
-
-
 def run_conglanger(
     lang_name,
     run_name=None,

@@ -59,20 +59,57 @@ def setup_logging(output_file: str):
 
 
 def save_metadata(lang_dir, language_id, args):
-    """Save metadata about the language generation."""
-    metadata = {
-        'language_id': language_id,
-        'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
-        'model': args.model,
-        'steps': args.steps.split(','),
-        'custom_constraints': args.custom_constraints,
-        'parameters': {
-            'temperature': getattr(args, 'temperature', None),
-            'max_tokens': getattr(args, 'max_tokens', None),
-        }
-    }
+    """Save metadata about the language generation.
     
+    If metadata.json already exists, just update the 'continued_at' timestamp.
+    Otherwise, create a new metadata file with full information.
+    """
     metadata_file = os.path.join(lang_dir, 'metadata.json')
+    
+    if os.path.exists(metadata_file):
+        # Load existing metadata and add continued_at timestamp
+        try:
+            with open(metadata_file, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
+            metadata['continued_last_at'] = time.strftime('%Y-%m-%d %H:%M:%S')
+            if args.iteration in metadata['invalid_batches']:
+                metadata['invalid_batches'].remove(args.iteration)
+                metadata['num_invalid_batches'] -= 1
+            metadata['started_at_iters'].append(args.iteration)
+            
+        except Exception as e:
+            logger.warning(f"Could not load existing metadata, creating new: {e}")
+            metadata = {
+                'language_id': language_id,
+                'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'model': args.model,
+                'steps': args.steps.split(','),
+                'custom_constraints': args.custom_constraints,
+                'parameters': {
+                    'temperature': getattr(args, 'temperature', None),
+                    'max_tokens': getattr(args, 'max_tokens', None),
+                },
+                'started_at_iters': [],
+                'num_invalid_batches': 0,
+                'invalid_batches': []
+            }
+    else:
+        # Create new metadata file
+        metadata = {
+            'language_id': language_id,
+            'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'model': args.model,
+            'steps': args.steps.split(','),
+            'custom_constraints': args.custom_constraints,
+            'parameters': {
+                'temperature': getattr(args, 'temperature', None),
+                'max_tokens': getattr(args, 'max_tokens', None),
+            },
+            'started_at_iters': [],
+            'num_invalid_batches': 0,
+            'invalid_batches': []
+        }
+    
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2)
     

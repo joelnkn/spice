@@ -143,7 +143,7 @@ def save_memory(content: str, memory_dir: str, filename: str, metadata: dict):
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"Saved {filename} and metadata {metadata} to {memory_dir}")
+    logger.info(f"Saved {filename} and metadata to {memory_dir}")
 
 
 # === Additional helper utilities for QA-enabled pipeline ===
