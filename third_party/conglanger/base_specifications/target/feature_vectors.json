@@ -23,7 +23,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "bulgarian": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -48,7 +47,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "german": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -73,7 +71,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "inversion"
   },
-
   "greek": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -98,7 +95,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "english": {
     "morphological_fusion": "isolating",
     "affixation_balance": "suffixing",
@@ -123,7 +119,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "inversion"
   },
-
   "spanish": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -148,7 +143,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "french": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -173,7 +167,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "hindi": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -198,7 +191,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "russian": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -223,7 +215,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "swahili": {
     "morphological_fusion": "agglutinating",
     "affixation_balance": "prefixing",
@@ -248,7 +239,6 @@
     "applicative_morphology": "present",
     "question_marking_strategy": "interrogative-particle"
   },
-
   "thai": {
     "morphological_fusion": "isolating",
     "affixation_balance": "prefixing",
@@ -273,7 +263,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "interrogative-particle"
   },
-
   "turkish": {
     "morphological_fusion": "agglutinating",
     "affixation_balance": "suffixing",
@@ -298,7 +287,6 @@
     "applicative_morphology": "present",
     "question_marking_strategy": "interrogative-particle"
   },
-
   "urdu": {
     "morphological_fusion": "fusional",
     "affixation_balance": "suffixing",
@@ -323,7 +311,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "wh-fronting"
   },
-
   "vietnamese": {
     "morphological_fusion": "isolating",
     "affixation_balance": "prefixing",
@@ -348,7 +335,6 @@
     "applicative_morphology": "absent",
     "question_marking_strategy": "interrogative-particle"
   },
-
   "chinese": {
     "morphological_fusion": "isolating",
     "affixation_balance": "prefixing",
@@ -372,5 +358,293 @@
     "passive_morphology": "present",
     "applicative_morphology": "absent",
     "question_marking_strategy": "interrogative-particle"
+  },
+  "japanese": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "none",
+    "number_marking": "optional",
+    "case_inventory": "extensive",
+    "numeral_classifiers": "classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "particle",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "no-agreement",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "interrogative-particle"
+  },
+  "korean": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "none",
+    "number_marking": "optional",
+    "case_inventory": "extensive",
+    "numeral_classifiers": "classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "particle",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "no-agreement",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "interrogative-particle"
+  },
+  "telugu": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "tamil": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "punjabi": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "minimal",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "rich",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "odia": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "marathi": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "rich",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "malayalam": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "kannada": {
+    "morphological_fusion": "agglutinating",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "verbal-affix",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "gujarati": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "few",
+    "number_marking": "obligatory",
+    "case_inventory": "minimal",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "rich",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "bengali": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "none",
+    "number_marking": "obligatory",
+    "case_inventory": "minimal",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "rich",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
+  },
+  "assamese": {
+    "morphological_fusion": "fusional",
+    "affixation_balance": "suffixing",
+    "gender_inventory": "none",
+    "number_marking": "obligatory",
+    "case_inventory": "moderate",
+    "numeral_classifiers": "non-classifier",
+    "basic_word_order": "SOV",
+    "adposition_type": "postpositional",
+    "genitive_noun_order": "genitive-before-noun",
+    "adjective_noun_order": "adjective-before-noun",
+    "relative_clause_order": "head-final",
+    "relative_clause_marking": "relative-pronoun",
+    "alignment_typology": "nominative–accusative",
+    "agreement_pattern": "subject-only",
+    "tense_system": "rich",
+    "aspect_system": "moderate",
+    "mood_system": "moderate",
+    "negation_strategy": "preverbal-particle",
+    "causative_morphology": "present",
+    "passive_morphology": "present",
+    "applicative_morphology": "absent",
+    "question_marking_strategy": "wh-fronting"
   }
 }
