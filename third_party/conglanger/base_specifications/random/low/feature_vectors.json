@@ -26,7 +26,7 @@
   {
     "morphological_fusion": "isolating",
     "affixation_balance": "suffixing",
-    "gender_inventory": "moderate",
+    "gender_inventory": "many",
     "number_marking": "none",
     "case_inventory": "moderate",
     "numeral_classifiers": "classifier",
@@ -42,9 +42,9 @@
     "aspect_system": "rich",
     "mood_system": "none",
     "negation_strategy": "negative-auxiliary",
-    "causative_morphology": "absent",
+    "causative_morphology": "present",
     "passive_morphology": "present",
     "applicative_morphology": "present",
-    "question_marking_strategy": "wh-fronting"
+    "question_marking_strategy": "inversion"
   }
 ]
