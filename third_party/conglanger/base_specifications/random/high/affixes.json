@@ -1,0 +1,208 @@
+[
+  {
+    "inflectional": {
+      "number": [],
+      "tense_aspect_mood": [],
+      "voice_valence": [],
+      "case": []
+    },
+    "derivational": [
+      {
+        "name": "AGENT_N",
+        "type": "prefix",
+        "form": "ka",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "agentive (one who does X)"
+      },
+      {
+        "name": "ADJ_FROM_N",
+        "type": "prefix",
+        "form": "ma",
+        "from_pos": "noun",
+        "to_pos": "adjective",
+        "function": "relational adjective"
+      }
+    ]
+  },
+  {
+    "inflectional": {
+      "number": [
+        {
+          "name": "PL",
+          "type": "suffix",
+          "form": "nok",
+          "function": "plural"
+        }
+      ],
+      "tense_aspect_mood": [
+        {
+          "name": "PST",
+          "type": "suffix",
+          "form": "tul",
+          "function": "past"
+        },
+        {
+          "name": "FUT",
+          "type": "suffix",
+          "form": "gir",
+          "function": "future"
+        },
+        {
+          "name": "PFV",
+          "type": "suffix",
+          "form": "vyn",
+          "function": "perfective aspect"
+        },
+        {
+          "name": "IPFV",
+          "type": "suffix",
+          "form": "bym",
+          "function": "imperfective aspect"
+        },
+        {
+          "name": "PROG",
+          "type": "suffix",
+          "form": "dyl",
+          "function": "progressive aspect"
+        },
+        {
+          "name": "HAB",
+          "type": "suffix",
+          "form": "qim",
+          "function": "habitual aspect"
+        },
+        {
+          "name": "SUBJ",
+          "type": "suffix",
+          "form": "zul",
+          "function": "subjunctive mood"
+        },
+        {
+          "name": "COND",
+          "type": "suffix",
+          "form": "pyr",
+          "function": "conditional mood"
+        },
+        {
+          "name": "IRR",
+          "type": "suffix",
+          "form": "xal",
+          "function": "irrealis mood"
+        }
+      ],
+      "voice_valence": [
+        {
+          "name": "PASS",
+          "type": "suffix",
+          "form": "hun",
+          "function": "passive"
+        },
+        {
+          "name": "CAUS",
+          "type": "suffix",
+          "form": "guz",
+          "function": "causative"
+        },
+        {
+          "name": "APPL",
+          "type": "suffix",
+          "form": "pem",
+          "function": "applicative (adds applied object or beneficiary)"
+        }
+      ],
+      "case": [
+        {
+          "name": "NOM",
+          "type": "suffix",
+          "form": "teg",
+          "function": "nominative case"
+        },
+        {
+          "name": "ACC",
+          "type": "suffix",
+          "form": "ir",
+          "function": "accusative case"
+        },
+        {
+          "name": "ERG",
+          "type": "suffix",
+          "form": "ris",
+          "function": "ergative case"
+        },
+        {
+          "name": "ABS",
+          "type": "suffix",
+          "form": "dyl",
+          "function": "absolutive case"
+        },
+        {
+          "name": "GEN",
+          "type": "suffix",
+          "form": "qim",
+          "function": "genitive case"
+        },
+        {
+          "name": "DAT",
+          "type": "suffix",
+          "form": "zul",
+          "function": "dative case"
+        },
+        {
+          "name": "LOC",
+          "type": "suffix",
+          "form": "pyr",
+          "function": "locative case"
+        },
+        {
+          "name": "INS",
+          "type": "suffix",
+          "form": "xal",
+          "function": "instrumental case"
+        }
+      ]
+    },
+    "derivational": [
+      {
+        "name": "AGENT_N",
+        "type": "suffix",
+        "form": "rym",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "agentive (one who does X)"
+      },
+      {
+        "name": "ABS_N",
+        "type": "suffix",
+        "form": "sug",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "abstract noun (state or process)"
+      },
+      {
+        "name": "RESULT_N",
+        "type": "suffix",
+        "form": "das",
+        "from_pos": "verb",
+        "to_pos": "noun",
+        "function": "result noun (thing produced by doing X)"
+      },
+      {
+        "name": "ADJ_FROM_N",
+        "type": "suffix",
+        "form": "len",
+        "from_pos": "noun",
+        "to_pos": "adjective",
+        "function": "relational adjective"
+      },
+      {
+        "name": "ADJ_FROM_V",
+        "type": "suffix",
+        "form": "ryn",
+        "from_pos": "verb",
+        "to_pos": "adjective",
+        "function": "stative/resultant adjective (being in the state resulting from X)"
+      }
+    ]
+  }
+]
