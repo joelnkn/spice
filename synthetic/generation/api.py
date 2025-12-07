@@ -24,9 +24,9 @@ class NLISentenceOnlyDataset(Dataset):
         return ex["premise"]
 
 
-def get_snli_batches():
-    snli = load_dataset("snli", split="train")
-    ds = NLISentenceOnlyDataset(snli)
+def get_xnli_batches():
+    xnli = load_dataset("xnli", "en", split="train")
+    ds = [xnli[i//2]["premise"] if i % 2 == 0 else xnli[i//2]["hypothesis"] for i in range(len(xnli) * 2)]
     loader = DataLoader(
         ds, batch_size=8, shuffle=False, collate_fn=lambda batch: "\n".join(batch)
     )
@@ -91,11 +91,11 @@ def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None,
     return results
 
 if __name__ == "__main__":
-    corpus = get_snli_batches() 
+    corpus = get_xnli_batches() 
     
     # start a new attempt for translating a language
-    # lang_id = get_new_target_id("swahili")
-    lang_id = get_new_random_id("low", 0)
+    lang_id = get_new_target_id("swahili")
+    # lang_id = get_new_random_id("low", 0)
     
     # continue translating last attempt for a language after the last translation iteration (when it stopped)
     # lang_id = get_latest_target_id("swahili") 
@@ -105,21 +105,21 @@ if __name__ == "__main__":
     # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
     
     # translate corpus
-    # translate_dataset_for_target(
-    #     corpus=corpus,
-    #     lang_id=lang_id,
-    #     target_lang="swahili",
-    #     num_batches=None, # runs all batches
-    #     iteration=iteration,
-    # )
-    translate_dataset_using_random(
+    translate_dataset_for_target(
         corpus=corpus,
         lang_id=lang_id,
-        average_hamming_dist="low",
-        num_in_group=0,
-        num_batches=2,
+        target_lang="swahili",
+        num_batches=None, # runs all batches
         iteration=iteration,
     )
+    # translate_dataset_using_random(
+    #     corpus=corpus,
+    #     lang_id=lang_id,
+    #     average_hamming_dist="low",
+    #     num_in_group=0,
+    #     num_batches=2,
+    #     iteration=iteration,
+    # )
     
 
     # IGNORE BUT LEAVE BELOW
