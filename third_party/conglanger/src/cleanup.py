@@ -60,21 +60,54 @@ def update_lexicon_with_new_words(new_words: List[Dict[str, str]], args) -> str:
 
     df = pd.read_csv(lexicon_path, dtype=str).fillna("")
 
+    # Get set of existing forms for quick lookup
+    existing_forms = set(df['form'].str.lower())
+
     # ----------------------------------------------------
-    # Normalize and collect new entries
+    # Normalize and collect new entries (skip if already in lexicon, update if compatible)
     # ----------------------------------------------------
     new_entries = []
+    updates = []
+    skipped_count = 0
     for entry in new_words:
         form = entry.get("word", "").strip().lower()
         pos = entry.get("pos", "").strip().lower()
         translation = entry.get("translation", "").strip().lower()
 
-        if not form:
+        if not form or form in ("suffix", "prefix", "infix", "affix"):
+            continue
+
+        # Check if word already exists in lexicon
+        if form in existing_forms:
+            # Find the existing row
+            existing_row = df[df['form'].str.lower() == form].iloc[0]
+            old_pos = existing_row['pos'].lower()
+            old_translation = existing_row['translation'].lower()
+            
+            # If POS matches and old translation is in new translation, update it
+            if pos == old_pos and old_translation in translation:
+                updates.append((form, pos, translation))
+                logger.debug(f"Updating '{form}' translation from '{old_translation}' to '{translation}'")
+            else:
+                skipped_count += 1
+                logger.debug(f"Skipping '{form}' - already in lexicon with different POS or incompatible translation")
             continue
 
         new_entries.append({"form": form, "pos": pos, "translation": translation})
 
     df_new = pd.DataFrame(new_entries)
+
+    # If no new entries and no updates, log and return
+    if df_new.empty and not updates:
+        logger.info(f"No new words to add (skipped {skipped_count} words already in lexicon)")
+        return lexicon_path
+
+    # ----------------------------------------------------
+    # Apply updates to existing entries
+    # ----------------------------------------------------
+    for form, pos, translation in updates:
+        df.loc[df['form'].str.lower() == form, 'translation'] = translation
+        df.loc[df['form'].str.lower() == form, 'pos'] = pos
 
     # ----------------------------------------------------
     # Merge + dedupe by "form"
@@ -88,8 +121,8 @@ def update_lexicon_with_new_words(new_words: List[Dict[str, str]], args) -> str:
     df_full.to_csv(lexicon_path, index=False)
 
     logger.info(
-        f"Added {len(df_new)} new words "
-        f"({len(df_full) - len(df)} unique additions) "
+        f"Added {len(df_new)} new words, updated {len(updates)} existing words "
+        f"({len(df_full) - len(df)} net unique additions) "
         f"to lexicon at {lexicon_path}"
     )
 
@@ -294,7 +327,7 @@ def extract_new_grammar_rules(lang_dir) -> List[str]:
     update_metadata_value(lang_dir, "num_new_grammar_rules", len(new_rules))
     return new_rules
 
-def append_sentences_to_valid_translations(memory_dir, iteration, batch_size=8) -> str:
+def append_sentences_to_valid_translations(memory_dir, iteration, input_sentences, batch_size=8) -> str:
     """Append all sentences from translation.json to valid_translations.json in memory_dir/translation.
     Creates valid_translations.json if it does not exist.
     Each sentence group includes the iteration number that translated those sentences.
@@ -304,6 +337,7 @@ def append_sentences_to_valid_translations(memory_dir, iteration, batch_size=8) 
     Returns:
         Path to the updated valid_translations.json file
     """
+    english_sentences = input_sentences.split("\n")
     translation_dir = os.path.join(memory_dir, f"iter_{iteration}", 'translation')
     translation_json_path = os.path.join(translation_dir, 'translation.json')
     valid_translations_path = os.path.join(memory_dir, 'valid_translations.json')
@@ -324,6 +358,7 @@ def append_sentences_to_valid_translations(memory_dir, iteration, batch_size=8) 
         sentence['iteration'] = iteration
         sentence['index_in_iteration'] = i
         sentence['global_index'] = iteration * batch_size + i
+        sentence['english_sentence'] = english_sentences[i]
 
     # Load or create valid_translations.json
     if os.path.exists(valid_translations_path):

@@ -1,0 +1,847 @@
+====low_0 START====
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "many",
+  "number_marking": "none",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "OSV",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "subject-only",
+  "tense_system": "binary-past-nonpast",
+  "aspect_system": "rich",
+  "mood_system": "none",
+  "negation_strategy": "negative-auxiliary",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "inversion"
+}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{
+  "inflectional": {
+    "number": [],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "suffix",
+        "form": "du",
+        "function": "past (event before reference time)"
+      },
+      {
+        "name": "IPFV",
+        "type": "suffix",
+        "form": "na",
+        "function": "imperfective aspect (ongoing or unbounded action in nonpast or past context)"
+      },
+      {
+        "name": "PFV",
+        "type": "suffix",
+        "form": "gak",
+        "function": "perfective aspect (bounded, single completed event)"
+      },
+      {
+        "name": "HAB",
+        "type": "suffix",
+        "form": "ris",
+        "function": "habitual aspect (repeated, customary action)"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "suffix",
+        "form": "zum",
+        "function": "passive (demotes agent, promotes patient or theme)"
+      },
+      {
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "dak",
+        "function": "causative (adds causer, increases valence)"
+      },
+      {
+        "name": "APPL",
+        "type": "suffix",
+        "form": "lin",
+        "function": "applicative (promotes oblique participant such as beneficiary, instrument, or location to core object)"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "har",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who habitually or characteristically does X)"
+    },
+    {
+      "name": "RESULT_N",
+      "type": "suffix",
+      "form": "gol",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "resultative noun (product or outcome of doing X)"
+    },
+    {
+      "name": "ABSTR_N",
+      "type": "suffix",
+      "form": "sim",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "abstract noun (state, process, or quality of doing X)"
+    },
+    {
+      "name": "QUAL_ADJ",
+      "type": "suffix",
+      "form": "zan",
+      "from_pos": "noun",
+      "to_pos": "adjective",
+      "function": "relational/possessive adjective (having or characterized by X)"
+    },
+    {
+      "name": "DIM_N",
+      "type": "suffix",
+      "form": "jik",
+      "from_pos": "noun",
+      "to_pos": "noun",
+      "function": "diminutive or affectionate noun (smaller, endearing X)"
+    }
+  ]
+}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.
+
+====low_0 END====
+
+====low_1 START====
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "many",
+  "number_marking": "none",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "OSV",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "subject-only",
+  "tense_system": "binary-past-nonpast",
+  "aspect_system": "rich",
+  "mood_system": "none",
+  "negation_strategy": "negative-auxiliary",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "inversion"
+}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{
+  "inflectional": {
+    "number": [],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "suffix",
+        "form": "qem",
+        "function": "past tense (binary past vs nonpast; nonpast is unmarked)"
+      },
+      {
+        "name": "PFV",
+        "type": "suffix",
+        "form": "zug",
+        "function": "perfective aspect (completed, bounded event)"
+      },
+      {
+        "name": "IPFV",
+        "type": "suffix",
+        "form": "wiy",
+        "function": "imperfective aspect (ongoing or internal view of the event)"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "suffix",
+        "form": "tuq",
+        "function": "passive voice (demotes agent, promotes patient to core argument)"
+      },
+      {
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "baq",
+        "function": "causative (introduces a causer, causes someone to do X)"
+      },
+      {
+        "name": "APPL",
+        "type": "suffix",
+        "form": "zik",
+        "function": "applicative (promotes a benefactive/locative/instrumental to core object)"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "mij",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    },
+    {
+      "name": "ACT_N",
+      "type": "suffix",
+      "form": "sug",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "eventive noun (the act or process of doing X)"
+    },
+    {
+      "name": "RES_N",
+      "type": "suffix",
+      "form": "lok",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "result noun (thing produced or affected by X)"
+    },
+    {
+      "name": "REL_ADJ",
+      "type": "suffix",
+      "form": "yaz",
+      "from_pos": "noun",
+      "to_pos": "adjective",
+      "function": "relational adjective (pertaining to, associated with the noun)"
+    },
+    {
+      "name": "CAP_ADJ",
+      "type": "suffix",
+      "form": "faj",
+      "from_pos": "verb",
+      "to_pos": "adjective",
+      "function": "adjective meaning capable or suitable for doing X"
+    }
+  ]
+}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.
+
+====low_1 END====
+
+====high_0 START====
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "polysynthetic",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "few",
+  "number_marking": "none",
+  "case_inventory": "none",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "VOS",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-after-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-final",
+  "relative_clause_marking": "particle",
+  "alignment_typology": "active–stative",
+  "agreement_pattern": "subject-object",
+  "tense_system": "three-way-past-present-future",
+  "aspect_system": "moderate",
+  "mood_system": "none",
+  "negation_strategy": "clause-final-particle",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "absent",
+  "question_marking_strategy": "interrogative-particle"
+}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{
+  "inflectional": {
+    "number": [],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "suffix",
+        "form": "qib",
+        "function": "past tense"
+      },
+      {
+        "name": "PRS",
+        "type": "suffix",
+        "form": "gij",
+        "function": "present tense (non-past, default)"
+      },
+      {
+        "name": "FUT",
+        "type": "suffix",
+        "form": "zoq",
+        "function": "future tense"
+      },
+      {
+        "name": "PFV",
+        "type": "suffix",
+        "form": "qem",
+        "function": "perfective aspect (completed or bounded event)"
+      },
+      {
+        "name": "IPFV",
+        "type": "suffix",
+        "form": "saj",
+        "function": "imperfective aspect (ongoing or internal view of event)"
+      },
+      {
+        "name": "HAB",
+        "type": "suffix",
+        "form": "mub",
+        "function": "habitual aspect (customary or repeated action)"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "suffix",
+        "form": "qeh",
+        "function": "passive voice (demotes agent, promotes non-agent argument to subject role)"
+      },
+      {
+        "name": "CAUS",
+        "type": "suffix",
+        "form": "naj",
+        "function": "causative (adds a higher agent/causer argument: ‘make/let X do Y’)"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "dazim",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who habitually or characteristically does X)"
+    },
+    {
+      "name": "ACT_N",
+      "type": "suffix",
+      "form": "gusal",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "event noun (the action or occurrence of doing X)"
+    },
+    {
+      "name": "RES_N",
+      "type": "suffix",
+      "form": "qadin",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "result noun (the result or product created by doing X)"
+    },
+    {
+      "name": "LOC_N",
+      "type": "suffix",
+      "form": "wotaj",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "locative noun (place associated with doing X)"
+    },
+    {
+      "name": "REL_ADJ",
+      "type": "suffix",
+      "form": "zim",
+      "from_pos": "noun",
+      "to_pos": "adjective",
+      "function": "relational adjective (pertaining or related to the noun X)"
+    }
+  ]
+}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.
+
+====high_0 END====
+
+====high_1 START====
+You are generating the lexicon for a synthetic language.
+
+The language uses the following orthography rules:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "prefixing",
+  "gender_inventory": "none",
+  "number_marking": "optional",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "non-classifier",
+  "basic_word_order": "VSO",
+  "adposition_type": "postpositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-before-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "no-agreement",
+  "tense_system": "none",
+  "aspect_system": "simple",
+  "mood_system": "moderate",
+  "negation_strategy": "verbal-affix",
+  "causative_morphology": "absent",
+  "passive_morphology": "absent",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "wh-fronting"
+}
+=== FEATURE VECTOR END ===
+
+Its affix inventory is:
+
+=== AFFIXES START ===
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "prefix",
+        "form": "zi",
+        "function": "plural (more than one referent)"
+      },
+      {
+        "name": "COLL",
+        "type": "prefix",
+        "form": "naq",
+        "function": "collective plural (group treated as a unit)"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "IPFV",
+        "type": "prefix",
+        "form": "ga",
+        "function": "imperfective aspect (ongoing, habitual, or repeated action; unmarked form covers perfective or generic events)"
+      },
+      {
+        "name": "MOD",
+        "type": "prefix",
+        "form": "heq",
+        "function": "modal irrealis (hypothetical, desired, planned, or directive situations including commands)"
+      },
+      {
+        "name": "NEG",
+        "type": "prefix",
+        "form": "sug",
+        "function": "verbal negation (marks the clause as negative)"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "APPL",
+        "type": "prefix",
+        "form": "raq",
+        "function": "applicative (adds a beneficiary, goal, or other non-core argument to the verb)"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "suffix",
+      "form": "mun",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who habitually or characteristically does X)"
+    },
+    {
+      "name": "ACT_N",
+      "type": "suffix",
+      "form": "dul",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "event or action noun (the act or process of doing X)"
+    },
+    {
+      "name": "REL_ADJ",
+      "type": "suffix",
+      "form": "zin",
+      "from_pos": "noun",
+      "to_pos": "adjective",
+      "function": "relational adjective (pertaining or related to the noun)"
+    },
+    {
+      "name": "INST_N",
+      "type": "suffix",
+      "form": "yeq",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "instrument noun (thing used to do X)"
+    },
+    {
+      "name": "ABSTR_N",
+      "type": "prefix",
+      "form": "jok",
+      "from_pos": "adjective",
+      "to_pos": "noun",
+      "function": "abstract noun (the quality or state of being X)"
+    }
+  ]
+}
+=== AFFIXES END ===
+
+Your task:
+Create a vocabulary list of standalone words for this language.
+
+GLOBAL RULES:
+
+1. Lexicon entries are standalone words
+   - Every entry must be a full word that can appear by itself in a sentence.
+   - Do NOT include bound morphemes (affixes).
+   - Do NOT include partial stems or segmented forms.
+   - Do NOT use hyphens or any explicit morpheme separators in the word form.
+
+2. Orthography
+   - All forms must be lowercase.
+   - All forms must obey the orthography rules exactly.
+   - No digits, punctuation, or uppercase letters.
+   - No form may obviously resemble an English or real-world word.
+
+3. No inflected forms
+   - Lexicon entries must be base forms only (citation forms).
+   - DO NOT include any inflected forms (e.g., plural, case-marked, tense-marked, aspect-marked, voice-marked, etc.).
+   - Even if an inflectional affix exists in the inventory, do NOT bake it into the lexicon form.
+   - The lexicon represents dictionary-style base words, not paradigm members.
+
+4. Relationship to affixes
+   - Do NOT list any affix forms (inflectional or derivational) as lexicon entries.
+   - If the affix inventory includes derivational morphology (e.g., agentive, diminutive),
+     you may include words whose meanings correspond to those categories, but:
+       • list them as full word forms, and
+       • do NOT segment or expose the affix inside the word form.
+   - For each derivational affix in the inventory, include at least one lexical item whose meaning
+     reflects that derivational function (e.g., an agentive noun, a diminutive noun, etc.),
+     but NEVER include the affix itself as a standalone form.
+
+5. Coverage
+   Include at least:
+   - Basic nouns (persons, objects, locations, abstract concepts).
+   - Basic verbs (common actions, processes, states).
+   - Basic adjectives (qualities, states).
+   - Function words needed by the typology:
+       • pronouns,
+       • adpositions (prepositions/postpositions, depending on the feature vector),
+       • basic question words,
+       • demonstratives or determiners if appropriate.
+
+OUTPUT FORMAT (CSV):
+
+Output a CSV with EXACTLY this header:
+
+form,pos,translation
+
+Each row must contain exactly 3 comma-separated fields:
+- form: the full conlang word form (lemma, uninflected).
+- pos: part of speech (e.g., noun, verb, adj, adposition, pronoun).
+- translation: the English meaning.
+
+No commas are allowed inside any field.
+
+Output ONLY the CSV. No commentary or explanation.
+
+====high_1 END====
+

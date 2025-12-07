@@ -255,9 +255,9 @@ def run_affix_step(args, llm_client) -> str:
 
     Returns the JSON text (string).
     """
+    logger.info("Lang name", args.lang_name)
     orthography = load_orthography_rules(args.prompt_dir, args.lang_name, args.random)
     feature_vector = load_feature_vector(args.prompt_dir, args.lang_name, args.random)
-    feature_vector = json.dumps(feature_vector, indent=2, ensure_ascii=False)
     fv_text = json.dumps(feature_vector, indent=2, ensure_ascii=False)
 
     affix_prompt_dir = os.path.join(args.prompt_dir, "affix")
@@ -274,12 +274,12 @@ def run_affix_step(args, llm_client) -> str:
     # TODO: use this to get the prompt to paste into chat gpt (see in prompts/affix/<all_target>)
     # change to <all_random_<low|medium|high>> for random languages
     try:
-        target_file = os.path.join(args.prompt_dir, "affix", "all_target.txt")
+        target_file = os.path.join(args.prompt_dir, "affix", "all_random.txt")
         with open(target_file, "a", encoding="utf-8") as f:
-            f.write(f"\n{affix_filled}\n")
+            f.write(f"===={args.lang_name} START====\n{affix_filled}\n===={args.lang_name} END====\n\n")
         logger.info(f"Appended affix prompt to {target_file}")
     except Exception as e:
-        logger.warning(f"Could not append to all_target.txt: {e}")
+        logger.warning(f"Could not append to all_random.txt: {e}")
 
     # affix_clean, affix_parsed = generate_and_parse_json_with_retries(
     #     llm_client, affix_filled, max_retries=3, do_sleep=False
@@ -343,12 +343,12 @@ def run_lexicon_step(args, llm_client):
     # TODO: use this to get the prompt to paste into chat gpt (see in prompts/lexicon/<all_target>)
     # change to <all_random_<low|medium|high>> for random languages
     try:
-        target_file = os.path.join(args.prompt_dir, "lexicon", "all_target.txt")
+        target_file = os.path.join(args.prompt_dir, "lexicon", "all_random.txt")
         with open(target_file, "a", encoding="utf-8") as f:
-            f.write(f"\n{lex_filled}\n")
+            f.write(f"===={args.lang_name} START====\n{lex_filled}\n===={args.lang_name} END====\n\n")
         logger.info(f"Appended affix prompt to {target_file}")
     except Exception as e:
-        logger.warning(f"Could not append to all_target.txt: {e}")
+        logger.warning(f"Could not append to all_random.txt: {e}")
 
     # _, extracted = llm_client.generate_and_extract(lex_filled, do_sleep=False)
     # csv_data = clean_response(extracted, "csv")

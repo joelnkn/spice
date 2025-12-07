@@ -1,208 +1,189 @@
 [
   {
     "inflectional": {
-      "number": [],
-      "tense_aspect_mood": [],
-      "voice_valence": [],
-      "case": []
+    "number": [],
+    "tense_aspect_mood": [
+    {
+    "name": "PST",
+    "type": "suffix",
+    "form": "qib",
+    "function": "past tense"
+    },
+    {
+    "name": "PRS",
+    "type": "suffix",
+    "form": "gij",
+    "function": "present tense (non-past, default)"
+    },
+    {
+    "name": "FUT",
+    "type": "suffix",
+    "form": "zoq",
+    "function": "future tense"
+    },
+    {
+    "name": "PFV",
+    "type": "suffix",
+    "form": "qem",
+    "function": "perfective aspect (completed or bounded event)"
+    },
+    {
+    "name": "IPFV",
+    "type": "suffix",
+    "form": "saj",
+    "function": "imperfective aspect (ongoing or internal view of event)"
+    },
+    {
+    "name": "HAB",
+    "type": "suffix",
+    "form": "mub",
+    "function": "habitual aspect (customary or repeated action)"
+    }
+    ],
+    "voice_valence": [
+    {
+    "name": "PASS",
+    "type": "suffix",
+    "form": "qeh",
+    "function": "passive voice (demotes agent, promotes non-agent argument to subject role)"
+    },
+    {
+    "name": "CAUS",
+    "type": "suffix",
+    "form": "naj",
+    "function": "causative (adds a higher agent/causer argument: ‘make/let X do Y’)"
+    }
+    ]
     },
     "derivational": [
-      {
-        "name": "AGENT_N",
-        "type": "prefix",
-        "form": "ka",
-        "from_pos": "verb",
-        "to_pos": "noun",
-        "function": "agentive (one who does X)"
-      },
-      {
-        "name": "ADJ_FROM_N",
-        "type": "prefix",
-        "form": "ma",
-        "from_pos": "noun",
-        "to_pos": "adjective",
-        "function": "relational adjective"
-      }
+    {
+    "name": "AGENT_N",
+    "type": "suffix",
+    "form": "dazim",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "agentive (one who habitually or characteristically does X)"
+    },
+    {
+    "name": "ACT_N",
+    "type": "suffix",
+    "form": "gusal",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "event noun (the action or occurrence of doing X)"
+    },
+    {
+    "name": "RES_N",
+    "type": "suffix",
+    "form": "qadin",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "result noun (the result or product created by doing X)"
+    },
+    {
+    "name": "LOC_N",
+    "type": "suffix",
+    "form": "wotaj",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "locative noun (place associated with doing X)"
+    },
+    {
+    "name": "REL_ADJ",
+    "type": "suffix",
+    "form": "zim",
+    "from_pos": "noun",
+    "to_pos": "adjective",
+    "function": "relational adjective (pertaining or related to the noun X)"
+    }
     ]
   },
   {
     "inflectional": {
-      "number": [
-        {
-          "name": "PL",
-          "type": "suffix",
-          "form": "nok",
-          "function": "plural"
-        }
-      ],
-      "tense_aspect_mood": [
-        {
-          "name": "PST",
-          "type": "suffix",
-          "form": "tul",
-          "function": "past"
-        },
-        {
-          "name": "FUT",
-          "type": "suffix",
-          "form": "gir",
-          "function": "future"
-        },
-        {
-          "name": "PFV",
-          "type": "suffix",
-          "form": "vyn",
-          "function": "perfective aspect"
-        },
-        {
-          "name": "IPFV",
-          "type": "suffix",
-          "form": "bym",
-          "function": "imperfective aspect"
-        },
-        {
-          "name": "PROG",
-          "type": "suffix",
-          "form": "dyl",
-          "function": "progressive aspect"
-        },
-        {
-          "name": "HAB",
-          "type": "suffix",
-          "form": "qim",
-          "function": "habitual aspect"
-        },
-        {
-          "name": "SUBJ",
-          "type": "suffix",
-          "form": "zul",
-          "function": "subjunctive mood"
-        },
-        {
-          "name": "COND",
-          "type": "suffix",
-          "form": "pyr",
-          "function": "conditional mood"
-        },
-        {
-          "name": "IRR",
-          "type": "suffix",
-          "form": "xal",
-          "function": "irrealis mood"
-        }
-      ],
-      "voice_valence": [
-        {
-          "name": "PASS",
-          "type": "suffix",
-          "form": "hun",
-          "function": "passive"
-        },
-        {
-          "name": "CAUS",
-          "type": "suffix",
-          "form": "guz",
-          "function": "causative"
-        },
-        {
-          "name": "APPL",
-          "type": "suffix",
-          "form": "pem",
-          "function": "applicative (adds applied object or beneficiary)"
-        }
-      ],
-      "case": [
-        {
-          "name": "NOM",
-          "type": "suffix",
-          "form": "teg",
-          "function": "nominative case"
-        },
-        {
-          "name": "ACC",
-          "type": "suffix",
-          "form": "ir",
-          "function": "accusative case"
-        },
-        {
-          "name": "ERG",
-          "type": "suffix",
-          "form": "ris",
-          "function": "ergative case"
-        },
-        {
-          "name": "ABS",
-          "type": "suffix",
-          "form": "dyl",
-          "function": "absolutive case"
-        },
-        {
-          "name": "GEN",
-          "type": "suffix",
-          "form": "qim",
-          "function": "genitive case"
-        },
-        {
-          "name": "DAT",
-          "type": "suffix",
-          "form": "zul",
-          "function": "dative case"
-        },
-        {
-          "name": "LOC",
-          "type": "suffix",
-          "form": "pyr",
-          "function": "locative case"
-        },
-        {
-          "name": "INS",
-          "type": "suffix",
-          "form": "xal",
-          "function": "instrumental case"
-        }
-      ]
+    "number": [
+    {
+    "name": "PL",
+    "type": "prefix",
+    "form": "zi",
+    "function": "plural (more than one referent)"
+    },
+    {
+    "name": "COLL",
+    "type": "prefix",
+    "form": "naq",
+    "function": "collective plural (group treated as a unit)"
+    }
+    ],
+    "tense_aspect_mood": [
+    {
+    "name": "IPFV",
+    "type": "prefix",
+    "form": "ga",
+    "function": "imperfective aspect (ongoing, habitual, or repeated action; unmarked form covers perfective or generic events)"
+    },
+    {
+    "name": "MOD",
+    "type": "prefix",
+    "form": "heq",
+    "function": "modal irrealis (hypothetical, desired, planned, or directive situations including commands)"
+    },
+    {
+    "name": "NEG",
+    "type": "prefix",
+    "form": "sug",
+    "function": "verbal negation (marks the clause as negative)"
+    }
+    ],
+    "voice_valence": [
+    {
+    "name": "APPL",
+    "type": "prefix",
+    "form": "raq",
+    "function": "applicative (adds a beneficiary, goal, or other non-core argument to the verb)"
+    }
+    ]
     },
     "derivational": [
-      {
-        "name": "AGENT_N",
-        "type": "suffix",
-        "form": "rym",
-        "from_pos": "verb",
-        "to_pos": "noun",
-        "function": "agentive (one who does X)"
-      },
-      {
-        "name": "ABS_N",
-        "type": "suffix",
-        "form": "sug",
-        "from_pos": "verb",
-        "to_pos": "noun",
-        "function": "abstract noun (state or process)"
-      },
-      {
-        "name": "RESULT_N",
-        "type": "suffix",
-        "form": "das",
-        "from_pos": "verb",
-        "to_pos": "noun",
-        "function": "result noun (thing produced by doing X)"
-      },
-      {
-        "name": "ADJ_FROM_N",
-        "type": "suffix",
-        "form": "len",
-        "from_pos": "noun",
-        "to_pos": "adjective",
-        "function": "relational adjective"
-      },
-      {
-        "name": "ADJ_FROM_V",
-        "type": "suffix",
-        "form": "ryn",
-        "from_pos": "verb",
-        "to_pos": "adjective",
-        "function": "stative/resultant adjective (being in the state resulting from X)"
-      }
+    {
+    "name": "AGENT_N",
+    "type": "suffix",
+    "form": "mun",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "agentive (one who habitually or characteristically does X)"
+    },
+    {
+    "name": "ACT_N",
+    "type": "suffix",
+    "form": "dul",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "event or action noun (the act or process of doing X)"
+    },
+    {
+    "name": "REL_ADJ",
+    "type": "suffix",
+    "form": "zin",
+    "from_pos": "noun",
+    "to_pos": "adjective",
+    "function": "relational adjective (pertaining or related to the noun)"
+    },
+    {
+    "name": "INST_N",
+    "type": "suffix",
+    "form": "yeq",
+    "from_pos": "verb",
+    "to_pos": "noun",
+    "function": "instrument noun (thing used to do X)"
+    },
+    {
+    "name": "ABSTR_N",
+    "type": "prefix",
+    "form": "jok",
+    "from_pos": "adjective",
+    "to_pos": "noun",
+    "function": "abstract noun (the quality or state of being X)"
+    }
     ]
   }
 ]

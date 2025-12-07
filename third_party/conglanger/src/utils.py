@@ -340,7 +340,7 @@ def check_new_word_conflicts(new_words: List[Dict[str, str]], args) -> List[Dict
 
         for (exist_pos, exist_trans) in existing[w]:
             pos_mismatch = exist_pos != new_pos
-            trans_mismatch = exist_trans != new_trans
+            trans_mismatch = exist_trans != new_trans and new_trans not in exist_trans and exist_trans not in new_trans
 
             if pos_mismatch or trans_mismatch:
                 conflicts.append({
@@ -367,7 +367,7 @@ def get_specification_dir(prompt_dir: str, lang_name: str, random: bool) -> str:
     base_path = os.path.normpath(os.path.join(prompt_dir, '..', 'base_specifications'))
 
     if random:
-        # Expect lang_name like 'low_0', 'medium_2', etc.
+        # Expect lang_name like 'low_0', 'high_2', etc.
         m = re.match(r"(low|medium|high)_(\d+)$", lang_name)
         if not m:
             raise ValueError(f"Invalid random lang_name format: {lang_name}")
@@ -383,7 +383,8 @@ def get_specification_value(prompt_dir: str, lang_name: str, random: bool, filen
     base_path = get_specification_dir(prompt_dir, lang_name, random)
 
     if random:
-        group, idx = re.match(r"(low|medium|high)_(\d+)$", lang_name)
+        group, idx = re.match(r"(low|high)_(\d+)$", lang_name).groups()
+        idx = int(idx)
         path = os.path.join(base_path, filename)
         with open(path, "r", encoding="utf-8") as f:
             specs = json.load(f)
@@ -426,10 +427,7 @@ def load_lexicon(args) -> str:
     
     if args.random:
         # Expect lang_name like 'low_0', 'medium_2', etc.
-        m = re.match(r"(low|medium|high)_(\d+)$", args.lang_name)
-        if not m:
-            raise ValueError(f"Invalid random lang_name format: {args.lang_name}")
-        group, idx = m.group(1), int(m.group(2))
+        group, idx = re.match(r"(low|high)_(\d+)$", args.lang_name).groups()
         path = os.path.join(base_path, f"{group}_{idx}.csv")
         with open(path, "r", encoding="utf-8") as f:
             csv_content = f.read()
@@ -472,12 +470,16 @@ def load_orthography_rules(prompt_dir: str, lang_name: str, random: bool) -> str
     # Use 'random' as key if random, otherwise use lang_name
     ortho_key = 'random' if random else lang_name
     
+    logger.info(f"Loading orthography rules for key: {ortho_key}")
+    
     rules = RULES_PER_LANGUAGE.get(ortho_key, None)
     if rules is None:
         raise ValueError(
             f"'{ortho_key}' not found in RULES_PER_LANGUAGE. "
             "Please add it to orthography.py (including a 'random' profile if needed)."
         )
+        
+    logger.info(f"Loaded orthography rules for {ortho_key}")
     
     ortho_text = BASELINE.strip() + "\n• " + rules.strip()
     return ortho_text

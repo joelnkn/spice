@@ -1,0 +1,476 @@
+====low_0 START====
+You are designing the affix inventory for a synthetic language.
+
+The language uses the following orthography:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "many",
+  "number_marking": "none",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "OSV",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "subject-only",
+  "tense_system": "binary-past-nonpast",
+  "aspect_system": "rich",
+  "mood_system": "none",
+  "negation_strategy": "negative-auxiliary",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "inversion"
+}
+=== FEATURE VECTOR END ===
+
+Your task:
+Define a set of derivational and inflectional affixes that are consistent with this typology and orthography.
+
+Rules:
+- All affix forms must follow the orthography (lowercase, valid letters, no hyphens).
+- Every affix must be a bound morpheme: it cannot appear as a standalone word.
+- Do NOT define any full lexical words here; only affixes.
+- Make the system reasonably rich but not overly complex:
+  - Include inflectional affixes for number, tense/aspect/mood, and any valence changes (causative, passive, applicative) indicated by the feature vector.
+  - Include a few derivational affixes if supported by the typology (e.g., verb→noun, noun→adj), but keep them simple.
+- You may not have duplicate forms.
+- NO FORMS MAY BE SIMILAR TO ENGLISH!
+
+Return JSON ONLY in this structure:
+
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "plural"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "past"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "passive"
+      },
+      {
+        "name": "CAUS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "causative"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "<prefix|suffix>",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }
+  ]
+}
+
+You may leave some lists empty if the feature vector does not support that category (e.g., no voice_valence if there is no passive/causative), but always include the same top-level keys.
+
+Output ONLY the JSON.
+====low_0 END====
+
+====low_1 START====
+You are designing the affix inventory for a synthetic language.
+
+The language uses the following orthography:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "many",
+  "number_marking": "none",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "OSV",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "subject-only",
+  "tense_system": "binary-past-nonpast",
+  "aspect_system": "rich",
+  "mood_system": "none",
+  "negation_strategy": "negative-auxiliary",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "inversion"
+}
+=== FEATURE VECTOR END ===
+
+Your task:
+Define a set of derivational and inflectional affixes that are consistent with this typology and orthography.
+
+Rules:
+- All affix forms must follow the orthography (lowercase, valid letters, no hyphens).
+- Every affix must be a bound morpheme: it cannot appear as a standalone word.
+- Do NOT define any full lexical words here; only affixes.
+- Make the system reasonably rich but not overly complex:
+  - Include inflectional affixes for number, tense/aspect/mood, and any valence changes (causative, passive, applicative) indicated by the feature vector.
+  - Include a few derivational affixes if supported by the typology (e.g., verb→noun, noun→adj), but keep them simple.
+- You may not have duplicate forms.
+- NO FORMS MAY BE SIMILAR TO ENGLISH!
+
+Return JSON ONLY in this structure:
+
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "plural"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "past"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "passive"
+      },
+      {
+        "name": "CAUS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "causative"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "<prefix|suffix>",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }
+  ]
+}
+
+You may leave some lists empty if the feature vector does not support that category (e.g., no voice_valence if there is no passive/causative), but always include the same top-level keys.
+
+Output ONLY the JSON.
+====low_1 END====
+
+====high_0 START====
+You are designing the affix inventory for a synthetic language.
+
+The language uses the following orthography:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "polysynthetic",
+  "affixation_balance": "suffixing",
+  "gender_inventory": "few",
+  "number_marking": "none",
+  "case_inventory": "none",
+  "numeral_classifiers": "classifier",
+  "basic_word_order": "VOS",
+  "adposition_type": "prepositional",
+  "genitive_noun_order": "genitive-after-noun",
+  "adjective_noun_order": "adjective-after-noun",
+  "relative_clause_order": "head-final",
+  "relative_clause_marking": "particle",
+  "alignment_typology": "active–stative",
+  "agreement_pattern": "subject-object",
+  "tense_system": "three-way-past-present-future",
+  "aspect_system": "moderate",
+  "mood_system": "none",
+  "negation_strategy": "clause-final-particle",
+  "causative_morphology": "present",
+  "passive_morphology": "present",
+  "applicative_morphology": "absent",
+  "question_marking_strategy": "interrogative-particle"
+}
+=== FEATURE VECTOR END ===
+
+Your task:
+Define a set of derivational and inflectional affixes that are consistent with this typology and orthography.
+
+Rules:
+- All affix forms must follow the orthography (lowercase, valid letters, no hyphens).
+- Every affix must be a bound morpheme: it cannot appear as a standalone word.
+- Do NOT define any full lexical words here; only affixes.
+- Make the system reasonably rich but not overly complex:
+  - Include inflectional affixes for number, tense/aspect/mood, and any valence changes (causative, passive, applicative) indicated by the feature vector.
+  - Include a few derivational affixes if supported by the typology (e.g., verb→noun, noun→adj), but keep them simple.
+- You may not have duplicate forms.
+- NO FORMS MAY BE SIMILAR TO ENGLISH!
+
+Return JSON ONLY in this structure:
+
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "plural"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "past"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "passive"
+      },
+      {
+        "name": "CAUS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "causative"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "<prefix|suffix>",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }
+  ]
+}
+
+You may leave some lists empty if the feature vector does not support that category (e.g., no voice_valence if there is no passive/causative), but always include the same top-level keys.
+
+Output ONLY the JSON.
+====high_0 END====
+
+====high_1 START====
+You are designing the affix inventory for a synthetic language.
+
+The language uses the following orthography:
+
+=== ORTHOGRAPHY START ===
+Orthography rules (global):
+- All words are lowercase letters a–z only.
+- No punctuation, digits, diacritics, or other symbols.
+- No capital letters.
+
+Word shape:
+- Content words: at least 4 letters.
+- Function words (particles, case markers, etc.): 1–3 letters.
+
+Anti-English:
+- Do NOT use real English words (e.g. "the", "and", "is", "in", "to").
+- Avoid common English morphemes: "ing", "ed", "tion", "sion", "able",
+  "less", "ful", "pre", "re", "un", "dis".
+- If a word looks close to an English word, change at least 2 letters.
+• Language-specific orthography (random synthetic):
+- Letter inventory: {a, e, i, o, u, b, d, f, g, h, j, k, l, m, n, q, r, s, t, w, y, z}.
+- Use only these letters with the global CV/CVC syllable rules.
+=== ORTHOGRAPHY END ===
+
+It has the following typological profile:
+
+=== FEATURE VECTOR START ===
+{
+  "morphological_fusion": "isolating",
+  "affixation_balance": "prefixing",
+  "gender_inventory": "none",
+  "number_marking": "optional",
+  "case_inventory": "moderate",
+  "numeral_classifiers": "non-classifier",
+  "basic_word_order": "VSO",
+  "adposition_type": "postpositional",
+  "genitive_noun_order": "genitive-before-noun",
+  "adjective_noun_order": "adjective-before-noun",
+  "relative_clause_order": "head-initial",
+  "relative_clause_marking": "gap",
+  "alignment_typology": "ergative–absolutive",
+  "agreement_pattern": "no-agreement",
+  "tense_system": "none",
+  "aspect_system": "simple",
+  "mood_system": "moderate",
+  "negation_strategy": "verbal-affix",
+  "causative_morphology": "absent",
+  "passive_morphology": "absent",
+  "applicative_morphology": "present",
+  "question_marking_strategy": "wh-fronting"
+}
+=== FEATURE VECTOR END ===
+
+Your task:
+Define a set of derivational and inflectional affixes that are consistent with this typology and orthography.
+
+Rules:
+- All affix forms must follow the orthography (lowercase, valid letters, no hyphens).
+- Every affix must be a bound morpheme: it cannot appear as a standalone word.
+- Do NOT define any full lexical words here; only affixes.
+- Make the system reasonably rich but not overly complex:
+  - Include inflectional affixes for number, tense/aspect/mood, and any valence changes (causative, passive, applicative) indicated by the feature vector.
+  - Include a few derivational affixes if supported by the typology (e.g., verb→noun, noun→adj), but keep them simple.
+- You may not have duplicate forms.
+- NO FORMS MAY BE SIMILAR TO ENGLISH!
+
+Return JSON ONLY in this structure:
+
+{
+  "inflectional": {
+    "number": [
+      {
+        "name": "PL",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "plural"
+      }
+    ],
+    "tense_aspect_mood": [
+      {
+        "name": "PST",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "past"
+      }
+    ],
+    "voice_valence": [
+      {
+        "name": "PASS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "passive"
+      },
+      {
+        "name": "CAUS",
+        "type": "<prefix|suffix>",
+        "form": "<affix_form>",
+        "function": "causative"
+      }
+    ]
+  },
+  "derivational": [
+    {
+      "name": "AGENT_N",
+      "type": "<prefix|suffix>",
+      "form": "<affix_form>",
+      "from_pos": "verb",
+      "to_pos": "noun",
+      "function": "agentive (one who does X)"
+    }
+  ]
+}
+
+You may leave some lists empty if the feature vector does not support that category (e.g., no voice_valence if there is no passive/causative), but always include the same top-level keys.
+
+Output ONLY the JSON.
+====high_1 END====
+

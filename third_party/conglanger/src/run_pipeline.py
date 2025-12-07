@@ -319,7 +319,7 @@ def main():
     if not new_words:
         logger.info("No new words extracted from translation.")
         # Even if no new words, we can still append sentences that passed QA
-        append_sentences_to_valid_translations(args.memory_dir, args.iteration)
+        append_sentences_to_valid_translations(args.memory_dir, args.iteration, args.input_sentences)
         update_metadata_with_translation_qa(lang_dir, args.iteration)
         return
     
@@ -333,7 +333,7 @@ def main():
     update_lexicon_with_new_words(new_words, args)
     logger.info(f"Added {len(new_words)} new words to lexicon.")
 
-    append_sentences_to_valid_translations(args.memory_dir, args.iteration)
+    append_sentences_to_valid_translations(args.memory_dir, args.iteration, args.input_sentences)
     logger.info("Appended sentences to valid translations.")
     
 if __name__ == '__main__':

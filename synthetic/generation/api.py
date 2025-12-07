@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from synthetic.utils import get_latest_target_id, get_latest_target_iteration, get_new_target_id
+from synthetic.utils import get_latest_random_id, get_latest_random_iteration, get_latest_target_id, get_latest_target_iteration, get_new_random_id, get_new_target_id
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,14 +28,14 @@ def get_snli_batches():
     snli = load_dataset("snli", split="train")
     ds = NLISentenceOnlyDataset(snli)
     loader = DataLoader(
-        ds, batch_size=8, shuffle=True, collate_fn=lambda batch: "\n".join(batch)
+        ds, batch_size=8, shuffle=False, collate_fn=lambda batch: "\n".join(batch)
     )
     return loader
 
 def apply_step_for_random(step, lang_id, average_hamming_dist, num_in_group, iteration=-1, batch=None):
     return run_conglanger(
-        lang_name=f"f{average_hamming_dist}_{num_in_group}",
-        run_name='random',
+        lang_name=f"{average_hamming_dist}_{num_in_group}",
+        run_name=f'random/{average_hamming_dist}_{num_in_group}',
         random=True,
         iteration=iteration,
         lang_id=lang_id,
@@ -57,7 +57,7 @@ def apply_step_for_target(step, lang_id, target_lang, iteration=-1, batch=None):
 def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in_group, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_snli_batches()
-    for batch_idx, batch in enumerate(dataset, iteration + 1):
+    for batch_idx, batch in enumerate(dataset, iteration):
         if num_batches is not None and batch_idx > num_batches:
             break
         print(f"Translating (batch {batch_idx}): {batch[:20]}... for {lang_id}")
@@ -66,7 +66,7 @@ def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in
             lang_id=lang_id,
             average_hamming_dist=average_hamming_dist,
             num_in_group=num_in_group,
-            iteration=batch_idx - 1,
+            iteration=batch_idx,
             batch=batch,
         )
         results.append(result)
@@ -75,7 +75,7 @@ def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in
 def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_snli_batches()
-    for batch_idx, batch in enumerate(dataset, iteration + 1):
+    for batch_idx, batch in enumerate(dataset, iteration):
         print(f"num_batches and batch_idx: {num_batches}, {batch_idx}")
         if num_batches is not None and batch_idx > num_batches:
             break
@@ -84,7 +84,7 @@ def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None,
             step="translation",
             lang_id=lang_id,
             target_lang=target_lang,
-            iteration=batch_idx - 1,
+            iteration=batch_idx,
             batch=batch,
         )
         results.append(result)
@@ -94,33 +94,33 @@ if __name__ == "__main__":
     corpus = get_snli_batches() 
     
     # start a new attempt for translating a language
-    # lang_id = get_new_language_id(target_directory)
+    # lang_id = get_new_target_id("swahili")
+    lang_id = get_new_random_id("low", 0)
     
     # continue translating last attempt for a language after the last translation iteration (when it stopped)
-    lang_id = get_latest_target_id("swahili") 
-    iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
-    print(f"Continuing translation for language ID {lang_id} at iteration {iteration}")
-    
-    # lang_id = get_new_target_id("swahili")
-    # print(f"Starting new translation for language ID {lang_id}")
+    # lang_id = get_latest_target_id("swahili") 
+    # iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
+    # lang_id = get_latest_random_id("low", 0)
+    iteration = 0
+    # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
     
     # translate corpus
-    translate_dataset_for_target(
-        corpus=corpus,
-        lang_id=lang_id,
-        target_lang="swahili",
-        num_batches=None, # runs all batches
-        iteration=iteration,
-    )
-    # translate_dataset_using_random(
+    # translate_dataset_for_target(
     #     corpus=corpus,
     #     lang_id=lang_id,
-    #     average_hamming_dist="low",
-    #     num_in_group=0,
-    #     num_batches=2,
+    #     target_lang="swahili",
+    #     num_batches=None, # runs all batches
+    #     iteration=iteration,
     # )
+    translate_dataset_using_random(
+        corpus=corpus,
+        lang_id=lang_id,
+        average_hamming_dist="low",
+        num_in_group=0,
+        num_batches=2,
+        iteration=iteration,
+    )
     
-
 
     # IGNORE BUT LEAVE BELOW
     
@@ -130,12 +130,14 @@ if __name__ == "__main__":
     #     lang_id=lang_id,
     #     target_lang="urdu",
     # )
-    # apply_step_for_random(
-    #     step="affix",
-    #     lang_id=lang_id,
-    #     average_hamming_dist="low",
-    #     num_in_group=0,
-    # )
+    # for div, i in [("low", 0), ("low", 1), ("high", 0), ("high", 1)]:
+    #     lang_id = get_new_random_id(div, i)
+    #     apply_step_for_random(
+    #         step="lexicon",
+    #         lang_id=lang_id,
+    #         average_hamming_dist=div,
+    #         num_in_group=i,
+    #     )
     
     # create lexicon
     # apply_step_for_target(

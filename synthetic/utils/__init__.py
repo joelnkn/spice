@@ -35,10 +35,12 @@ def get_latest_target_id(target):
     return f"attempt_{max_attempt}"
 
 def get_latest_random_id(average_hamming_dist, num_in_group):
-	dir = os.path.join(OUTPUT_DIR, 'random', f"f{average_hamming_dist}_{num_in_group}", "languages")
+	dir = os.path.join(OUTPUT_DIR, 'random', f"{average_hamming_dist}_{num_in_group}", "languages")
+	print(f"dir for latest random id: {dir}")
 	max_attempt = max_attempt_number(dir, "attempt")
 	if max_attempt == 0:
 		return None
+	print(f"latest random id: attempt_{max_attempt}")
 	return f"attempt_{max_attempt}"
 
 def get_new_target_id(target):
@@ -47,7 +49,7 @@ def get_new_target_id(target):
     return f"attempt_{max_attempt + 1}"
 
 def get_new_random_id(average_hamming_dist, num_in_group):
-	dir =  os.path.join(OUTPUT_DIR, 'random', f"f{average_hamming_dist}_{num_in_group}", "languages")
+	dir =  os.path.join(OUTPUT_DIR, 'random', f"{average_hamming_dist}_{num_in_group}", "languages")
 	max_attempt = max_attempt_number(dir, "attempt")
 	return f"attempt_{max_attempt + 1}"
 
@@ -56,7 +58,7 @@ def get_latest_target_iteration(target, lang_id):
     return max_attempt_number(dir, "iter")
 
 def get_latest_random_iteration(average_hamming_dist, num_in_group, lang_id):
-	dir = os.path.join(OUTPUT_DIR, 'random', f"f{average_hamming_dist}_{num_in_group}", 'languages', lang_id, 'memory')
+	dir = os.path.join(OUTPUT_DIR, 'random', f"{average_hamming_dist}_{num_in_group}", 'languages', lang_id, 'memory')
 	return max_attempt_number(dir, "iter")
 
 
