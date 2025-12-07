@@ -144,8 +144,7 @@ from synthetic.generation.api import (
 lang_id = get_latest_target_id("swahili")
 
 # Get the next iteration to run (after the last completed one)
-# IMPORTANT: each iteration corresponds to batch_idx + 1 (since it starts at 1)
-# therefore, if next_iteration = 2, num_batches must be > 2 for at least 1 batch to run
+# IMPORTANT: each iteration corresponds to batch_idx
 if lang_id:
     next_iteration = get_latest_target_iteration("swahili", lang_id) + 1
     
