@@ -15,7 +15,7 @@ def run_conglanger(
     run_name=None,
     random=False,
     iteration=0,
-    model="gemini-2.5-flash", # prob should change back to gemini-2.5-pro
+    model="gemini-2.5-pro", # prob should change back to gemini-2.5-pro
     steps=("affix", "lexicon"),
     custom_constraints=None,
     translation_sentence=None,
@@ -25,7 +25,7 @@ def run_conglanger(
     reasoning_effort="low",
     sleep_between_calls=0,
     qa_enabled=True,
-    self_refine_steps=4,
+    self_refine_steps=3,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,
     prompt_dir=None,
