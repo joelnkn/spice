@@ -138,6 +138,8 @@ def run_qa_step(args, llm_client, step_name, content, content_type="translation"
                     current = last
                 else:
                     final_qa = qa_data
+            else:
+                final_qa = qa_data
             # Determine threshold
             if getattr(args, 'qa_threshold', None) is not None:
                 threshold = args.qa_threshold
