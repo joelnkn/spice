@@ -25,7 +25,7 @@ def run_conglanger(
     reasoning_effort="low",
     sleep_between_calls=0,
     qa_enabled=True,
-    self_refine_steps=5,
+    self_refine_steps=4,
     qa_threshold=8.0,
     qa_thresholds_per_step=None,
     prompt_dir=None,
