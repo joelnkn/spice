@@ -330,6 +330,7 @@ def main():
         return
     
     # If we reach here: no conflicts → safe to update lexicon + valid translations
+    update_metadata_value(lang_dir, "num_new_words", len(new_words))
     update_lexicon_with_new_words(new_words, args)
     logger.info(f"Added {len(new_words)} new words to lexicon.")
 

@@ -296,7 +296,6 @@ def extract_new_vocabulary(lang_dir, iteration) -> List[Dict[str, str]]:
         for word_dict in sentence.get('new_words', []):
             new_words.append(word_dict)
     logger.info(f"Extracted {len(new_words)} new words from all translations")
-    update_metadata_value(lang_dir, "num_new_words", len(new_words))
     return new_words
 
 

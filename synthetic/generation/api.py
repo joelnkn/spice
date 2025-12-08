@@ -95,7 +95,7 @@ if __name__ == "__main__":
     
     # start a new attempt for translating a language
     # lang_id = get_new_target_id("swahili")
-    lang_id = get_new_random_id("low", 1)
+    lang_id = get_new_random_id("low", 0)
     
     # continue translating last attempt for a language after the last translation iteration (when it stopped)
     # lang_id = get_latest_target_id("swahili") 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         corpus=corpus,
         lang_id=lang_id,
         average_hamming_dist="low",
-        num_in_group=1,
+        num_in_group=0,
         num_batches=None,
         iteration=iteration,
     )
