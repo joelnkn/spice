@@ -24,7 +24,7 @@ Usage Examples:
     python3 -m ft.extract --dataset xnli --split test --output data/xnli_test.jsonl
 """
 from pydoc import text
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 import json
 import argparse
 import random
@@ -36,6 +36,7 @@ DATASET_LANGUAGES = {
     "copenlu/answerable_tydiqa": [""],
     "amazon": ["en"],
     "indic": ["ur", "te", "ta", "pa", "or", "mr", "ml", "kn", "hi", "gu", "bn", "bd", "as"],
+    "xnli-conlang": [""],
 }
 
 def extract_amazon(language, split):
@@ -49,9 +50,48 @@ def extract_amazon(language, split):
 def extract_indic(language, split):
     return load_dataset("mteb/IndicSentiment", language, split=split).filter(lambda row: row["LABEL"] is not None)
 
+
+def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
+    with open(json_path, "r", encoding="utf-8") as f:
+        sentences = json.load(f)["sentences"]
+
+    # group by k = global_index // 2, using parity for role
+    pairs = {}
+    for s in sentences:
+        gi = s["global_index"]
+        k = gi // 2
+        role = "premise" if gi % 2 == 0 else "hypothesis"
+        pairs.setdefault(k, {})[role] = s["conlang_sentence"]
+
+    # keep only complete pairs, sorted by original k
+    ks = sorted(k for k, v in pairs.items() if "premise" in v and "hypothesis" in v)
+
+    xnli = load_dataset("xnli", "en", split="train")
+
+    examples = []
+    for k in ks:
+        premise = pairs[k]["premise"]
+        hypothesis = pairs[k]["hypothesis"]
+        input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
+        label = xnli[k]["label"]
+        
+        example = {
+            "input": input_text,
+            "target": label,
+            "task_id": "nli"
+        }
+        examples.append(example)
+        
+    if split == "train":
+        return examples[:int(len(examples)*0.9)]
+    else:
+        return examples[int(len(examples)*0.9):]
+
+
 CUSTOM_EXTRACT = {
     "amazon": extract_amazon,
     "indic": extract_indic,
+    "xnli-conlang": extract_conlang_xnli,
 }
 
 DATASET_LABELS = {
@@ -141,6 +181,7 @@ DATASET_FORMAT = {
     "copenlu/answerable_tydiqa": format_tydiqa,
     "amazon": format_amazon,
     "indic": format_indic,
+    "xnli-conlang": lambda x: x,
 }
 
 def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
