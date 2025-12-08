@@ -73,7 +73,7 @@ def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
         premise = pairs[k]["premise"]
         hypothesis = pairs[k]["hypothesis"]
         input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
-        label = xnli[k]["label"]
+        label = DATASET_LABELS["xnli"].get(xnli[k]["label"], "neutral")
         
         example = {
             "input": input_text,
