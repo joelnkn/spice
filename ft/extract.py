@@ -53,7 +53,7 @@ def extract_indic(language, split):
     return load_dataset("mteb/IndicSentiment", language, split=split).filter(lambda row: row["LABEL"] is not None)
 
 
-def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
+def extract_conlang_xnli(json_path: str, split="train", balance=False) -> Dataset:
     with open(json_path, "r", encoding="utf-8") as f:
         sentences = json.load(f)["sentences"]
     
@@ -76,17 +76,37 @@ def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
             xnli_index = xnli_dict[eng_premise][eng_hypothesis]
             label = DATASET_LABELS["xnli"].get(xnli[xnli_index]["label"], "neutral")
 
+            if xnli[xnli_index]['premise'] != eng_premise or xnli[xnli_index]['hypothesis'] != eng_hypothesis:
+                print(f"Warning: English sentence mismatch at index {xnli_index}")
+                print(f"  JSON: {premise} {hypothesis}")
+                print(f"  XNLI: {xnli[xnli_index]['premise']} {xnli[xnli_index]['hypothesis']}")
+            
             example = {
                 "input": input_text,
                 "target": label,
                 "task_id": "nli"
             }
             examples.append(example)
+    
+    # Balance dataset to 50 examples per label if flag is set
+    if balance:
+        label_examples = defaultdict(list)
+        for ex in examples:
+            label_examples[ex["target"]].append(ex)
         
-    if split == "train":
-        return examples[:int(len(examples)*0.9)]
-    else:
-        return examples[int(len(examples)*0.9):]
+        num_examples = min(len(label_examples[label]) for label in ["entailment", "neutral", "contradiction"])
+        
+        balanced_examples = []
+        for label in ["entailment", "neutral", "contradiction"]:
+            label_exs = label_examples[label][:num_examples]  # Take first 50 of each label
+            balanced_examples.extend(label_exs)
+            print(f"Label '{label}': {len(label_exs)} examples (requested 50)")
+        
+        # Shuffle to mix labels
+        random.shuffle(balanced_examples)
+        examples = balanced_examples
+    
+    return examples
 
 
     # # group by k = global_index // 2, using parity for role
@@ -226,7 +246,7 @@ DATASET_FORMAT = {
     "xnli-conlang": lambda x: x,
 }
 
-def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None):
+def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None, balance=False):
     """
     Extract k random examples from dataset.
     
@@ -248,7 +268,10 @@ def extract(dataset_name="xnli", k=None, language="all", split="train", seed=Non
         print(f"Loading {dataset_name} dataset (language={language}, split={split})...")
 
         if dataset_name in CUSTOM_EXTRACT:
-            dataset = CUSTOM_EXTRACT[dataset_name](language, split=split)
+            if dataset_name == "xnli-conlang":
+                dataset = CUSTOM_EXTRACT[dataset_name](language, split=split, balance=balance)
+            else:
+                dataset = CUSTOM_EXTRACT[dataset_name](language, split=split)
         else:
             dataset = load_dataset(dataset_name, language, split=split)
         
@@ -283,10 +306,12 @@ def main():
                        help="Output file path (JSONL format). If not provided, prints to stdout.")
     parser.add_argument("--seed", type=int, default=None,
                        help="Random seed for reproducibility")
+    parser.add_argument("--balance", action="store_true",
+                       help="Balance dataset to 50 examples per label (only for xnli-conlang)")
     
     args = parser.parse_args()
 
-    examples = extract(args.dataset, args.k, args.language, args.split, args.seed)
+    examples = extract(args.dataset, args.k, args.language, args.split, args.seed, args.balance)
 
     # Save to file if output_path is provided
     if args.output:
