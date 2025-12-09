@@ -484,3 +484,83 @@ def load_orthography_rules(prompt_dir: str, lang_name: str, random: bool) -> str
     ortho_text = BASELINE.strip() + "\n• " + rules.strip()
     return ortho_text
 
+
+def append_lexicon_entries_from_input(required_lex_csv: str, full_lexicon_csv: str, input_sentences: str) -> str:
+    """
+    Append lexicon entries from full lexicon to required lexicon for words in input sentences.
+    
+    Parses input sentences (separated by newlines), extracts all words, and appends matching
+    rows from the full lexicon to the required lexicon without creating duplicates.
+    
+    Args:
+        required_lex_csv: CSV string with already extracted entries (from LLM)
+        full_lexicon_csv: Full lexicon CSV with format "form,pos,translation"
+        input_sentences: Sentences separated by newlines
+        
+    Returns:
+        CSV string with required entries + new entries from full lexicon (no duplicates)
+    """
+    if not input_sentences.strip() or not full_lexicon_csv.strip():
+        return required_lex_csv
+    
+    # Parse required lexicon CSV to get existing forms
+    required_lines = required_lex_csv.strip().split('\n') if required_lex_csv.strip() else []
+    header = required_lines[0] if required_lines else "form,pos,translation"
+    
+    # Build set of forms already in required lexicon
+    existing_forms = set()
+    required_rows = [header]
+    
+    for line in required_lines[1:]:
+        if not line.strip():
+            continue
+        parts = line.split(',')
+        if len(parts) >= 1:
+            form = parts[0].strip()
+            existing_forms.add(form.lower())  # Store lowercase for case-insensitive comparison
+            required_rows.append(line)
+    
+    # Parse full lexicon CSV
+    full_lines = full_lexicon_csv.strip().split('\n')
+    if not full_lines:
+        return required_lex_csv
+    
+    # Build mapping of forms to rows in full lexicon
+    full_lexicon_rows = {}  # lowercase form -> row mapping
+    
+    for line in full_lines[1:]:  # Skip header
+        if not line.strip():
+            continue
+        parts = line.split(',')
+        if len(parts) >= 1:
+            form = parts[0].strip()
+            full_lexicon_rows[form.lower()] = line
+    
+    # Extract words from input sentences
+    words_in_input = set()
+    for sentence in input_sentences.split('\n'):
+        if not sentence.strip():
+            continue
+        # Split by whitespace and common punctuation
+        sentence_words = re.findall(r'\b\w+\b', sentence.lower())
+        words_in_input.update(sentence_words)
+    
+    logger.info(f"Found {len(words_in_input)} unique words in input sentences")
+    logger.info(f"Found {len(existing_forms)} entries already in required lexicon")
+    logger.info(f"Found {len(full_lexicon_rows)} entries in full lexicon")
+    
+    # Append matching entries from full lexicon (if not already in required)
+    added_count = 0
+    
+    for word in sorted(words_in_input):
+        word_lower = word.lower()
+        # Check if word is in full lexicon and NOT already in required lexicon
+        if word_lower in full_lexicon_rows and word_lower not in existing_forms:
+            required_rows.append(full_lexicon_rows[word_lower])
+            existing_forms.add(word_lower)  # Track to prevent duplicates
+            added_count += 1
+    
+    logger.info(f"Appended {added_count} new entries from full lexicon")
+    logger.info(f"Final required lexicon has {len(required_rows) - 1} entries")
+    
+    return '\n'.join(required_rows)

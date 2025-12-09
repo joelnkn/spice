@@ -44,7 +44,6 @@ RULES:
    - follow the orthography exactly,
    - be full standalone words (not affixes or bound stems),
    - fit the typology and affix system,
-   - be short (3–6 letters preferred),
    - NEVER resemble English or any real language,
    - NEVER use hyphens,
    - NEVER duplicate or resemble any form already in the lexicon.

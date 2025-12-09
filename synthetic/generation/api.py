@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from synthetic.utils import get_latest_random_id, get_latest_random_iteration, get_latest_target_id, get_latest_target_iteration, get_new_random_id, get_new_target_id
+from synthetic.utils import clean_translations, get_latest_random_id, get_latest_random_iteration, get_latest_target_id, get_latest_target_iteration, get_new_random_id, get_new_target_id, get_target_memory_dir
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,7 +28,7 @@ def get_xnli_batches():
     xnli = load_dataset("xnli", "en", split="train")
     ds = [xnli[i//2]["premise"] if i % 2 == 0 else xnli[i//2]["hypothesis"] for i in range(len(xnli) * 2)]
     loader = DataLoader(
-        ds, batch_size=10, shuffle=False, collate_fn=lambda batch: "\n".join(batch)
+        ds, batch_size=20, shuffle=False, collate_fn=lambda batch: "\n".join(batch)
     )
     return loader
 
@@ -91,18 +91,19 @@ def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None,
     return results
 
 if __name__ == "__main__":
-    corpus = get_xnli_batches() 
-    
+    # corpus = get_xnli_batches() 
     # start a new attempt for translating a language
-    # lang_id = get_new_target_id("swahili")
-    lang_id = get_new_random_id("low", 1)
+    lang_id = get_latest_target_id("swahili")
+    # lang_id = get_new_random_id("low", 1)
     
     # continue translating last attempt for a language after the last translation iteration (when it stopped)
     # lang_id = get_latest_target_id("swahili") 
     # iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
     # lang_id = get_latest_random_id("low", 0)
-    iteration = 0
+    # iteration = 0
     # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
+    
+    clean_translations(get_target_memory_dir("swahili", lang_id))
     
     # translate corpus
     # translate_dataset_for_target(
@@ -112,14 +113,14 @@ if __name__ == "__main__":
     #     num_batches=None, # runs all batches
     #     iteration=iteration,
     # )
-    translate_dataset_using_random(
-        corpus=corpus,
-        lang_id=lang_id,
-        average_hamming_dist="low",
-        num_in_group=1,
-        num_batches=None,
-        iteration=iteration,
-    )
+    # translate_dataset_using_random(
+    #     corpus=corpus,
+    #     lang_id=lang_id,
+    #     average_hamming_dist="low",
+    #     num_in_group=1,
+    #     num_batches=None,
+    #     iteration=iteration,
+    # )
     
 
     # IGNORE BUT LEAVE BELOW

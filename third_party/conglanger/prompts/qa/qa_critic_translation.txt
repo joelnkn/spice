@@ -3,7 +3,7 @@ Here is a translation result for a constructed language:
 {input_sentences}
 === TRANSLATION END ===
 
-For context, here is the full language specification:
+For context, here is the full language specification with only the required lexicon for these translations:
 === SPEC START ===
 {context}
 === SPEC END ===
@@ -34,7 +34,7 @@ Return JSON with:
      "issue": "<short description>",
      "type": "<orthography_violation|affix_error|feature_violation|lexical_error|glossing_error|semantic_error|consistency_error>",
      "correction": "<how to fix>",
-     "priority": <1|2|3>
+     "priority": <1|2>
    }}
 
 
@@ -47,32 +47,34 @@ SPECIAL CONSISTENCY RULES:
        • is NOT in the “new_words” list,  
      report a **priority 1** `"consistency_error"`.
 
-2. **Incorrect affix use:**
+2. **Lexicon conflicts:**
+   - For each conflict in LEXICON CONFLICTS:
+       • Add a **priority 1 "consistency_error"**.  
+       • The correction must rename or adjust POS/translation.
+       • If the existing translation aligns with the new one, just request that this term be removed from new words.
+
+3. **Incorrect affix use:**
    - Only affixes in the inventory may be used.
    - Must be used with correct function and order.
    - Affixes cannot be treated as new words.
 
-3. **Derived forms:**
+4. **Derived forms:**
    - Allowed only if the derivation (POS→POS) is legal.
    - If illegal → "affix_error"
    - DO NOT treat them as new words.
 
-4. **Lexicon conflicts:**
-   - For each conflict in LEXICON CONFLICTS:
-       • Add a **priority 1 "consistency_error"**.  
-       • The correction must correction must rename or adjust POS/translation.
-
 5. **Necessity of new words:**
    For each invented base lexeme:
-   - If the meaning could have been expressed using a different existing word or paraphrase, add a **priority 1 "lexical_error"**.
+   - If the meaning could have been expressed using a different existing word or paraphrase, add a "lexical_error"**.
    - If the word resembles English or violates orthography, report a priority 1 "orthography_violation".
 
 6. **Gloss correctness:**
    - Glosses must match affix boundaries and true functions.
    - Glossing mistakes are `"glossing_error"`.
 
+NEVER include minor errors. DO NOT NITPICK! Be concise and clear with fixes.
+
 Output rules:
-- PRIORITY MUST be 1, 2, or 3 ONLY. Never 0 or "none".
+- PRIORITY MUST be 1 or 2 ONLY. Never 0 or "none".
 - If something is not an issue, do NOT include it.
-- If total issues > 20 → list only priority 1–2 (drop all priority 3).
 - Output ONLY the JSON.

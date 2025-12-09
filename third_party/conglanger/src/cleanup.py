@@ -326,7 +326,7 @@ def extract_new_grammar_rules(lang_dir) -> List[str]:
     update_metadata_value(lang_dir, "num_new_grammar_rules", len(new_rules))
     return new_rules
 
-def append_sentences_to_valid_translations(memory_dir, iteration, input_sentences, batch_size=10) -> str:
+def append_sentences_to_valid_translations(memory_dir, iteration, input_sentences, batch_size=20) -> str:
     """Append all sentences from translation.json to valid_translations.json in memory_dir/translation.
     Creates valid_translations.json if it does not exist.
     Each sentence group includes the iteration number that translated those sentences.

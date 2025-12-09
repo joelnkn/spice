@@ -10,6 +10,7 @@ Here is a quality assessment of it:
 === JUDGEMENT END ===
 
 Please produce a corrected version of the lexicon that fixes all issues listed in the judgement.
+If unable to fix everything, fix at least the priority 1 issues.
 Preserve as much valid information as possible, changing only what the corrections specify.
 
 Output must be in the same format - a CSV with EXACTLY this header:

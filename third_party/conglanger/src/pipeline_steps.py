@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 from cleanup import extract_new_vocabulary
 from utils import (
     check_new_word_conflicts, clean_response, alphabetize_csv_text, get_csv_text_n_entries, get_specification_value, load_affix, load_feature_vector, load_lexicon, load_orthography_rules, load_required_files,
-    save_memory
+    save_memory, append_lexicon_entries_from_input
 )
 
 logger = logging.getLogger(__name__)
@@ -462,6 +462,9 @@ def run_translation_step(args, llm_client):
         if not required_lex_csv.strip():
             logger.warning("lex_extraction returned empty; falling back to full lexicon.")
             required_lex_csv = lexicon_csv
+        
+        # Append lexicon entries from full lexicon for words in input sentences (no duplicates)
+        required_lex_csv = append_lexicon_entries_from_input(required_lex_csv, lexicon_csv, input_sentences)
     except FileNotFoundError:
         logger.warning(
             "lex_extraction.txt not found; passing full lexicon to translation."

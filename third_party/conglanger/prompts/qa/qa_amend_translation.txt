@@ -8,7 +8,7 @@ Here is the quality assessment:
 {judgement}
 === JUDGEMENT END ===
 
-Please produce a corrected version of the translation that fixes all issues listed in the judgement.
+Please produce a corrected version of the translation that fixes all issues listed in the judgement, focusing on priority 1 issues.
 Apply every correction as specified. 
 For any new word with conflicts, change it exactly how specified by the judgement.
 
