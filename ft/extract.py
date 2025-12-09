@@ -75,6 +75,14 @@ def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
         input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
         label = DATASET_LABELS["xnli"].get(xnli[k]["label"], "neutral")
         
+        eng_json = s["english_sentence"]
+        eng_xnli = xnli[k][role]
+        
+        if eng_json != eng_xnli:
+            print(f"Warning: English sentence mismatch at index {k}")
+            print(f"  JSON: {eng_json}")
+            print(f"  XNLI: {eng_xnli}")
+        
         example = {
             "input": input_text,
             "target": label,
