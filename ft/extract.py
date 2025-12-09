@@ -23,11 +23,13 @@ Usage Examples:
     # Extract all test examples
     python3 -m ft.extract --dataset xnli --split test --output data/xnli_test.jsonl
 """
+import enum
 from pydoc import text
 from datasets import load_dataset, Dataset
 import json
 import argparse
 import random
+from collections import defaultdict
 
 DATASET_LANGUAGES = {
     "xnli": ["ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"],
@@ -54,46 +56,78 @@ def extract_indic(language, split):
 def extract_conlang_xnli(json_path: str, split="train") -> Dataset:
     with open(json_path, "r", encoding="utf-8") as f:
         sentences = json.load(f)["sentences"]
-
-    # group by k = global_index // 2, using parity for role
-    pairs = {}
-    for s in sentences:
-        gi = s["global_index"]
-        k = gi // 2
-        role = "premise" if gi % 2 == 0 else "hypothesis"
-        pairs.setdefault(k, {})[role] = s["conlang_sentence"]
-
-    # keep only complete pairs, sorted by original k
-    ks = sorted(k for k, v in pairs.items() if "premise" in v and "hypothesis" in v)
-
+    
     xnli = load_dataset("xnli", "en", split="train")
 
+    xnli_dict = defaultdict(lambda: defaultdict(int))
+    for i in range(1000):
+        premise, hypothesis = xnli[i]["premise"], xnli[i]["hypothesis"]
+        xnli_dict[premise][hypothesis] = i
+    
     examples = []
-    for k in ks:
-        premise = pairs[k]["premise"]
-        hypothesis = pairs[k]["hypothesis"]
-        input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
-        label = DATASET_LABELS["xnli"].get(xnli[k]["label"], "neutral")
-        
-        eng_json = s["english_sentence"]
-        eng_xnli = xnli[k][role]
-        
-        if eng_json != eng_xnli:
-            print(f"Warning: English sentence mismatch at index {k}")
-            print(f"  JSON: {eng_json}")
-            print(f"  XNLI: {eng_xnli}")
-        
-        example = {
-            "input": input_text,
-            "target": label,
-            "task_id": "nli"
-        }
-        examples.append(example)
+    for i in range(len(sentences) - 1):
+        s1, s2 = sentences[i], sentences[i + 1]
+        # valid pair, keep
+        if s1['global_index'] % 2 == 0 and s2['global_index'] == s1['global_index'] + 1:
+            premise, hypothesis = s1['conlang_sentence'], s2['conlang_sentence']
+            input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
+            # Use English sentences to look up the correct XNLI index
+            eng_premise, eng_hypothesis = s1['english_sentence'], s2['english_sentence']
+            xnli_index = xnli_dict[eng_premise][eng_hypothesis]
+            label = DATASET_LABELS["xnli"].get(xnli[xnli_index]["label"], "neutral")
+
+            example = {
+                "input": input_text,
+                "target": label,
+                "task_id": "nli"
+            }
+            examples.append(example)
         
     if split == "train":
         return examples[:int(len(examples)*0.9)]
     else:
         return examples[int(len(examples)*0.9):]
+
+
+    # # group by k = global_index // 2, using parity for role
+    # pairs = {}
+    # for s in sentences:
+    #     gi = s["global_index"]
+    #     k = gi // 2
+    #     role = "premise" if gi % 2 == 0 else "hypothesis"
+    #     pairs.setdefault(k, {})[role] = s["conlang_sentence"]
+
+    # # keep only complete pairs, sorted by original k
+    # ks = sorted(k for k, v in pairs.items() if "premise" in v and "hypothesis" in v)
+
+    # xnli = load_dataset("xnli", "en", split="train")
+
+    # examples = []
+    # for k in ks:
+    #     premise = pairs[k]["premise"]
+    #     hypothesis = pairs[k]["hypothesis"]
+    #     input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
+    #     label = DATASET_LABELS["xnli"].get(xnli[k]["label"], "neutral")
+        
+    #     eng_json = s["english_sentence"]
+    #     eng_xnli = xnli[k][role]
+        
+    #     if eng_json != eng_xnli:
+    #         print(f"Warning: English sentence mismatch at index {k}")
+    #         print(f"  JSON: {eng_json}")
+    #         print(f"  XNLI: {eng_xnli}")
+        
+    #     example = {
+    #         "input": input_text,
+    #         "target": label,
+    #         "task_id": "nli"
+    #     }
+    #     examples.append(example)
+        
+    # if split == "train":
+    #     return examples[:int(len(examples)*0.9)]
+    # else:
+    #     return examples[int(len(examples)*0.9):]
 
 
 CUSTOM_EXTRACT = {
