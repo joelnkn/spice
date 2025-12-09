@@ -52,6 +52,11 @@ synthetic/outputs/
 !third_party/conglanger/base_specifications/**/*.csv
 !third_party/conglanger/base_specifications/**/*.json
 
+# Fine-tuning data and outputs
+outputs/
+ft/outputs/
+*.safetensors
+adapter_*.bin
 # Logs
 logs/
 *.log

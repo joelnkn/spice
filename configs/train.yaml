@@ -1,0 +1,33 @@
+model_name: google/mt5-base        # or bigscience/bloom-560m, etc.
+task_type: seq2seq                 # "seq2seq" or "causal"
+use_qlora: false                   # Set to false on macOS (no CUDA). QLoRA requires CUDA or bitsandbytes>=0.43.1
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q, k, v, o, up, down, gate]  # mapped internally per-arch
+optim:
+  name: adamw                    # Use "adamw" on macOS (no CUDA). "paged_adamw_8bit" requires CUDA
+  lr: 3.0e-4
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+train:
+  max_steps: 10000
+  grad_accum: 8
+  max_src_len: 512
+  max_tgt_len: 16
+  per_device_batch_size: 32
+  gradient_checkpointing: true
+  logging_steps: 25
+  eval_steps: 500
+  save_steps: 500
+seed: 17
+io:
+  # Can be a single file (str) or list of files for multi-task training
+  train_path: data/xnli_en_train.jsonl  # or [data/train.jsonl, data/train_nli.jsonl] for multiple tasks
+  eval_path: data/xnli_eval.jsonl
+  out_dir: outputs/run1
+  push_to_hub: false
+wandb:
+  enabled: false
+  project: spice-ft

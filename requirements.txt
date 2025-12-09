@@ -1,2 +1,14 @@
 # Core dependencies for synthetic language generation
 -r third_party/conglanger/requirements.txt
+
+# Fine-tuning dependencies
+transformers>=4.44
+datasets>=2.20
+accelerate>=1.0
+peft>=0.13
+bitsandbytes
+evaluate>=0.4
+wandb>=0.17
+omegaconf>=2.3
+tiktoken
+sentencepiece
