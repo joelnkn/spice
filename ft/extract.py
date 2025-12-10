@@ -340,14 +340,14 @@ def main():
                        help="Output file path (JSONL format). If not provided, prints to stdout.")
     parser.add_argument("--seed", type=int, default=None,
                        help="Random seed for reproducibility")
-    parser.add_argument("--balance", action="store_true",
-                       help="Balance dataset to 50 examples per label (only for xnli-conlang)")
-    parser.add_argument("--balance_type", type=str, default="avg", choices=["min", "max", "avg"],
-                       help="Balancing strategy: 'min' (to minority size), 'max' (to majority size), 'avg' (compromise)")
+    # parser.add_argument("--balance", action="store_true",
+    #                    help="Balance dataset to 50 examples per label (only for xnli-conlang)")
+    # parser.add_argument("--balance_type", type=str, default="avg", choices=["min", "max", "avg"],
+    #                    help="Balancing strategy: 'min' (to minority size), 'max' (to majority size), 'avg' (compromise)")
     
     args = parser.parse_args()
 
-    examples = extract(args.dataset, args.k, args.language, args.split, args.seed, args.balance, args.balance_type)
+    examples = extract(args.dataset, args.k, args.language, args.split, args.seed, args.balance)
     # Save to file if output_path is provided
     if args.output:
         print(f"Saving to {args.output}...")
