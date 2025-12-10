@@ -53,7 +53,7 @@ def extract_indic(language, split):
     return load_dataset("mteb/IndicSentiment", language, split=split).filter(lambda row: row["LABEL"] is not None)
 
 
-def extract_conlang_xnli(json_path: str, split="train", balance=False, balance_type="avg") -> Dataset:
+def extract_conlang_xnli(json_path: str, split="train", balance=True, balance_type="avg") -> Dataset:
     with open(json_path, "r", encoding="utf-8") as f:
         sentences = json.load(f)["sentences"]
     
