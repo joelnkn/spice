@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from typing import Optional, List, Dict, Any
 
 import pandas as pd
@@ -245,8 +246,6 @@ def update_metadata_with_translation_qa(lang_dir, iteration):
         logger.warning(f"No overall_score found in translation_qa.json")
         return
     
-    has_conflicts = len(final_qa.get('conflicts', [])) > 0
-    
     # Update metadata
     metadata_path = os.path.join(lang_dir, "metadata.json")
     metadata = {}
@@ -256,22 +255,23 @@ def update_metadata_with_translation_qa(lang_dir, iteration):
                 metadata = json.load(f)
         except Exception as e:
             logger.warning(f"Could not load metadata.json: {e}")
+            
+    if final_qa.get('conflicts') or final_qa.get('overall_score') < 5:
+        metadata["num_invalid_batches"] = metadata.get("num_invalid_batches", 0) + 1
+        metadata["invalid_batches"].append(iteration)
+        return True
     
     # Update running QA sum and count
     metadata["running_qa"] = metadata.get("running_qa", 0) + overall_score
     metadata["running_qa_count"] = metadata.get("running_qa_count", 0) + 1
     metadata["average_qa"] = metadata["running_qa"] / metadata["running_qa_count"]
-    if has_conflicts:
-        metadata["num_invalid_batches"] = metadata.get("num_invalid_batches", 0) + 1
-        metadata["invalid_batches"].append(iteration)
-    else:
-        metadata["num_valid_batches"] = metadata.get("num_valid_batches", 0) + 1
+    metadata["num_valid_batches"] = metadata.get("num_valid_batches", 0) + 1
     
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
     logger.info(f"Updated metadata.json with running_qa={metadata['running_qa']}, count={metadata['running_qa_count']}, average={metadata['average_qa']:.2f}")
     
-    return has_conflicts
+    return False
 
 def extract_new_vocabulary(lang_dir, iteration) -> List[Dict[str, str]]:
     """Extract new words from all sentences in translation.json in lang_dir/memory/translation/translation.json.
@@ -297,7 +297,6 @@ def extract_new_vocabulary(lang_dir, iteration) -> List[Dict[str, str]]:
             new_words.append(word_dict)
     logger.info(f"Extracted {len(new_words)} new words from all translations")
     return new_words
-
 
 def extract_new_grammar_rules(lang_dir) -> List[str]:
     """Extract new grammar rules from all sentences in translation.json in lang_dir/memory/translation/translation.json.

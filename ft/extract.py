@@ -58,97 +58,129 @@ def extract_conlang_xnli(json_path: str, split="train", balance=False) -> Datase
         sentences = json.load(f)["sentences"]
     
     xnli = load_dataset("xnli", "en", split="train")
-
-    xnli_dict = defaultdict(lambda: defaultdict(int))
-    for i in range(1000):
-        premise, hypothesis = xnli[i]["premise"], xnli[i]["hypothesis"]
-        xnli_dict[premise][hypothesis] = i
     
+    translations = {}
+    metadata = {}
+    for sentence in sentences:
+        english_sentence = sentence["english_sentence"]
+        if english_sentence not in translations:
+            metadata[english_sentence] = {}
+            metadata[english_sentence]["global_idx"] = sentence["global_index"]
+            metadata[english_sentence]["batch_idx"] = sentence["iteration"]
+            translations[english_sentence] = sentence["conlang_sentence"]
+        metadata[english_sentence]["translations"] = metadata[english_sentence].get("translations", []) + [sentence["conlang_sentence"]]
+        metadata[english_sentence]["global_indices"] = metadata[english_sentence].get("global_indices", []) + [sentence["global_index"]]
+        
     examples = []
-    for i in range(len(sentences) - 1):
-        s1, s2 = sentences[i], sentences[i + 1]
-        # valid pair, keep
-        if s1['global_index'] % 2 == 0 and s2['global_index'] == s1['global_index'] + 1:
-            premise, hypothesis = s1['conlang_sentence'], s2['conlang_sentence']
+    # xnli_dict = defaultdict(lambda: defaultdict(int))
+    inconsistencies = 0
+    for i in range(2500):
+        premise, hypothesis = xnli[i]["premise"], xnli[i]["hypothesis"]
+        label = DATASET_LABELS["xnli"].get(xnli[i]["label"])
+        conlang_premise, conlang_hypothesis = translations.get(premise, None), translations.get(hypothesis, None)
+        if conlang_premise is not None and conlang_hypothesis is None or conlang_premise is None and conlang_hypothesis is not None:
+            inconsistencies += 1
+            continue
+        elif conlang_premise and conlang_hypothesis:
+            # if abs(metadata[premise]["global_idx"] - metadata[hypothesis]["global_idx"]) != 1:
+            #     print(f"Warning: Wrong global indices for premise and hypothesis at XNLI index {i} metadata {metadata[premise]['global_idx']} vs {metadata[hypothesis]['global_idx']}")
+            #     if len(metadata[premise]["global_indices"]) > 1:
+            #         print(f"  Premise has multiple translations at global indices {metadata[premise]['global_indices']}")
+            #     if len(metadata[hypothesis]["global_indices"]) > 1:
+            #         print(f"  Hypothesis has multiple translations at global indices {metadata[hypothesis]['global_indices']}")
             input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
-            # Use English sentences to look up the correct XNLI index
-            eng_premise, eng_hypothesis = s1['english_sentence'], s2['english_sentence']
-            xnli_index = xnli_dict[eng_premise][eng_hypothesis]
-            label = DATASET_LABELS["xnli"].get(xnli[xnli_index]["label"], "neutral")
-
-            if xnli[xnli_index]['premise'] != eng_premise or xnli[xnli_index]['hypothesis'] != eng_hypothesis:
-                print(f"Warning: English sentence mismatch at index {xnli_index}")
-                print(f"  JSON: {premise} {hypothesis}")
-                print(f"  XNLI: {xnli[xnli_index]['premise']} {xnli[xnli_index]['hypothesis']}")
-            
             example = {
                 "input": input_text,
                 "target": label,
                 "task_id": "nli"
             }
             examples.append(example)
+
+            # xnli_dict[premise][hypothesis] = i
+    print(f"Extracted {len(examples)} examples from conlang XNLI dataset")
+    print(f"Skipped {inconsistencies} examples due to missing translations")
+    
+    num_duplicates = 0
+    for key, val in metadata.items():
+        if len(val["translations"]) > 1:
+            num_duplicates += len(val["translations"]) - 1
+    print(f"Total of {num_duplicates} duplicate translations found")
+    
+    # examples = []
+    # for i in range(len(sentences) - 1):
+    #     # s1, s2 = sentences[i], sentences[i + 1]
+    #     # if s1 in premise_dict and s2 in hypothesis_dict:
+    #     # elif s1
+    # for i in range(len(sentences) - 1):
+    #     s1, s2 = sentences[i], sentences[i + 1]
+    #     # valid pair, keep
+    #     if s1['global_index'] % 2 == 0 and s2['global_index'] == s1['global_index'] + 1:
+    #         premise, hypothesis = s1['conlang_sentence'], s2['conlang_sentence']
+    #         input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
+    #         # Use English sentences to look up the correct XNLI index
+    #         eng_premise, eng_hypothesis = s1['english_sentence'], s2['english_sentence']
+    #         xnli_index = xnli_dict[eng_premise][eng_hypothesis]
+    #         label = DATASET_LABELS["xnli"].get(xnli[xnli_index]["label"], "neutral")
+
+    #         if xnli[xnli_index]['premise'] != eng_premise or xnli[xnli_index]['hypothesis'] != eng_hypothesis:
+    #             print(f"Warning: English sentence mismatch at index {xnli_index}")
+    #             print(f"  JSON: {premise} {hypothesis}")
+    #             print(f"  XNLI: {xnli[xnli_index]['premise']} {xnli[xnli_index]['hypothesis']}")
+            
+    #         example = {
+    #             "input": input_text,
+    #             "target": label,
+    #             "task_id": "nli"
+    #         }
+    #         examples.append(example)
     
     # Balance dataset to 50 examples per label if flag is set
     if balance:
         label_examples = defaultdict(list)
         for ex in examples:
             label_examples[ex["target"]].append(ex)
-        
-        num_examples = min(len(label_examples[label]) for label in ["entailment", "neutral", "contradiction"])
-        
+
+        # Count per label
+        counts = {label: len(label_examples[label]) for label in ["entailment", "neutral", "contradiction"]}
+        print("Counts per label:", counts)
+
+        min_count = min(counts.values())
+        max_count = max(counts.values())
+
+        # Choose your strategy:
+        # 1) target_per_label = max_count          # upsample everything to majority size
+        # 2) target_per_label = int((min_count + max_count) / 2)  # compromise
+        target_per_label = int((min_count + max_count) / 2)
+
+        print(f"Balancing dataset to ~{target_per_label} examples per label")
+
         balanced_examples = []
+
         for label in ["entailment", "neutral", "contradiction"]:
-            label_exs = label_examples[label][:num_examples]  # Take first 50 of each label
-            balanced_examples.extend(label_exs)
-            print(f"Label '{label}': {len(label_exs)} examples (requested 50)")
-        
-        # Shuffle to mix labels
+            exs = label_examples[label]
+            n = len(exs)
+
+            if n == 0:
+                print(f"Warning: label '{label}' has 0 examples, skipping.")
+                continue
+
+            if n >= target_per_label:
+                # Downsample without replacement
+                chosen = random.sample(exs, target_per_label)
+                print(f"Label '{label}': downsampled {n} -> {target_per_label}")
+            else:
+                # Oversample *with* replacement to reach target_per_label
+                chosen = exs[:]  # start with all
+                while len(chosen) < target_per_label:
+                    chosen.append(random.choice(exs))
+                print(f"Label '{label}': oversampled {n} -> {target_per_label}")
+
+            balanced_examples.extend(chosen)
+
         random.shuffle(balanced_examples)
         examples = balanced_examples
     
     return examples
-
-
-    # # group by k = global_index // 2, using parity for role
-    # pairs = {}
-    # for s in sentences:
-    #     gi = s["global_index"]
-    #     k = gi // 2
-    #     role = "premise" if gi % 2 == 0 else "hypothesis"
-    #     pairs.setdefault(k, {})[role] = s["conlang_sentence"]
-
-    # # keep only complete pairs, sorted by original k
-    # ks = sorted(k for k, v in pairs.items() if "premise" in v and "hypothesis" in v)
-
-    # xnli = load_dataset("xnli", "en", split="train")
-
-    # examples = []
-    # for k in ks:
-    #     premise = pairs[k]["premise"]
-    #     hypothesis = pairs[k]["hypothesis"]
-    #     input_text = f"Premise: {premise} Hypothesis: {hypothesis}"
-    #     label = DATASET_LABELS["xnli"].get(xnli[k]["label"], "neutral")
-        
-    #     eng_json = s["english_sentence"]
-    #     eng_xnli = xnli[k][role]
-        
-    #     if eng_json != eng_xnli:
-    #         print(f"Warning: English sentence mismatch at index {k}")
-    #         print(f"  JSON: {eng_json}")
-    #         print(f"  XNLI: {eng_xnli}")
-        
-    #     example = {
-    #         "input": input_text,
-    #         "target": label,
-    #         "task_id": "nli"
-    #     }
-    #     examples.append(example)
-        
-    # if split == "train":
-    #     return examples[:int(len(examples)*0.9)]
-    # else:
-    #     return examples[int(len(examples)*0.9):]
-
 
 CUSTOM_EXTRACT = {
     "amazon": extract_amazon,

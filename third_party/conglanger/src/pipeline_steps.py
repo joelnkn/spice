@@ -77,7 +77,7 @@ def _get_lexicon_conflicts(args):
     new_words = extract_new_vocabulary(args.lang_dir, args.iteration)
     if new_words:
         return check_new_word_conflicts(new_words, args)
-    return None
+    return []
 
 def run_qa_step(args, llm_client, step_name, content, content_type="translation", context=None, context_type=None):
     """Run QA critic/amend loop for a content artifact."""
@@ -98,14 +98,15 @@ def run_qa_step(args, llm_client, step_name, content, content_type="translation"
         os.path.join(prompt_dir, f"qa_amend_{content_type}.txt")
     )
 
-    last = None
     current = content
     all_iters = []
     final_qa = None
     max_iters = getattr(args, 'self_refine_steps', 3)
+    
+    best_no_conflict = None
 
     for i in range(max_iters):
-        conflicts = None
+        conflicts = []
         if has_context:
             # For translation, check for new word conflicts and prepare for QA prompt
             if content_type == "translation":
@@ -118,58 +119,91 @@ def run_qa_step(args, llm_client, step_name, content, content_type="translation"
             qa_prompt = PromptManager.format_prompt(critic, content=current, content_type=content_type)
         logger.info(f"QA prompt ({step_name} iter {i+1}): {qa_prompt}")   
         qa_raw, _ = generate_and_parse_json_with_retries(llm_client, qa_prompt, max_retries=3, do_sleep=False)
+        
         try:
             qa_data = json.loads(qa_raw)
-            overall = qa_data.get('overall_score', 0)         
-            iter_record = {'iteration': i+1, 'qa_data': qa_data, 'content_length': len(current), 'amended': False, 'num_conflicts': 0, 'skipped': False}
-            if conflicts:
-                iter_record['num_conflicts'] = len(conflicts)
-                qa_data['has_conficts'] = True
-                qa_data['conflicts'] = conflicts
-                
-            # check current best score
-            if last:
-                skip_iteration = i == max_iters - 1 and len(conflicts) > 0
-                skip_iteration |= overall < final_qa.get('overall_score', 0) and not final_qa.get('has_conficts', False)
-                if skip_iteration:
-                    logger.info(f"Skipping iteration {i+1} as previous iteration had better score {final_qa.get('overall_score', 0)} vs current {overall}")
-                    iter_record['skipped'] = True
-                    all_iters.append(iter_record)
-                    current = last
-                else:
-                    final_qa = qa_data
-            else:
-                final_qa = qa_data
-            # Determine threshold
-            if getattr(args, 'qa_threshold', None) is not None:
-                threshold = args.qa_threshold
-                logger.info(f"QA step {step_name} iteration {i+1}: score={overall}, threshold={threshold}, conflicts={bool(conflicts)}")
-            else:
-                if step_name == 'translation':
-                    threshold = args.qa_threshold_translation
-                elif step_name == 'lexicon':
-                    threshold = args.qa_threshold_lexicon
-                elif step_name == "affix":
-                    threshold = args.qa_threshold_affix
-                else:
-                    threshold = 8.0
-            if overall >= threshold and not conflicts:
-                all_iters.append(iter_record)
-                return True, {'final_qa': final_qa, 'all_iterations': all_iters}, current
-            if i < max_iters - 1:
-                iter_record['amended'] = True
-                all_iters.append(iter_record)
-                amend_prompt = PromptManager.format_prompt(amend, content=current, judgement=qa_raw)
-                last = current
-                current, _ = generate_and_parse_json_with_retries(llm_client, amend_prompt, max_retries=3, do_sleep=False)
-            else:
-                all_iters.append(iter_record)
         except json.JSONDecodeError:
-            iter_record = {'iteration': i+1, 'qa_data': None, 'error': 'json_parse_failed', 'raw_response': qa_raw, 'amended': False}
+            iter_record = {
+                'iteration': i,
+                'qa_data': None,
+                'error': 'json_parse_failed',
+                'raw_response': qa_raw,
+                'amended': False,
+            }
             all_iters.append(iter_record)
             if i == max_iters - 1:
-                return False, {'final_qa': None, 'all_iterations': all_iters}, current
+                break
+            continue
 
+        overall = qa_data.get('overall_score', 0)
+        iter_record = {
+            'iteration': i,
+            'qa_data': qa_data,
+            'content_length': len(current),
+            'amended': False,
+            'num_conflicts': len(conflicts),
+            'conflicts': conflicts,
+        }
+
+        if len(conflicts) > 0:
+            qa_data['conflicts'] = True
+        else:
+            qa_data['conflicts'] = False
+            # update best score among NO-CONFLICT candidates
+            if best_no_conflict is None or overall > best_no_conflict['score']:
+                best_no_conflict = {
+                    'score': overall,
+                    'content': current,
+                    'qa_data': qa_data,
+                    'iteration': i,
+                }
+
+        final_qa = qa_data
+
+        # threshold selection
+        if getattr(args, 'qa_threshold', None) is not None:
+            threshold = args.qa_threshold
+        else:
+            if step_name == 'translation':
+                threshold = args.qa_threshold_translation
+            elif step_name == 'lexicon':
+                threshold = args.qa_threshold_lexicon
+            elif step_name == "affix":
+                threshold = args.qa_threshold_affix
+            else:
+                threshold = 8.0
+
+        logger.info(
+            f"QA step {step_name} iteration {i}: "
+            f"score={overall}, threshold={threshold}, conflicts={bool(conflicts)}"
+        )
+
+        # Early exit on good result (no conflicts + above threshold)
+        if overall >= threshold and len(conflicts) == 0:
+            all_iters.append(iter_record)
+            return True, {'final_qa': qa_data, 'all_iterations': all_iters}, current
+
+        # Try to amend if we still have iterations left
+        if i < max_iters - 1:
+            iter_record['amended'] = True
+            all_iters.append(iter_record)
+            amend_prompt = PromptManager.format_prompt(
+                amend, content=current, judgement=qa_raw
+            )
+            current, _ = generate_and_parse_json_with_retries(
+                llm_client, amend_prompt, max_retries=3, do_sleep=False
+            )
+        else:
+            all_iters.append(iter_record)
+
+    # If we get here, no iteration both passed threshold and had no conflicts.
+    # Pick the BEST no-conflict candidate if we saw any at all.
+    if best_no_conflict is not None:
+        final_qa = best_no_conflict['qa_data']
+        current = best_no_conflict['content']
+        return False, {'final_qa': final_qa, 'all_iterations': all_iters}, current
+
+    # No conflict-free candidate: return whatever last QA we had
     return False, {'final_qa': final_qa, 'all_iterations': all_iters}, current
 
 

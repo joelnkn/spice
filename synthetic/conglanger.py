@@ -19,7 +19,7 @@ def run_conglanger(
     steps=("affix", "lexicon"),
     custom_constraints=None,
     translation_sentence=None,
-    max_tokens=20000,
+    max_tokens=30000,
     temperature=0.3,
     thinking_budget=0,
     reasoning_effort="low",

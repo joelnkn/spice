@@ -1,5 +1,7 @@
+import os
 from dotenv import load_dotenv
 
+from ft.extract import extract_conlang_xnli
 from synthetic.utils import clean_translations, get_latest_random_id, get_latest_random_iteration, get_latest_target_id, get_latest_target_iteration, get_new_random_id, get_new_target_id, get_target_memory_dir
 
 # Load environment variables from .env file
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     # corpus = get_xnli_batches() 
     # start a new attempt for translating a language
     lang_id = get_latest_target_id("swahili")
-    # lang_id = get_new_random_id("low", 1)
+    # lang_id = get_new_random_id("high", 0)
     
     # continue translating last attempt for a language after the last translation iteration (when it stopped)
     # lang_id = get_latest_target_id("swahili") 
@@ -103,7 +105,10 @@ if __name__ == "__main__":
     # iteration = 0
     # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
     
-    clean_translations(get_target_memory_dir("swahili", lang_id))
+    #clean_translations(get_target_memory_dir("swahili", lang_id))
+    
+    json_path = os.path.join(get_target_memory_dir("swahili", lang_id), "cleaned_translations.json")
+    extract_conlang_xnli(json_path=json_path, balance=True)
     
     # translate corpus
     # translate_dataset_for_target(
@@ -111,17 +116,16 @@ if __name__ == "__main__":
     #     lang_id=lang_id,
     #     target_lang="swahili",
     #     num_batches=None, # runs all batches
-    #     iteration=iteration,
+    #     iteration=69,
     # )
     # translate_dataset_using_random(
     #     corpus=corpus,
     #     lang_id=lang_id,
-    #     average_hamming_dist="low",
-    #     num_in_group=1,
-    #     num_batches=None,
+    #     average_hamming_dist="high",
+    #     num_in_group=0,
+    #     num_batches=100,
     #     iteration=iteration,
     # )
-    
 
     # IGNORE BUT LEAVE BELOW
     

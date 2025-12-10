@@ -11,6 +11,7 @@ Here is the quality assessment:
 Please produce a corrected version of the translation that fixes all issues listed in the judgement, focusing on priority 1 issues.
 Apply every correction as specified. 
 For any new word with conflicts, change it exactly how specified by the judgement.
+Output ALL the sentences in the original content in the same order! If no corrections were needed for the corresponding sentence, DO NOT change it. 
 
 Do NOT introduce any new grammar rules beyond what is implied by the feature vector and affix inventory.
 

@@ -315,13 +315,6 @@ def main():
     # Extract new words from translation outputs (assuming QA/amend already done)
     # IMPORTANT: we now assume extract_new_vocabulary works from memory_dir
     new_words = extract_new_vocabulary(lang_dir, args.iteration)
-
-    if not new_words:
-        logger.info("No new words extracted from translation.")
-        # Even if no new words, we can still append sentences that passed QA
-        append_sentences_to_valid_translations(args.memory_dir, args.iteration, args.input_sentences)
-        update_metadata_with_translation_qa(lang_dir, args.iteration)
-        return
     
     # Still update QA metadata, but do not accept this batch into the stable dataset
     has_conflicts = update_metadata_with_translation_qa(lang_dir, args.iteration)
