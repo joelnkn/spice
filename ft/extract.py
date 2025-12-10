@@ -53,7 +53,7 @@ def extract_indic(language, split):
     return load_dataset("mteb/IndicSentiment", language, split=split).filter(lambda row: row["LABEL"] is not None)
 
 
-def extract_conlang_xnli(json_path: str, split="train", balance=False) -> Dataset:
+def extract_conlang_xnli(json_path: str, split="train", balance=False, balance_type="avg") -> Dataset:
     with open(json_path, "r", encoding="utf-8") as f:
         sentences = json.load(f)["sentences"]
     
@@ -146,11 +146,13 @@ def extract_conlang_xnli(json_path: str, split="train", balance=False) -> Datase
 
         min_count = min(counts.values())
         max_count = max(counts.values())
-
-        # Choose your strategy:
-        # 1) target_per_label = max_count          # upsample everything to majority size
-        # 2) target_per_label = int((min_count + max_count) / 2)  # compromise
-        target_per_label = int((min_count + max_count) / 2)
+        
+        if balance_type == "min":
+            target_per_label = min_count
+        elif balance_type == "max":
+            target_per_label = max_count
+        else:
+            target_per_label = int((min_count + max_count) / 2)
 
         print(f"Balancing dataset to ~{target_per_label} examples per label")
 
