@@ -280,7 +280,7 @@ DATASET_FORMAT = {
     "xnli-conlang": lambda x: x,
 }
 
-def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None, balance=False):
+def extract(dataset_name="xnli", k=None, language="all", split="train", seed=None, balance=False, balance_type="avg"):
     """
     Extract k random examples from dataset.
     
@@ -342,12 +342,12 @@ def main():
                        help="Random seed for reproducibility")
     parser.add_argument("--balance", action="store_true",
                        help="Balance dataset to 50 examples per label (only for xnli-conlang)")
-    # parser.add_argument("--balance_type", type=str, default="avg", choices=["min", "max", "avg"],
-    #                    help="Balancing strategy: 'min' (to minority size), 'max' (to majority size), 'avg' (compromise)")
+    parser.add_argument("--balance_type", type=str, default="avg", choices=["min", "max", "avg"],
+                       help="Balancing strategy: 'min' (to minority size), 'max' (to majority size), 'avg' (compromise)")
     
     args = parser.parse_args()
 
-    examples = extract(args.dataset, args.k, args.language, args.split, args.seed, args.balance)
+    examples = extract(args.dataset, args.k, args.language, args.split, args.seed, args.balance, args.balance_type)
     # Save to file if output_path is provided
     if args.output:
         print(f"Saving to {args.output}...")
