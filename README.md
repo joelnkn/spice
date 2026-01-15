@@ -13,7 +13,7 @@ spice/
 │   └── generate.sh      # Language generation
 ├── synthetic/           # Synthetic language generation module
 │   ├── config.py        # Configuration management
-│   ├── conglanger.py    # Conglanger import wrapper
+│   ├── conlanger.py    # Conlanger import wrapper
 │   ├── data/            # Data directories (raw, processed)
 │   ├── generation/      # Language generation
 │   │   └── api.py       # High-level API
@@ -22,8 +22,7 @@ spice/
 │   │   ├── features.py    # Parse/vectorize features
 │   │   └── similarity.py  # Language distance metrics
 │   └── utils/           # Utility functions
-├── third_party/         # Third-party code/submodules
-│   └── conglanger/      # Conglanger submodule
+├── conlanger/           # Conlanger submodule
 ├── requirements.txt     # Python dependencies
 ├── setup.py            # Package installation
 └── README.md           # This file
@@ -32,11 +31,13 @@ spice/
 ## Setup
 
 1. **Initialize environment:**
+
    ```bash
    bash scripts/setup.sh
    ```
 
 2. **Install package (optional, for development):**
+
    ```bash
    pip install -e .
    ```
@@ -55,7 +56,7 @@ spice/
 
 ```python
 from synthetic.generation.api import generate_consistent_language, translate
-from synthetic.conglanger import create_llm_client
+from synthetic.conlanger import create_llm_client
 from synthetic.typology.extraction import extract_features
 
 # Generate a language trained on a corpus
@@ -80,15 +81,13 @@ python -m synthetic.generation.api
 
 - **`synthetic.generation`** - Language generation pipeline
   - `api.py` - High-level functions for generating and using languages
-  
 - **`synthetic.typology`** - Typological analysis
   - `extraction.py` - Extract WALS-style features using LLM
   - `features.py` - Parse and vectorize extracted features
   - `similarity.py` - Compute typological distances
-  
-- **`synthetic.conglanger`** - Wrapper for Conglanger functionality
-  - Provides clean imports of Conglanger functions
-  - Includes `run_conglanger()` for CLI execution
+- **`synthetic.conlanger`** - Wrapper for conlanger functionality
+  - Provides clean imports of conlanger functions
+  - Includes `run_conlanger()` for CLI execution
 
 ## Citation
 

@@ -361,8 +361,8 @@ def check_new_word_conflicts(new_words: List[Dict[str, str]], args) -> List[Dict
 def get_specification_dir(prompt_dir: str, lang_name: str, random: bool) -> str:
     """
     Get the directory path for specifications based on language type.
-    prompt_dir is expected to be in third_party/conglanger/prompts
-    base_specifications is in third_party/conglanger/base_specifications
+    prompt_dir is expected to be in conlanger/prompts
+    base_specifications is in conlanger/base_specifications
     """
     base_path = os.path.normpath(os.path.join(prompt_dir, '..', 'base_specifications'))
 

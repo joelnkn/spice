@@ -1,5 +1,5 @@
 # Core dependencies for synthetic language generation
--r third_party/conglanger/requirements.txt
+-r conlanger/requirements.txt
 
 # Fine-tuning dependencies
 transformers>=4.44

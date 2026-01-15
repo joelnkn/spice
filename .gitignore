@@ -40,17 +40,17 @@ synthetic/data/raw/*
 synthetic/data/processed/*
 !synthetic/data/processed/.gitkeep
 synthetic/outputs/
-/third_party/conglanger/output/
+/conlanger/output/
 *.csv
 *.json
 *.pkl
 *.pt
 *.pth
 
-# Allow base_specifications in conglanger (tracked data files)
-!third_party/conglanger/base_specifications/
-!third_party/conglanger/base_specifications/**/*.csv
-!third_party/conglanger/base_specifications/**/*.json
+# Allow base_specifications in conlanger (tracked data files)
+!conlanger/base_specifications/
+!conlanger/base_specifications/**/*.csv
+!conlanger/base_specifications/**/*.json
 
 # Fine-tuning data and outputs
 outputs/

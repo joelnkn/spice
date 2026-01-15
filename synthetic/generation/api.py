@@ -7,7 +7,7 @@ from synthetic.utils import clean_translations, get_latest_random_id, get_latest
 # Load environment variables from .env file
 load_dotenv()
 
-from synthetic.conglanger import run_conglanger
+from synthetic.conlanger import run_conlanger
 from datasets import load_dataset
 from torch.utils.data import Dataset, DataLoader
 
@@ -35,7 +35,7 @@ def get_xnli_batches():
     return loader
 
 def apply_step_for_random(step, lang_id, average_hamming_dist, num_in_group, iteration=-1, batch=None):
-    return run_conglanger(
+    return run_conlanger(
         lang_name=f"{average_hamming_dist}_{num_in_group}",
         run_name=f'random/{average_hamming_dist}_{num_in_group}',
         random=True,
@@ -46,7 +46,7 @@ def apply_step_for_random(step, lang_id, average_hamming_dist, num_in_group, ite
     )
 
 def apply_step_for_target(step, lang_id, target_lang, iteration=-1, batch=None):
-    return run_conglanger(
+    return run_conlanger(
         lang_name=target_lang,
         run_name=target_lang,
         random=False,

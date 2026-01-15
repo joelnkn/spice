@@ -30,15 +30,15 @@ def load_feature_dict(lang_name: str) -> Dict[str, str]:
     Returns:
         Dictionary containing feature vector for the language
     """
-    # Find the project root by looking for third_party
+    # Find the project root by looking for conlanger
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = current_dir
     while project_root != os.path.dirname(project_root):  # Until we reach filesystem root
-        if os.path.exists(os.path.join(project_root, 'third_party')):
+        if os.path.exists(os.path.join(project_root, 'conlanger')):
             break
         project_root = os.path.dirname(project_root)
     
-    base_spec_dir = os.path.join(project_root, 'third_party', 'conglanger', 'base_specifications')
+    base_spec_dir = os.path.join(project_root, 'conlanger', 'base_specifications')
     
     # Check if lang_name matches pattern: low_N or high_N
     parts = lang_name.split('_')

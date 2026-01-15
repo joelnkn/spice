@@ -1,16 +1,16 @@
-"""Wrapper module for conglanger to enable clean imports."""
+"""Wrapper module for conlanger to enable clean imports."""
 
 import os
 import sys
-from synthetic.config import CONGLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
+from synthetic.config import CONLANGER_PATH, OUTPUT_DIR, PROMPT_DIR
 from synthetic.utils.logger import setup_logger
 
-# Add conglanger to path
-_conglanger_src = os.path.join(os.path.dirname(__file__), '../third_party/conglanger/src')
-if _conglanger_src not in sys.path:
-    sys.path.insert(0, _conglanger_src)
+# Add conlanger to path
+_conlanger_src = os.path.join(os.path.dirname(__file__), '../conlanger/src')
+if _conlanger_src not in sys.path:
+    sys.path.insert(0, _conlanger_src)
 
-def run_conglanger(
+def run_conlanger(
     lang_name,
     run_name=None,
     random=False,
@@ -34,7 +34,7 @@ def run_conglanger(
     debug=False,
     extra_args=None,
 ):
-    """Wrapper for running Conglanger's run_pipeline.py as a subprocess.
+    """Wrapper for running conlanger's run_pipeline.py as a subprocess.
     
     This calls the CLI tool as a subprocess, which is useful for:
     - Running in a separate process
@@ -51,9 +51,9 @@ def run_conglanger(
     logger = setup_logger("generate_language")
 
     # Resolve paths
-    if not os.path.exists(CONGLANGER_PATH):
+    if not os.path.exists(CONLANGER_PATH):
         raise FileNotFoundError(
-            f"Conglanger entry point not found at: {CONGLANGER_PATH}"
+            f"conlanger entry point not found at: {CONLANGER_PATH}"
         )
 
     os.makedirs(output_dir, exist_ok=True)
@@ -65,7 +65,7 @@ def run_conglanger(
     # Build base command
     cmd = [
         sys.executable,
-        CONGLANGER_PATH,
+        CONLANGER_PATH,
         "--model",
         model,
         "--steps",
@@ -125,7 +125,7 @@ def run_conglanger(
     # Run subprocess
     import subprocess
     
-    logger.info(f"Running Conglanger pipeline for run: {run_name}")
+    logger.info(f"Running conlanger pipeline for run: {run_name}")
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info(f"Output directory: {output_dir}")
     
@@ -133,15 +133,15 @@ def run_conglanger(
     result = subprocess.run(cmd, check=True)
     
     if result.returncode != 0:
-        logger.error(f"Conglanger pipeline failed with exit code {result.returncode}")
-        raise RuntimeError(f"Conglanger pipeline failed")
+        logger.error(f"conlanger pipeline failed with exit code {result.returncode}")
+        raise RuntimeError(f"conlanger pipeline failed")
 
-    logger.info("Conglanger pipeline completed successfully.")
+    logger.info("conlanger pipeline completed successfully.")
 
     return output_dir
 
 
 __all__ = [
     # High-level runner
-    'run_conglanger',
+    'run_conlanger',
 ]

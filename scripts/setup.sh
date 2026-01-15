@@ -26,13 +26,13 @@ fi
 echo "==> Installing main requirements..."
 pip install -r requirements.txt
 
-# Install Conglanger dependencies if present
-CONGL_DIR="third_party/conglanger"
+# Install conlanger dependencies if present
+CONGL_DIR="conlanger"
 if [ -d "$CONGL_DIR" ] && [ -f "$CONGL_DIR/requirements.txt" ]; then
-  echo "==> Installing Conglanger requirements..."
+  echo "==> Installing conlanger requirements..."
   pip install -r "$CONGL_DIR/requirements.txt"
 else
-  echo "==> Conglanger requirements not found (ok if not added yet)."
+  echo "==> conlanger requirements not found (ok if not added yet)."
 fi
 
 # Setup directories
