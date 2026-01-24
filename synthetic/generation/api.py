@@ -59,7 +59,7 @@ def apply_step_for_target(step, lang_id, target_lang, iteration=-1, batch=None):
 def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in_group, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_xnli_batches()
-    for batch_idx, batch in enumerate(dataset, iteration):
+    for batch_idx, batch in enumerate(dataset, start=iteration):
         if num_batches is not None and batch_idx > num_batches:
             break
         print(f"Translating (batch {batch_idx}): {batch[:20]}... for {lang_id}")
@@ -77,11 +77,11 @@ def translate_dataset_using_random(corpus, lang_id, average_hamming_dist, num_in
 def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None, iteration=0):
     results = []
     dataset = corpus if corpus is not None else get_xnli_batches()
-    for batch_idx, batch in enumerate(dataset, iteration):
+    for batch_idx, batch in enumerate(dataset, start=iteration):
         print(f"num_batches and batch_idx: {num_batches}, {batch_idx}")
         if num_batches is not None and batch_idx > num_batches:
             break
-        print(f"Translating (batch {batch_idx}): {batch[:20]}... for{lang_id}")
+        print(f"Translating (batch {batch_idx}): {batch[:20]}... for {lang_id}")
         result = apply_step_for_target(
             step="translation",
             lang_id=lang_id,
@@ -93,7 +93,8 @@ def translate_dataset_for_target(corpus, lang_id, target_lang, num_batches=None,
     return results
 
 if __name__ == "__main__":
-    # corpus = get_xnli_batches() 
+    corpus = get_xnli_batches() 
+    print(f"Number of batches in corpus: {len(corpus)}")
     # start a new attempt for translating a language
     lang_id = get_latest_target_id("swahili")
     # lang_id = get_new_random_id("high", 0)
@@ -102,22 +103,22 @@ if __name__ == "__main__":
     # lang_id = get_latest_target_id("swahili") 
     # iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
     # lang_id = get_latest_random_id("low", 0)
-    # iteration = 0
+    iteration = 364
     # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
     
     #clean_translations(get_target_memory_dir("swahili", lang_id))
     
-    json_path = os.path.join(get_target_memory_dir("swahili", lang_id), "cleaned_translations.json")
-    extract_conlang_xnli(json_path=json_path, balance=True)
+    # json_path = os.path.join(get_target_memory_dir("swahili", lang_id), "cleaned_translations.json")
+    # extract_conlang_xnli(json_path=json_path, balance=True)
     
     # translate corpus
-    # translate_dataset_for_target(
-    #     corpus=corpus,
-    #     lang_id=lang_id,
-    #     target_lang="swahili",
-    #     num_batches=None, # runs all batches
-    #     iteration=69,
-    # )
+    translate_dataset_for_target(
+        corpus=corpus,
+        lang_id=lang_id,
+        target_lang="swahili",
+        num_batches=None, # runs all batches
+        iteration=iteration,
+    )
     # translate_dataset_using_random(
     #     corpus=corpus,
     #     lang_id=lang_id,

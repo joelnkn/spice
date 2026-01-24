@@ -15,7 +15,7 @@ def run_conlanger(
     run_name=None,
     random=False,
     iteration=0,
-    model="gemini-2.5-pro", # prob should change back to gemini-2.5-pro
+    model="gemini-2.5-pro", 
     steps=("affix", "lexicon"),
     custom_constraints=None,
     translation_sentence=None,
