@@ -103,7 +103,7 @@ if __name__ == "__main__":
     # lang_id = get_latest_target_id("swahili") 
     # iteration = get_latest_target_iteration("swahili", lang_id) + 1 # plug in this value below to start on next iteration
     # lang_id = get_latest_random_id("low", 0)
-    iteration = 364
+    iteration = 378
     # iteration = get_latest_random_iteration("low", 0, lang_id) + 1
     
     #clean_translations(get_target_memory_dir("swahili", lang_id))
